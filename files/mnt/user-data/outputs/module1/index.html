@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 1 — Introduction to ML | Svyasa</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;1,300&family=IBM+Plex+Serif:ital,wght@0,300;1,300&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#161616;--layer-01:#262626;--layer-02:#393939;--layer-03:#525252;
+  --hover-01:#333333;--bdr-00:#393939;--bdr-01:#474747;--bdr-str:#6f6f6f;
+  --txt-pri:#f4f4f4;--txt-sec:#c6c6c6;--txt-ph:#6f6f6f;
+  --blue:#4589ff;--blue-hov:#0f62fe;--link:#78a9ff;
+  --success:#42be65;--warn:#f1c21b;--error:#ff8389;--teal:#3ddbd9;
+  --m1:#4589ff;--m1-dim:rgba(69,137,255,.1);
+  --t1-c:#4589ff;--t2-c:#42be65;--t3-c:#3ddbd9;--t4-c:#d4bbff;--t5-c:#f1c21b;
+}
+html.light{
+  --bg:#fff;--layer-01:#f4f4f4;--layer-02:#e0e0e0;--layer-03:#c6c6c6;
+  --hover-01:#e8e8e8;--bdr-00:#e0e0e0;--bdr-01:#c6c6c6;--bdr-str:#8d8d8d;
+  --txt-pri:#161616;--txt-sec:#525252;--txt-ph:#8d8d8d;
+  --blue:#0f62fe;--blue-hov:#0043ce;--link:#0043ce;
+  --success:#198038;--warn:#b28600;--error:#da1e28;--teal:#007d79;
+  --m1:#0f62fe;--m1-dim:rgba(15,98,254,.08);
+  --t1-c:#0f62fe;--t2-c:#198038;--t3-c:#007d79;--t4-c:#6929c4;--t5-c:#b28600;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'IBM Plex Sans',sans-serif;font-size:15px;line-height:1.6;background:var(--bg);color:var(--txt-pri);-webkit-font-smoothing:antialiased;transition:background .25s,color .2s}
+a{text-decoration:none;color:inherit}
+
+/* Topbar */
+.topbar{position:sticky;top:0;z-index:100;background:var(--layer-01);border-bottom:1px solid var(--bdr-00);height:56px;display:flex;align-items:center;padding:0 32px;gap:12px;transition:background .25s}
+.topbar-back{display:flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-ph);letter-spacing:.05em;text-decoration:none;transition:color .15s}
+.topbar-back:hover{color:var(--link)}
+.topbar-div{width:1px;height:18px;background:var(--bdr-00)}
+.topbar-title{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--txt-pri);letter-spacing:.06em}
+.topbar-badge{height:20px;padding:0 8px;background:var(--m1-dim);border:1px solid var(--m1);font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--m1);letter-spacing:.06em;display:flex;align-items:center}
+.tog-btn{margin-left:auto;display:flex;align-items:center;gap:7px;padding:5px 11px;background:transparent;border:1px solid var(--bdr-01);cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-sec);letter-spacing:.05em;transition:background .15s}
+.tog-btn:hover{background:var(--hover-01);color:var(--txt-pri)}
+.tog-track{width:26px;height:13px;background:var(--bdr-str);border-radius:7px;position:relative;flex-shrink:0;transition:background .25s}
+.tog-thumb{position:absolute;top:2px;left:2px;width:9px;height:9px;border-radius:50%;background:#fff;transition:transform .25s}
+html.light .tog-track{background:var(--blue)}
+html.light .tog-thumb{transform:translateX(13px)}
+
+/* Hero */
+.hero{max-width:1100px;margin:0 auto;padding:56px 32px 48px;border-bottom:1px solid var(--bdr-00)}
+.hero-eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.12em;color:var(--m1);text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.hero-eyebrow::before{content:'';display:inline-block;width:16px;height:1px;background:var(--m1)}
+h1{font-family:'IBM Plex Serif',serif;font-size:clamp(28px,4vw,44px);font-weight:300;line-height:1.15;color:var(--txt-pri);margin-bottom:16px}
+h1 em{font-style:italic;color:var(--link)}
+.hero-desc{font-size:16px;font-weight:300;color:var(--txt-sec);max-width:600px;line-height:1.7;margin-bottom:28px}
+.hero-stats{display:flex;gap:0;border:1px solid var(--bdr-00);width:fit-content}
+.stat{padding:12px 22px;border-right:1px solid var(--bdr-00);font-family:'IBM Plex Mono',monospace}
+.stat:last-child{border-right:none}
+.stat-n{font-size:22px;font-weight:600;color:var(--txt-pri);line-height:1}
+.stat-l{font-size:10px;color:var(--txt-ph);letter-spacing:.08em;text-transform:uppercase;margin-top:3px}
+
+/* Topics grid */
+.topics-wrap{max-width:1100px;margin:0 auto;padding:40px 32px 80px}
+.section-lbl{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.section-lbl-txt{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;color:var(--txt-ph);text-transform:uppercase;white-space:nowrap}
+.section-lbl-line{flex:1;height:1px;background:var(--bdr-00)}
+
+.topics-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--bdr-00);border:1px solid var(--bdr-00)}
+.topic-card{background:var(--layer-01);padding:28px;display:flex;flex-direction:column;gap:12px;position:relative;overflow:hidden;transition:background .15s;text-decoration:none;color:inherit}
+.topic-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--tc);transform:scaleX(0);transform-origin:left;transition:transform .25s}
+.topic-card:hover{background:var(--hover-01)}
+.topic-card:hover::before{transform:scaleX(1)}
+
+.topic-num{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;color:var(--txt-ph);display:flex;align-items:center;gap:6px}
+.topic-num-dot{width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--bg);background:var(--tc);font-family:'IBM Plex Mono',monospace;flex-shrink:0}
+.topic-title{font-family:'IBM Plex Serif',serif;font-size:18px;font-weight:300;color:var(--txt-pri);line-height:1.3}
+.topic-desc{font-size:13px;font-weight:300;color:var(--txt-sec);line-height:1.6;flex:1}
+.topic-subtopics{display:flex;flex-direction:column;gap:0}
+.subtopic{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-sec);padding:5px 0;border-bottom:1px solid var(--bdr-00);display:flex;align-items:flex-start;gap:6px;line-height:1.4}
+.subtopic:last-child{border-bottom:none}
+.sub-dot{width:3px;height:3px;border-radius:50%;background:var(--tc);flex-shrink:0;margin-top:4px}
+.topic-footer{display:flex;align-items:center;justify-content:space-between;padding-top:12px;border-top:1px solid var(--bdr-00);margin-top:auto}
+.topic-time{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph)}
+.topic-open{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--tc);letter-spacing:.05em;display:flex;align-items:center;gap:4px;transition:gap .15s}
+.topic-card:hover .topic-open{gap:8px}
+
+/* Mobile */
+@media(max-width:640px){
+  .topbar{padding:0 16px}
+  .topbar-title{display:none}
+  .hero{padding:40px 16px 32px}
+  .topics-wrap{padding:24px 16px 60px}
+  .topics-grid{grid-template-columns:1fr}
+  .hero-stats{flex-wrap:wrap}
+  .stat{border-bottom:1px solid var(--bdr-00);border-right:none;width:50%}
+}
+@media(min-width:641px) and (max-width:900px){
+  .topics-grid{grid-template-columns:1fr 1fr}
+}
+
+.topic-card{opacity:0;transform:translateY(12px);animation:ci .4s ease forwards}
+.topic-card:nth-child(1){animation-delay:.05s}.topic-card:nth-child(2){animation-delay:.1s}
+.topic-card:nth-child(3){animation-delay:.15s}.topic-card:nth-child(4){animation-delay:.2s}
+.topic-card:nth-child(5){animation-delay:.25s}
+@keyframes ci{to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <a class="topbar-back" href="../index.html">← Home</a>
+  <div class="topbar-div"></div>
+  <span class="topbar-title">MODULE 01</span>
+  <span class="topbar-badge">Sem 4 · B.Tech CSE</span>
+  <button class="tog-btn" onclick="toggleTheme()">
+    <span id="tog-icon">☀</span><span id="tog-txt">Light</span>
+    <span class="tog-track"><span class="tog-thumb"></span></span>
+  </button>
+</header>
+
+<div class="hero">
+  <div class="hero-eyebrow">Module 01</div>
+  <h1>Introduction to<br><em>Machine Learning</em></h1>
+  <p class="hero-desc">From understanding what ML actually is, to building a complete workflow, working with real data types, processing techniques, and dimensionality reduction — this module lays the foundation for everything that follows.</p>
+  <div class="hero-stats">
+    <div class="stat"><div class="stat-n">5</div><div class="stat-l">Topics</div></div>
+    <div class="stat"><div class="stat-n">4</div><div class="stat-l">Types of learning</div></div>
+    <div class="stat"><div class="stat-n">11</div><div class="stat-l">Workflow steps</div></div>
+    <div class="stat"><div class="stat-n">3</div><div class="stat-l">Data methods</div></div>
+  </div>
+</div>
+
+<div class="topics-wrap">
+  <div class="section-lbl">
+    <span class="section-lbl-txt">Topics in this module</span>
+    <div class="section-lbl-line"></div>
+  </div>
+
+  <div class="topics-grid">
+
+    <!-- Topic 1 -->
+    <a class="topic-card" href="intro-ml.html" style="--tc:var(--t1-c)">
+      <div class="topic-num"><span class="topic-num-dot">1</span>Topic 01</div>
+      <div class="topic-title">Introduction to Machine Learning</div>
+      <p class="topic-desc">What ML really is, how it differs from traditional programming, and the four fundamental types of learning with real-world examples.</p>
+      <div class="topic-subtopics">
+        <div class="subtopic"><span class="sub-dot"></span>What is Machine Learning?</div>
+        <div class="subtopic"><span class="sub-dot"></span>Supervised Learning</div>
+        <div class="subtopic"><span class="sub-dot"></span>Unsupervised Learning</div>
+        <div class="subtopic"><span class="sub-dot"></span>Semi-Supervised & Reinforcement</div>
+        <div class="subtopic"><span class="sub-dot"></span>Applications of ML</div>
+      </div>
+      <div class="topic-footer">
+        <span class="topic-time">~25 min</span>
+        <span class="topic-open">Open <span>→</span></span>
+      </div>
+    </a>
+
+    <!-- Topic 2 -->
+    <a class="topic-card" href="ml-workflow.html" style="--tc:var(--t2-c)">
+      <div class="topic-num"><span class="topic-num-dot" style="color:var(--bg)">2</span>Topic 02</div>
+      <div class="topic-title">ML Framework & Workflow</div>
+      <p class="topic-desc">The complete 11-step ML pipeline from problem definition to deployment and monitoring, with a full student placement example walkthrough.</p>
+      <div class="topic-subtopics">
+        <div class="subtopic"><span class="sub-dot"></span>Problem definition to data collection</div>
+        <div class="subtopic"><span class="sub-dot"></span>EDA and preprocessing</div>
+        <div class="subtopic"><span class="sub-dot"></span>Model training and evaluation</div>
+        <div class="subtopic"><span class="sub-dot"></span>Deployment and monitoring</div>
+        <div class="subtopic"><span class="sub-dot"></span>End-to-end example</div>
+      </div>
+      <div class="topic-footer">
+        <span class="topic-time">~20 min</span>
+        <span class="topic-open">Open <span>→</span></span>
+      </div>
+    </a>
+
+    <!-- Topic 3 -->
+    <a class="topic-card" href="data-types.html" style="--tc:var(--t3-c)">
+      <div class="topic-num"><span class="topic-num-dot" style="color:var(--bg)">3</span>Topic 03</div>
+      <div class="topic-title">Data Types in ML</div>
+      <p class="topic-desc">Why data types matter, the difference between numerical, categorical, ordinal, and other data forms, and how ML converts everything into numbers.</p>
+      <div class="topic-subtopics">
+        <div class="subtopic"><span class="sub-dot"></span>Numerical — discrete & continuous</div>
+        <div class="subtopic"><span class="sub-dot"></span>Categorical data</div>
+        <div class="subtopic"><span class="sub-dot"></span>Ordinal data</div>
+        <div class="subtopic"><span class="sub-dot"></span>Text, image, and audio data</div>
+      </div>
+      <div class="topic-footer">
+        <span class="topic-time">~15 min</span>
+        <span class="topic-open">Open <span>→</span></span>
+      </div>
+    </a>
+
+    <!-- Topic 4 -->
+    <a class="topic-card" href="data-processing.html" style="--tc:var(--t4-c)">
+      <div class="topic-num"><span class="topic-num-dot" style="color:var(--bg)">4</span>Topic 04</div>
+      <div class="topic-title">Data Processing Methods</div>
+      <p class="topic-desc">The three essential preprocessing techniques — discretization (binning), normalization (scaling), and one-hot encoding — explained with code and intuition.</p>
+      <div class="topic-subtopics">
+        <div class="subtopic"><span class="sub-dot"></span>Discretization & binning types</div>
+        <div class="subtopic"><span class="sub-dot"></span>Min-Max normalization</div>
+        <div class="subtopic"><span class="sub-dot"></span>Z-Score standardization</div>
+        <div class="subtopic"><span class="sub-dot"></span>One-Hot Encoding</div>
+      </div>
+      <div class="topic-footer">
+        <span class="topic-time">~25 min</span>
+        <span class="topic-open">Open <span>→</span></span>
+      </div>
+    </a>
+
+    <!-- Topic 5 -->
+    <a class="topic-card" href="pca.html" style="--tc:var(--t5-c)">
+      <div class="topic-num"><span class="topic-num-dot" style="color:var(--bg)">5</span>Topic 05</div>
+      <div class="topic-title">Principal Component Analysis</div>
+      <p class="topic-desc">Why and when to reduce dimensionality, how PCA finds principal components through eigenvectors and eigenvalues, with a student marks worked example.</p>
+      <div class="topic-subtopics">
+        <div class="subtopic"><span class="sub-dot"></span>Why data reduction?</div>
+        <div class="subtopic"><span class="sub-dot"></span>Visual intuition of PCA</div>
+        <div class="subtopic"><span class="sub-dot"></span>Covariance matrix & eigenvectors</div>
+        <div class="subtopic"><span class="sub-dot"></span>Step-by-step worked example</div>
+      </div>
+      <div class="topic-footer">
+        <span class="topic-time">~30 min</span>
+        <span class="topic-open">Open <span>→</span></span>
+      </div>
+    </a>
+
+  </div>
+</div>
+
+<script>
+let isLight=false;
+function toggleTheme(){
+  isLight=!isLight;
+  document.documentElement.classList.toggle('light',isLight);
+  document.getElementById('tog-icon').textContent=isLight?'◑':'☀';
+  document.getElementById('tog-txt').textContent=isLight?'Dark':'Light';
+}
+document.addEventListener('contextmenu',e=>e.preventDefault());
+document.addEventListener('keydown',e=>{if(e.key==='F12'||(e.ctrlKey&&e.shiftKey&&['I','J','C'].includes(e.key))||(e.ctrlKey&&e.key==='U'))e.preventDefault();});
+</script>
+</body>
+</html>

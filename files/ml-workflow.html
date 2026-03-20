@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ML Framework & Workflow | Module 1</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;1,300&family=IBM+Plex+Serif:ital,wght@0,300;1,300&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#161616;--layer-01:#262626;--layer-02:#393939;--layer-03:#525252;--hover-01:#333333;--bdr-00:#393939;--bdr-01:#474747;--bdr-str:#6f6f6f;--txt-pri:#f4f4f4;--txt-sec:#c6c6c6;--txt-ph:#6f6f6f;--blue:#4589ff;--link:#78a9ff;--success:#42be65;--warn:#f1c21b;--error:#ff8389;--teal:#3ddbd9;--purple:#d4bbff;--ac:#42be65;}
+html.light{--bg:#fff;--layer-01:#f4f4f4;--layer-02:#e0e0e0;--layer-03:#c6c6c6;--hover-01:#e8e8e8;--bdr-00:#e0e0e0;--bdr-01:#c6c6c6;--bdr-str:#8d8d8d;--txt-pri:#161616;--txt-sec:#525252;--txt-ph:#8d8d8d;--blue:#0f62fe;--link:#0043ce;--success:#198038;--warn:#b28600;--error:#da1e28;--teal:#007d79;--purple:#6929c4;--ac:#198038;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}body{font-family:'IBM Plex Sans',sans-serif;font-size:15px;line-height:1.6;background:var(--bg);color:var(--txt-pri);-webkit-font-smoothing:antialiased;transition:background .25s,color .2s}a{text-decoration:none;color:inherit}
+.page-grid{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+.sidenav{background:var(--layer-01);border-right:1px solid var(--bdr-00);position:sticky;top:0;height:100vh;overflow-y:auto;padding-bottom:32px;transition:background .25s,border-color .2s}
+.nav-hdr{padding:16px;border-bottom:1px solid var(--bdr-00);margin-bottom:4px}
+.nav-back{display:flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph);letter-spacing:.06em;margin-bottom:8px;transition:color .15s}
+.nav-back:hover{color:var(--link)}
+.nav-mod{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;color:var(--ac);text-transform:uppercase;margin-bottom:3px}
+.nav-title{font-size:13px;font-weight:600;color:var(--txt-pri);line-height:1.3}
+.nav-sec{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;color:var(--txt-ph);text-transform:uppercase;padding:12px 16px 4px}
+.nav-item{display:flex;align-items:center;gap:8px;padding:8px 16px;font-size:13px;color:var(--txt-sec);cursor:pointer;border-left:3px solid transparent;transition:background .1s,color .1s,border-color .1s;text-decoration:none}
+.nav-item:hover{background:var(--hover-01);color:var(--txt-pri)}
+.nav-item.active{background:var(--hover-01);color:var(--txt-pri);border-left-color:var(--ac);font-weight:600}
+.nav-item.active .nn{color:var(--ac)}
+.nn{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--txt-ph);min-width:16px;transition:color .15s}
+.tog-area{padding:20px 16px 0}
+.tog-btn{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding:8px 10px;background:var(--layer-02);border:1px solid var(--bdr-01);cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-sec);letter-spacing:.05em;transition:background .15s}
+.tog-btn:hover{background:var(--hover-01);color:var(--txt-pri)}
+.tog-track{width:26px;height:13px;background:var(--bdr-str);border-radius:7px;position:relative;flex-shrink:0;transition:background .25s}
+.tog-thumb{position:absolute;top:2px;left:2px;width:9px;height:9px;border-radius:50%;background:#fff;transition:transform .25s}
+html.light .tog-track{background:var(--ac)}html.light .tog-thumb{transform:translateX(13px)}
+.mob-topbar{display:none;position:fixed;top:0;left:0;right:0;z-index:200;height:52px;background:var(--layer-01);border-bottom:1px solid var(--bdr-00);align-items:center;padding:0 16px;gap:8px;transition:background .25s}
+.mob-menu-btn{width:34px;height:34px;background:transparent;border:1px solid var(--bdr-01);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-direction:column;gap:4px}
+.mob-bar{width:14px;height:1.5px;background:var(--txt-pri)}
+.mob-title{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--txt-pri);flex:1;letter-spacing:.04em}
+.mob-tog{width:34px;height:34px;background:transparent;border:1px solid var(--bdr-01);cursor:pointer;font-size:14px;color:var(--txt-sec)}
+.nav-overlay{display:none;position:fixed;inset:0;z-index:150;background:rgba(0,0,0,.6);opacity:0;transition:opacity .25s}
+.nav-overlay.open{opacity:1}
+.nav-drawer{position:fixed;left:0;top:0;bottom:0;z-index:160;width:260px;background:var(--layer-01);border-right:1px solid var(--bdr-00);overflow-y:auto;transform:translateX(-100%);transition:transform .3s cubic-bezier(.4,0,.2,1);padding-bottom:32px}
+.nav-drawer.open{transform:translateX(0)}
+.main{padding:0 48px 100px;max-width:820px;transition:background .25s}
+.page-hdr{padding:52px 0 40px;border-bottom:1px solid var(--bdr-00);margin-bottom:52px}
+.breadcrumb{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-ph);letter-spacing:.05em;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.breadcrumb a{color:var(--link);transition:opacity .15s}.breadcrumb a:hover{opacity:.7}
+h1{font-family:'IBM Plex Serif',serif;font-size:clamp(26px,4vw,38px);font-weight:300;line-height:1.15;color:var(--txt-pri);margin-bottom:12px}
+h1 em{font-style:italic;color:var(--link)}
+.hdr-desc{font-size:15px;font-weight:300;color:var(--txt-sec);max-width:580px;line-height:1.7}
+.section{margin-bottom:60px;opacity:0;transform:translateY(14px);animation:fadeUp .4s ease forwards}
+.section:nth-child(1){animation-delay:.05s}.section:nth-child(2){animation-delay:.1s}.section:nth-child(3){animation-delay:.15s}.section:nth-child(4){animation-delay:.2s}.section:nth-child(5){animation-delay:.25s}
+@keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;color:var(--ac);text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.eyebrow::before{content:'';display:inline-block;width:14px;height:1px;background:var(--ac)}
+h2{font-family:'IBM Plex Serif',serif;font-size:24px;font-weight:300;color:var(--txt-pri);margin-bottom:14px;line-height:1.25}
+h3{font-size:15px;font-weight:600;color:var(--txt-pri);margin-bottom:8px}
+p{font-size:14px;font-weight:300;color:var(--txt-sec);margin-bottom:12px;line-height:1.75}
+p strong{color:var(--txt-pri);font-weight:600}
+.hl{color:var(--link);font-weight:600}.hl-g{color:var(--success);font-weight:600}.hl-r{color:var(--error);font-weight:600}.hl-y{color:var(--warn);font-weight:600}
+.callout{border-left:3px solid var(--ac);background:var(--layer-01);padding:14px 18px;margin:14px 0;font-size:14px;font-weight:300;color:var(--txt-sec);line-height:1.75;transition:background .25s}
+.callout strong{color:var(--txt-pri);font-weight:600}
+.callout-y{border-left-color:var(--warn)}.callout-r{border-left-color:var(--error)}.callout-b{border-left-color:#4589ff}
+.tile{background:var(--layer-01);border:1px solid var(--bdr-00);padding:20px 24px;margin-bottom:12px;transition:background .25s,border-color .2s}
+.tile-title{font-size:13px;font-weight:600;color:var(--txt-pri);margin-bottom:12px}
+.kv{display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--bdr-00);font-size:13px;gap:12px}
+.kv:last-child{border-bottom:none}
+.kk{color:var(--txt-sec);font-weight:300;flex-shrink:0}.kv-v{color:var(--txt-pri);font-weight:400;text-align:right}
+.tag{display:inline-flex;align-items:center;height:22px;padding:0 10px;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.03em;margin-bottom:10px}
+.t-bl{background:#0043ce;color:#a6c8ff}.t-gr{background:#044317;color:#a7f0ba}.t-pu{background:#491d8b;color:#d4bbff}.t-am{background:#533b00;color:#f1c21b}.t-te{background:#005d5d;color:#3ddbd9}
+html.light .t-bl{background:#d0e2ff;color:#0043ce}html.light .t-gr{background:#a7f0ba;color:#044317}html.light .t-pu{background:#e8daff;color:#491d8b}html.light .t-am{background:#ffd6a4;color:#4d3800}html.light .t-te{background:#9ef0f0;color:#005d5d}
+.formula{font-family:'IBM Plex Mono',monospace;font-size:13px;background:var(--layer-02);border:1px solid var(--bdr-01);border-left:3px solid var(--ac);padding:11px 15px;margin:10px 0;line-height:2;color:var(--txt-pri);transition:background .25s}
+hr{border:none;border-top:1px solid var(--bdr-00);margin:44px 0}
+.page-nav{display:flex;justify-content:space-between;align-items:center;padding-top:40px;border-top:1px solid var(--bdr-00);margin-top:60px}
+.page-nav-btn{display:flex;align-items:center;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-sec);padding:10px 16px;border:1px solid var(--bdr-01);background:transparent;cursor:pointer;transition:background .15s,color .15s;text-decoration:none}
+.page-nav-btn:hover{background:var(--hover-01);color:var(--txt-pri)}
+.page-nav-btn.primary{background:var(--ac);border-color:var(--ac);color:#fff}
+.page-nav-btn.primary:hover{opacity:.9}
+
+/* Workflow stepper */
+.wf-steps{display:flex;flex-direction:column;gap:0}
+.wf-step{display:grid;grid-template-columns:40px 1fr;gap:0;cursor:pointer}
+.wf-step-left{display:flex;flex-direction:column;align-items:center;padding-top:4px}
+.wf-step-num{width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;background:var(--layer-02);border:1px solid var(--bdr-01);color:var(--txt-ph);flex-shrink:0;transition:background .2s,color .2s,border-color .2s;z-index:1}
+.wf-step.active .wf-step-num,.wf-step:hover .wf-step-num{background:var(--ac);border-color:var(--ac);color:#fff}
+.wf-step-line{width:1px;flex:1;background:var(--bdr-00);margin:4px 0}
+.wf-step:last-child .wf-step-line{display:none}
+.wf-step-content{padding:0 0 20px 16px}
+.wf-step-title{font-size:14px;font-weight:600;color:var(--txt-pri);padding:4px 0 6px;line-height:1.3}
+.wf-step-body{font-size:13px;font-weight:300;color:var(--txt-sec);line-height:1.7;display:none;padding-bottom:6px}
+.wf-step.active .wf-step-body,.wf-step:hover .wf-step-body{display:block}
+.wf-step.active .wf-step-title,.wf-step:hover .wf-step-title{color:var(--ac)}
+
+/* Quiz */
+.quiz-wrap{background:var(--layer-01);border:1px solid var(--bdr-00);padding:20px 24px;margin:16px 0}
+.quiz-q{font-size:14px;font-weight:600;color:var(--txt-pri);margin-bottom:14px}
+.quiz-options{display:flex;flex-direction:column;gap:8px}
+.quiz-opt{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--layer-02);border:1px solid var(--bdr-01);cursor:pointer;font-size:13px;color:var(--txt-sec);transition:background .15s,border-color .15s}
+.quiz-opt:hover{background:var(--hover-01);color:var(--txt-pri)}
+.quiz-opt.correct{background:rgba(66,190,101,.12);border-color:var(--success);color:var(--success)}
+.quiz-opt.wrong{background:rgba(255,131,137,.1);border-color:var(--error);color:var(--error)}
+.quiz-opt.show-correct{background:rgba(66,190,101,.06);border-color:var(--success)}
+.quiz-feedback{margin-top:12px;padding:10px 14px;font-size:13px;font-weight:300;line-height:1.6;display:none;border-left:3px solid var(--success)}
+.quiz-feedback.show{display:block}
+.quiz-reset{margin-top:10px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--link);cursor:pointer;letter-spacing:.05em;background:transparent;border:none;display:none}
+.quiz-reset.show{display:block}
+
+@media(max-width:767px){.mob-topbar{display:flex}.sidenav{display:none}.page-grid{display:block}.main{padding:68px 16px 80px;max-width:100%}.page-hdr{padding:24px 0 20px;margin-bottom:32px}h1{font-size:24px}}
+@media(min-width:768px) and (max-width:1024px){.page-grid{grid-template-columns:200px 1fr}.main{padding:0 24px 80px}}
+</style>
+</head>
+<body>
+<div class="mob-topbar" id="mob-topbar">
+  <button class="mob-menu-btn" onclick="toggleDrawer()"><div class="mob-bar"></div><div class="mob-bar"></div><div class="mob-bar"></div></button>
+  <span class="mob-title">ML Workflow</span>
+  <button class="mob-tog" onclick="toggleTheme()" id="mob-tog">☀</button>
+</div>
+<div class="nav-overlay" id="nav-overlay" onclick="closeDrawer()"></div>
+<nav class="nav-drawer" id="nav-drawer"></nav>
+
+<div class="page-grid">
+<nav class="sidenav" id="sidenav">
+  <div class="nav-hdr">
+    <a class="nav-back" href="index.html">← Module 1</a>
+    <div class="nav-mod">Topic 02</div>
+    <div class="nav-title">ML Framework &amp; Workflow</div>
+  </div>
+  <div class="nav-sec">Sections</div>
+  <a class="nav-item active" href="#s1"><span class="nn">01</span>The full pipeline</a>
+  <a class="nav-item" href="#s2"><span class="nn">02</span>Steps 1–4</a>
+  <a class="nav-item" href="#s3"><span class="nn">03</span>Steps 5–8</a>
+  <a class="nav-item" href="#s4"><span class="nn">04</span>Steps 9–11</a>
+  <a class="nav-item" href="#s5"><span class="nn">05</span>End-to-end example</a>
+  <a class="nav-item" href="#s6"><span class="nn">06</span>Check your understanding</a>
+  <div class="tog-area">
+    <button class="tog-btn" onclick="toggleTheme()">
+      <span style="display:flex;align-items:center;gap:6px"><span id="tog-icon">☀</span><span id="tog-txt">Light theme</span></span>
+      <span class="tog-track"><span class="tog-thumb"></span></span>
+    </button>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph);margin-top:10px">IBM Carbon · <span id="theme-lbl">Dark</span></div>
+  </div>
+</nav>
+
+<main class="main">
+<div class="page-hdr">
+  <div class="breadcrumb"><a href="../index.html">Home</a><span>/</span><a href="index.html">Module 1</a><span>/</span><span style="color:var(--txt-sec)">ML Workflow</span></div>
+  <h1>ML Framework<br><em>&amp; Workflow</em></h1>
+  <p class="hdr-desc">Machine Learning is not just "run model.fit() and done." It's a complete 11-step process — from defining the problem to monitoring the deployed model in production.</p>
+</div>
+
+<!-- S1: Overview -->
+<div class="section" id="s1">
+  <div class="eyebrow">01 · The big picture</div>
+  <h2>The complete ML pipeline</h2>
+  <p>Before writing a single line of code, you need to understand the full picture. Most beginners jump straight to training. Professionals spend most of their time on the first four steps.</p>
+
+  <div class="formula" style="line-height:2.2;font-size:12px">
+    Problem Definition → Data Collection → Data Exploration → Data Preprocessing<br>
+    → Train-Test Split → Model Selection → Training → Evaluation → Improvement → Deployment → Monitoring
+  </div>
+
+  <div class="callout callout-y">
+    <strong>Key insight:</strong> ML is not magic. It's systematic. The quality of your model depends 80% on how well you execute steps 1–4 (problem definition, data collection, EDA, preprocessing). The algorithm choice matters much less than people think.
+  </div>
+
+  <div class="tile">
+    <div class="tile-title">Why does this order matter?</div>
+    <div class="kv"><span class="kk">Unclear problem</span><span class="kv-v" style="color:var(--error)">→ Everything becomes messy later</span></div>
+    <div class="kv"><span class="kk">Bad data</span><span class="kv-v" style="color:var(--error)">→ Bad model, no matter the algorithm</span></div>
+    <div class="kv"><span class="kk">No preprocessing</span><span class="kv-v" style="color:var(--error)">→ Model learns wrong patterns</span></div>
+    <div class="kv"><span class="kk">No test split</span><span class="kv-v" style="color:var(--error)">→ Overconfident, fails in production</span></div>
+    <div class="kv"><span class="kk">No monitoring</span><span class="kv-v" style="color:var(--error)">→ Model drifts over time, silently degrades</span></div>
+  </div>
+</div>
+
+<!-- S2: Steps 1-4 -->
+<div class="section" id="s2">
+  <div class="eyebrow">02 · Steps 1 to 4</div>
+  <h2>Understanding the problem &amp; data</h2>
+  <p>These four steps form the foundation. Rushing past them is the single biggest mistake beginners make. Click each step to expand.</p>
+
+  <div class="wf-steps">
+    <div class="wf-step active" onclick="this.classList.toggle('active')">
+      <div class="wf-step-left"><div class="wf-step-num">1</div><div class="wf-step-line"></div></div>
+      <div class="wf-step-content">
+        <div class="wf-step-title">Define the problem</div>
+        <div class="wf-step-body">What exactly are we solving? "Predict whether a student will get placed." Now clarify: Is this Yes/No? → Classification. Or predicting salary amount? → Regression. Also ask: Why are we building this? For analysis? For early intervention? For a dashboard? Clear problem = clean direction.</div>
+      </div>
+    </div>
+    <div class="wf-step" onclick="this.classList.toggle('active')">
+      <div class="wf-step-left"><div class="wf-step-num">2</div><div class="wf-step-line"></div></div>
+      <div class="wf-step-content">
+        <div class="wf-step-title">Collect the data</div>
+        <div class="wf-step-body">Now we need fuel. For placement prediction: CGPA, Internship count, Coding test score, Communication rating, Attendance, Final placement result. Data can come from databases, Excel sheets, APIs, surveys. No data → No learning. This step often takes the longest in real life.</div>
+      </div>
+    </div>
+    <div class="wf-step" onclick="this.classList.toggle('active')">
+      <div class="wf-step-left"><div class="wf-step-num">3</div><div class="wf-step-line"></div></div>
+      <div class="wf-step-content">
+        <div class="wf-step-title">Explore the data (EDA)</div>
+        <div class="wf-step-body">Don't train immediately. First, understand your data. Ask: How many rows? Missing values? Outliers? Distribution of CGPA? How many placed vs not placed? Maybe you discover 90% students are placed — that means your dataset is imbalanced. EDA helps you avoid future mistakes before they happen.</div>
+      </div>
+    </div>
+    <div class="wf-step" onclick="this.classList.toggle('active')">
+      <div class="wf-step-left"><div class="wf-step-num">4</div><div class="wf-step-line"></div></div>
+      <div class="wf-step-content">
+        <div class="wf-step-title">Preprocess the data</div>
+        <div class="wf-step-body">Real-world data is never perfect. You'll see missing values, text where numbers are expected, different scales, and typos. Fix it: handle missing values, encode categorical data, normalize numerical values, remove duplicates. If CGPA is 0–10 and Coding score is 0–100, the larger scale may dominate. So we scale them. Bad preprocessing = bad model.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- S3: Steps 5-8 -->
+<div class="section" id="s3">
+  <div class="eyebrow">03 · Steps 5 to 8</div>
+  <h2>Training &amp; evaluating the model</h2>
+
+  <div class="wf-steps">
+    <div class="wf-step active" onclick="this.classList.toggle('active')">
+      <div class="wf-step-left"><div class="wf-step-num">5</div><div class="wf-step-line"></div></div>
+      <div class="wf-step-content">
+        <div class="wf-step-title">Split the data</div>
+        <div class="wf-step-body">You don't train and test on the same data. That's like checking your exam using the same answer sheet you memorized. Divide into: Training set (70–80%) for learning patterns, and Testing set (20–30%) for checking if it generalizes. This prevents overconfidence.</div>
+      </div>
+    </div>
+    <div class="wf-step" onclick="this.classList.toggle('active')">
+      <div class="wf-step-left"><div class="wf-step-num">6</div><div class="wf-step-line"></div></div>
+      <div class="wf-step-content">
+        <div class="wf-step-title">Choose a model</div>
+        <div class="wf-step-body">Different problems need different algorithms. Logistic Regression, Decision Tree, KNN, SVM — no single model is best for everything. Think of it like choosing players for a cricket match: different pitch → different strategy.</div>
+      </div>
+    </div>
+    <div class="wf-step" onclick="this.classList.toggle('active')">
+      <div class="wf-step-left"><div class="wf-step-num">7</div><div class="wf-step-line"></div></div>
+      <div class="wf-step-content">
+        <div class="wf-step-title">Train the model</div>
+        <div class="wf-step-body">The model takes input features, compares prediction with actual output, adjusts internal parameters, and repeats until error reduces. Think of a student preparing for competitive exams — attempt mock tests, see mistakes, improve strategy, repeat. That's training.</div>
+      </div>
+    </div>
+    <div class="wf-step" onclick="this.classList.toggle('active')">
+      <div class="wf-step-left"><div class="wf-step-num">8</div><div class="wf-step-line"></div></div>
+      <div class="wf-step-content">
+        <div class="wf-step-title">Evaluate the model</div>
+        <div class="wf-step-body">Test on unseen data. Check metrics: Accuracy, Precision, Recall, F1-score (for classification) or MSE, R² (for regression). Watch out: if 95% students are placed and the model predicts "Placed" for everyone — it gets 95% accuracy without learning anything. Evaluation must be thoughtful.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- S4: Steps 9-11 -->
+<div class="section" id="s4">
+  <div class="eyebrow">04 · Steps 9 to 11</div>
+  <h2>Improving, deploying &amp; monitoring</h2>
+
+  <div class="wf-steps">
+    <div class="wf-step active" onclick="this.classList.toggle('active')">
+      <div class="wf-step-left"><div class="wf-step-num">9</div><div class="wf-step-line"></div></div>
+      <div class="wf-step-content">
+        <div class="wf-step-title">Improve (iteration)</div>
+        <div class="wf-step-body">If performance is poor: try different algorithms, add better features, remove irrelevant ones, tune hyperparameters. ML is iterative — very rarely does it work perfectly on first try. Try → Evaluate → Improve → Repeat.</div>
+      </div>
+    </div>
+    <div class="wf-step" onclick="this.classList.toggle('active')">
+      <div class="wf-step-left"><div class="wf-step-num">10</div><div class="wf-step-line"></div></div>
+      <div class="wf-step-content">
+        <div class="wf-step-title">Deploy the model</div>
+        <div class="wf-step-body">Integrate it into a web application, mobile app, dashboard, or backend system. Now users can input new data and get predictions. This is where ML becomes useful — it's no longer theory.</div>
+      </div>
+    </div>
+    <div class="wf-step" onclick="this.classList.toggle('active')">
+      <div class="wf-step-left"><div class="wf-step-num">11</div><div class="wf-step-line"></div></div>
+      <div class="wf-step-content">
+        <div class="wf-step-title">Monitor &amp; maintain</div>
+        <div class="wf-step-body">After deployment, data may change over time, patterns may shift, model accuracy may drop. This is called model drift. So we monitor performance and retrain periodically. Machine Learning is not "train once and forget." It's continuous improvement.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>The big realization:</strong> ML is not "import sklearn and done." It's understanding a problem, collecting meaningful data, cleaning messy information, learning patterns, testing honestly, and improving continuously.
+  </div>
+</div>
+
+<!-- S5: End-to-end example -->
+<div class="section" id="s5">
+  <div class="eyebrow">05 · Full example</div>
+  <h2>Student pass/fail prediction — end to end</h2>
+  <p>Let's walk through all 11 steps with a single relatable example: <strong>predicting if a student will pass or fail</strong> using attendance, study hours, and internal marks.</p>
+
+  <div class="tile">
+    <div class="tile-title">Step 1 — Problem: Will a student PASS or FAIL?</div>
+    <p style="font-size:13px;margin-bottom:0">Output = Yes/No → Classification problem. Goal: identify at-risk students before finals so the department can give extra support. The goal isn't just prediction — it's early intervention.</p>
+  </div>
+
+  <div class="tile">
+    <div class="tile-title">Step 2 — Data features</div>
+    <p style="font-size:13px;margin-bottom:8px">What information affects whether someone passes?</p>
+    <div class="kv"><span class="kk">Attendance %</span><span class="kv-v">Measurable</span></div>
+    <div class="kv"><span class="kk">Study hours/week</span><span class="kv-v">Measurable</span></div>
+    <div class="kv"><span class="kk">Internal marks</span><span class="kv-v">Measurable</span></div>
+    <div class="kv"><span class="kk">Assignment submissions</span><span class="kv-v">Measurable</span></div>
+    <div class="kv"><span class="kk">Result (label)</span><span class="kv-v">Pass / Fail</span></div>
+  </div>
+
+  <div class="tile">
+    <div class="tile-title">Step 3 — EDA: Find patterns visually</div>
+    <p style="font-size:13px;margin-bottom:0">Students with attendance below 50% mostly fail. Students studying more than 12 hours per week usually pass. Internals below 20 are risky. What if someone has 95% attendance but zero study hours? EDA helps you debate these edge cases before coding.</p>
+  </div>
+
+  <div class="tile">
+    <div class="tile-title">Step 5 — Split: 80% train, 20% test</div>
+    <p style="font-size:13px;margin-bottom:0">If you train and test on the same 100 students, the model looks super smart — but that's cheating. 80 students → learning. 20 students → surprise exam. If it performs well on new students, it truly learned patterns.</p>
+  </div>
+
+  <div class="tile">
+    <div class="tile-title">Step 6 — Model: Decision Tree</div>
+    <p style="font-size:13px;margin-bottom:8px">A Decision Tree mimics human thinking:</p>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;background:var(--layer-02);padding:12px;border:1px solid var(--bdr-01);line-height:2;color:var(--txt-sec)">
+      IF attendance > 70%<br>
+      &nbsp;&nbsp;IF internals > 25 → <span style="color:var(--success)">Pass</span><br>
+      &nbsp;&nbsp;ELSE → <span style="color:var(--warn)">Risk</span><br>
+      ELSE → <span style="color:var(--error)">Fail</span>
+    </div>
+  </div>
+
+  <div class="tile">
+    <div class="tile-title">Step 10 — Deploy: Student risk predictor app</div>
+    <p style="font-size:13px;margin-bottom:0">A student enters their attendance, internals, and study hours. System predicts "High Risk" or "Likely to Pass." Now it's practical — not just theory. The department can intervene early for at-risk students.</p>
+  </div>
+</div>
+
+<!-- S6: Quiz -->
+<div class="section" id="s6">
+  <div class="eyebrow">06 · Check your understanding</div>
+  <h2>Quick quiz</h2>
+
+  <div class="quiz-wrap">
+    <div class="quiz-q">1. A model scores 99% on training data but 60% on test data. What step was likely skipped or done poorly?</div>
+    <div class="quiz-options" id="q1-opts">
+      <div class="quiz-opt" onclick="answerQ('q1',0,3,'q1-fb')">A. Model selection</div>
+      <div class="quiz-opt" onclick="answerQ('q1',1,3,'q1-fb')">B. Deployment</div>
+      <div class="quiz-opt" onclick="answerQ('q1',2,3,'q1-fb')">C. Problem definition</div>
+      <div class="quiz-opt" onclick="answerQ('q1',3,3,'q1-fb')">D. Train-test split or regularization ✓</div>
+    </div>
+    <div class="quiz-feedback" id="q1-fb">99% train, 60% test = classic overfitting. The model memorized training data instead of generalizing. This means the train-test split wasn't respected, or regularization wasn't applied. ✓</div>
+    <button class="quiz-reset" id="q1-reset" onclick="resetQ('q1','q1-fb','q1-reset')">Try again</button>
+  </div>
+
+  <div class="quiz-wrap">
+    <div class="quiz-q">2. Which step is described as "Exploratory Data Analysis"?</div>
+    <div class="quiz-options" id="q2-opts">
+      <div class="quiz-opt" onclick="answerQ('q2',0,1,'q2-fb')">A. Step 1: Problem Definition</div>
+      <div class="quiz-opt" onclick="answerQ('q2',1,1,'q2-fb')">B. Step 3: Data Exploration ✓</div>
+      <div class="quiz-opt" onclick="answerQ('q2',2,1,'q2-fb')">C. Step 7: Training</div>
+      <div class="quiz-opt" onclick="answerQ('q2',3,1,'q2-fb')">D. Step 10: Deployment</div>
+    </div>
+    <div class="quiz-feedback" id="q2-fb">Step 3 is EDA — Exploratory Data Analysis. You ask: How many rows? Missing values? Outliers? Imbalanced classes? This helps you understand the story inside data before building anything. ✓</div>
+    <button class="quiz-reset" id="q2-reset" onclick="resetQ('q2','q2-fb','q2-reset')">Try again</button>
+  </div>
+
+  <div class="quiz-wrap">
+    <div class="quiz-q">3. After 6 months, a deployed model's accuracy drops significantly. What is this called and what's the fix?</div>
+    <div class="quiz-options" id="q3-opts">
+      <div class="quiz-opt" onclick="answerQ('q3',0,2,'q3-fb')">A. Overfitting — use regularization</div>
+      <div class="quiz-opt" onclick="answerQ('q3',1,2,'q3-fb')">B. Underfitting — add more features</div>
+      <div class="quiz-opt" onclick="answerQ('q3',2,2,'q3-fb')">C. Model drift — retrain with new data ✓</div>
+      <div class="quiz-opt" onclick="answerQ('q3',3,2,'q3-fb')">D. Data leakage — fix the split</div>
+    </div>
+    <div class="quiz-feedback" id="q3-fb">Model drift — the world changes (new patterns, different behavior) but the model stays frozen. Fix: Step 11 — monitor performance and retrain periodically with fresh data. ✓</div>
+    <button class="quiz-reset" id="q3-reset" onclick="resetQ('q3','q3-fb','q3-reset')">Try again</button>
+  </div>
+</div>
+
+<div class="page-nav">
+  <a class="page-nav-btn" href="intro-ml.html">← Intro to ML</a>
+  <a class="page-nav-btn primary" href="data-types.html">Next: Data Types →</a>
+</div>
+</main>
+</div>
+
+<script>
+let isLight=false;
+function toggleTheme(){isLight=!isLight;document.documentElement.classList.toggle('light',isLight);const i=isLight?'◑':'☀',l=isLight?'Light':'Dark';document.getElementById('tog-icon').textContent=i;document.getElementById('tog-txt').textContent=l+' theme';document.getElementById('theme-lbl').textContent=l;const m=document.getElementById('mob-tog');if(m)m.textContent=i;}
+function answerQ(qid,clicked,correct,fbId){const opts=document.getElementById(qid+'-opts').querySelectorAll('.quiz-opt');opts.forEach((o,i)=>{o.style.pointerEvents='none';if(i===correct)o.classList.add('show-correct');if(i===clicked&&clicked!==correct)o.classList.add('wrong');if(i===clicked&&clicked===correct)o.classList.add('correct');});const fb=document.getElementById(fbId);fb.classList.add('show');fb.style.background=clicked===correct?'rgba(66,190,101,.08)':'rgba(255,131,137,.08)';fb.style.borderLeftColor=clicked===correct?'var(--success)':'var(--error)';document.getElementById(qid+'-reset').classList.add('show');}
+function resetQ(qid,fbId,resetId){const opts=document.getElementById(qid+'-opts').querySelectorAll('.quiz-opt');opts.forEach(o=>{o.style.pointerEvents='';o.classList.remove('correct','wrong','show-correct');});document.getElementById(fbId).classList.remove('show');document.getElementById(resetId).classList.remove('show');}
+const secs=Array.from(document.querySelectorAll('.section[id]'));
+function syncNav(id){document.querySelectorAll('.nav-item,.drawer-nav-item').forEach(n=>n.classList.toggle('active',n.getAttribute('href')==='#'+id));}
+let lastId='',rafP=false;
+window.addEventListener('scroll',()=>{if(rafP)return;rafP=true;requestAnimationFrame(()=>{rafP=false;const t=window.scrollY+window.innerHeight*.28;let a=secs[0];for(const s of secs){if(s.offsetTop<=t)a=s;else break;}if(a&&a.id!==lastId){lastId=a.id;syncNav(a.id);}});},{passive:true});
+function buildDrawer(){const dr=document.getElementById('nav-drawer');const sn=document.getElementById('sidenav');const cl=sn.cloneNode(true);cl.removeAttribute('id');cl.removeAttribute('class');cl.querySelectorAll('.nav-item').forEach(el=>{el.classList.add('drawer-nav-item');el.addEventListener('click',closeDrawer);});const tog=cl.querySelector('.tog-area');if(tog)tog.remove();const cb=document.createElement('button');cb.textContent='✕ Close';cb.style.cssText='font-family:"IBM Plex Mono",monospace;font-size:11px;background:transparent;border:none;border-bottom:1px solid var(--bdr-00);color:var(--txt-ph);padding:12px 16px;width:100%;text-align:left;cursor:pointer';cb.onclick=closeDrawer;dr.insertBefore(cb,dr.firstChild);dr.appendChild(cl);}
+function toggleDrawer(){const ov=document.getElementById('nav-overlay');const dr=document.getElementById('nav-drawer');const isOpen=dr.classList.contains('open');if(isOpen){closeDrawer();}else{ov.style.display='block';setTimeout(()=>ov.classList.add('open'),10);dr.classList.add('open');document.body.style.overflow='hidden';}}
+function closeDrawer(){const ov=document.getElementById('nav-overlay');const dr=document.getElementById('nav-drawer');ov.classList.remove('open');dr.classList.remove('open');document.body.style.overflow='';setTimeout(()=>{ov.style.display='none';},270);}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer();});
+document.fonts.ready.then(()=>buildDrawer());
+document.addEventListener('contextmenu',e=>e.preventDefault());
+document.addEventListener('keydown',e=>{if(e.key==='F12'||(e.ctrlKey&&e.shiftKey&&['I','J','C'].includes(e.key))||(e.ctrlKey&&e.key==='U'))e.preventDefault();});
+</script>
+</body>
+</html>

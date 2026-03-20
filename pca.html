@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Principal Component Analysis | Module 1</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;1,300&family=IBM+Plex+Serif:ital,wght@0,300;1,300&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#161616;--layer-01:#262626;--layer-02:#393939;--layer-03:#525252;--hover-01:#333333;--bdr-00:#393939;--bdr-01:#474747;--bdr-str:#6f6f6f;--txt-pri:#f4f4f4;--txt-sec:#c6c6c6;--txt-ph:#6f6f6f;--blue:#4589ff;--link:#78a9ff;--success:#42be65;--warn:#f1c21b;--error:#ff8389;--teal:#3ddbd9;--purple:#d4bbff;--ac:#f1c21b;}
+html.light{--bg:#fff;--layer-01:#f4f4f4;--layer-02:#e0e0e0;--layer-03:#c6c6c6;--hover-01:#e8e8e8;--bdr-00:#e0e0e0;--bdr-01:#c6c6c6;--bdr-str:#8d8d8d;--txt-pri:#161616;--txt-sec:#525252;--txt-ph:#8d8d8d;--blue:#0f62fe;--link:#0043ce;--success:#198038;--warn:#b28600;--error:#da1e28;--teal:#007d79;--purple:#6929c4;--ac:#b28600;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}
+body{font-family:'IBM Plex Sans',sans-serif;font-size:15px;line-height:1.6;background:var(--bg);color:var(--txt-pri);-webkit-font-smoothing:antialiased;transition:background .25s,color .2s}
+a{text-decoration:none;color:inherit}
+.page-grid{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+.sidenav{background:var(--layer-01);border-right:1px solid var(--bdr-00);position:sticky;top:0;height:100vh;overflow-y:auto;padding-bottom:32px;transition:background .25s}
+.nav-hdr{padding:16px;border-bottom:1px solid var(--bdr-00);margin-bottom:4px}
+.nav-back{display:flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph);letter-spacing:.06em;margin-bottom:8px;transition:color .15s}.nav-back:hover{color:var(--link)}
+.nav-mod{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;color:var(--ac);text-transform:uppercase;margin-bottom:3px}
+.nav-title{font-size:13px;font-weight:600;color:var(--txt-pri);line-height:1.3}
+.nav-sec{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;color:var(--txt-ph);text-transform:uppercase;padding:12px 16px 4px}
+.nav-item{display:flex;align-items:center;gap:8px;padding:8px 16px;font-size:13px;color:var(--txt-sec);cursor:pointer;border-left:3px solid transparent;transition:background .1s,color .1s,border-color .1s;text-decoration:none}
+.nav-item:hover{background:var(--hover-01);color:var(--txt-pri)}.nav-item.active{background:var(--hover-01);color:var(--txt-pri);border-left-color:var(--ac);font-weight:600}.nav-item.active .nn{color:var(--ac)}
+.nn{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--txt-ph);min-width:16px;transition:color .15s}
+.tog-area{padding:20px 16px 0}
+.tog-btn{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding:8px 10px;background:var(--layer-02);border:1px solid var(--bdr-01);cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-sec);transition:background .15s}
+.tog-btn:hover{background:var(--hover-01);color:var(--txt-pri)}
+.tog-track{width:26px;height:13px;background:var(--bdr-str);border-radius:7px;position:relative;flex-shrink:0;transition:background .25s}
+.tog-thumb{position:absolute;top:2px;left:2px;width:9px;height:9px;border-radius:50%;background:#fff;transition:transform .25s}
+html.light .tog-track{background:var(--ac)}html.light .tog-thumb{transform:translateX(13px)}
+.mob-topbar{display:none;position:fixed;top:0;left:0;right:0;z-index:200;height:52px;background:var(--layer-01);border-bottom:1px solid var(--bdr-00);align-items:center;padding:0 16px;gap:8px}
+.mob-menu-btn{width:34px;height:34px;background:transparent;border:1px solid var(--bdr-01);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-direction:column;gap:4px}
+.mob-bar{width:14px;height:1.5px;background:var(--txt-pri)}.mob-title{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--txt-pri);flex:1}.mob-tog{width:34px;height:34px;background:transparent;border:1px solid var(--bdr-01);cursor:pointer;font-size:14px;color:var(--txt-sec)}
+.nav-overlay{display:none;position:fixed;inset:0;z-index:150;background:rgba(0,0,0,.6);opacity:0;transition:opacity .25s}.nav-overlay.open{opacity:1}
+.nav-drawer{position:fixed;left:0;top:0;bottom:0;z-index:160;width:260px;background:var(--layer-01);border-right:1px solid var(--bdr-00);overflow-y:auto;transform:translateX(-100%);transition:transform .3s cubic-bezier(.4,0,.2,1);padding-bottom:32px}.nav-drawer.open{transform:translateX(0)}
+.main{padding:0 48px 100px;max-width:820px}
+.page-hdr{padding:52px 0 40px;border-bottom:1px solid var(--bdr-00);margin-bottom:52px}
+.breadcrumb{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-ph);margin-bottom:10px;display:flex;align-items:center;gap:6px}.breadcrumb a{color:var(--link)}
+h1{font-family:'IBM Plex Serif',serif;font-size:clamp(26px,4vw,38px);font-weight:300;line-height:1.15;color:var(--txt-pri);margin-bottom:12px}h1 em{font-style:italic;color:var(--link)}
+.hdr-desc{font-size:15px;font-weight:300;color:var(--txt-sec);max-width:580px;line-height:1.7}
+.section{margin-bottom:60px;opacity:0;transform:translateY(14px);animation:fadeUp .4s ease forwards}
+.section:nth-child(1){animation-delay:.05s}.section:nth-child(2){animation-delay:.1s}.section:nth-child(3){animation-delay:.15s}.section:nth-child(4){animation-delay:.2s}.section:nth-child(5){animation-delay:.25s}.section:nth-child(6){animation-delay:.3s}.section:nth-child(7){animation-delay:.35s}.section:nth-child(8){animation-delay:.4s}
+@keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;color:var(--ac);text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.eyebrow::before{content:'';display:inline-block;width:14px;height:1px;background:var(--ac)}
+h2{font-family:'IBM Plex Serif',serif;font-size:24px;font-weight:300;color:var(--txt-pri);margin-bottom:14px;line-height:1.25}
+h3{font-size:15px;font-weight:600;color:var(--txt-pri);margin-bottom:8px;margin-top:20px}
+p{font-size:14px;font-weight:300;color:var(--txt-sec);margin-bottom:12px;line-height:1.75}p strong{color:var(--txt-pri);font-weight:600}
+.hl{color:var(--link);font-weight:600}.hl-g{color:var(--success);font-weight:600}.hl-y{color:var(--warn);font-weight:600}.hl-t{color:var(--teal);font-weight:600}.hl-p{color:var(--purple);font-weight:600}
+.callout{border-left:3px solid var(--ac);background:var(--layer-01);padding:14px 18px;margin:14px 0;font-size:14px;font-weight:300;color:var(--txt-sec);line-height:1.75;transition:background .25s}
+.callout strong{color:var(--txt-pri);font-weight:600}.callout-g{border-left-color:var(--success)}.callout-y{border-left-color:var(--warn)}.callout-b{border-left-color:var(--blue)}.callout-p{border-left-color:var(--purple)}
+.tile{background:var(--layer-01);border:1px solid var(--bdr-00);padding:20px 24px;margin-bottom:12px;transition:background .25s}.tile-title{font-size:13px;font-weight:600;color:var(--txt-pri);margin-bottom:12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--bdr-00);border:1px solid var(--bdr-00);margin:14px 0}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--bdr-00);border:1px solid var(--bdr-00);margin:14px 0}
+.gcell{background:var(--layer-01);padding:20px 22px;transition:background .25s}
+.kv{display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--bdr-00);font-size:13px;gap:12px}.kv:last-child{border-bottom:none}
+.kk{color:var(--txt-sec);font-weight:300;flex-shrink:0}.kv-v{color:var(--txt-pri);font-weight:400;text-align:right}
+.tag{display:inline-flex;align-items:center;height:22px;padding:0 10px;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.03em;margin-bottom:10px}
+.t-bl{background:#0043ce;color:#a6c8ff}.t-gr{background:#044317;color:#a7f0ba}.t-pu{background:#491d8b;color:#d4bbff}.t-am{background:#533b00;color:#f1c21b}.t-te{background:#005d5d;color:#3ddbd9}
+html.light .t-bl{background:#d0e2ff;color:#0043ce}html.light .t-gr{background:#a7f0ba;color:#044317}html.light .t-pu{background:#e8daff;color:#491d8b}html.light .t-am{background:#ffd6a4;color:#4d3800}html.light .t-te{background:#9ef0f0;color:#005d5d}
+.formula{font-family:'IBM Plex Mono',monospace;font-size:13px;background:var(--layer-02);border:1px solid var(--bdr-01);border-left:3px solid var(--ac);padding:14px 18px;margin:10px 0;line-height:2.4;color:var(--txt-pri);transition:background .25s}
+.code-block{margin:14px 0;border:1px solid var(--bdr-01)}.code-header{background:var(--layer-02);padding:7px 14px;display:flex;justify-content:space-between;border-bottom:1px solid var(--bdr-01)}.code-lang{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph);letter-spacing:.06em;text-transform:uppercase}.code-body{background:#1e1e2e;padding:14px 16px;overflow-x:auto}
+html.light .code-body{background:#f0f0f5}
+.code-body pre{font-family:'IBM Plex Mono',monospace;font-size:12px;color:#c6c6c6;line-height:1.8;white-space:pre}
+html.light .code-body pre{color:#525252}
+.kw{color:#82cfff}.fn{color:#d4bbff}.st{color:#a8d8a8}.cm{color:#5f6f6f;font-style:italic}.nm{color:#f1c21b}.vr{color:#78a9ff}
+html.light .kw{color:#003a6d}html.light .fn{color:#491d8b}html.light .st{color:#1e6b1e}html.light .nm{color:#b28600}html.light .vr{color:#0043ce}
+.dtbl{width:100%;border-collapse:collapse;margin:8px 0;font-size:13px}.dtbl thead tr{background:var(--layer-02);border-bottom:1px solid var(--bdr-str)}.dtbl th{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--txt-sec);padding:9px 14px;text-align:left}.dtbl td{padding:9px 14px;border-bottom:1px solid var(--bdr-00);color:var(--txt-pri);vertical-align:top}.dtbl tbody tr:hover{background:var(--hover-01)}
+hr{border:none;border-top:1px solid var(--bdr-00);margin:44px 0}
+
+/* PCA canvas */
+.canvas-wrap{background:var(--layer-01);border:1px solid var(--bdr-00);margin:14px 0;padding:0;overflow:hidden}
+canvas{display:block;width:100%;height:auto}
+
+/* Step boxes */
+.pca-steps{display:flex;flex-direction:column;gap:2px;margin:14px 0}
+.pca-step{background:var(--layer-01);border:1px solid var(--bdr-00);padding:14px 18px;display:flex;align-items:flex-start;gap:14px;transition:background .15s}
+.pca-step:hover{background:var(--hover-01)}
+.pca-step-num{width:28px;height:28px;background:var(--ac);display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--bg);flex-shrink:0;margin-top:1px}
+.pca-step-content{}
+.pca-step-title{font-size:14px;font-weight:600;color:var(--txt-pri);margin-bottom:4px}
+.pca-step-body{font-size:13px;font-weight:300;color:var(--txt-sec);line-height:1.7}
+
+/* Matrix display */
+.matrix{font-family:'IBM Plex Mono',monospace;font-size:12px;background:var(--layer-02);border:1px solid var(--bdr-01);padding:14px 18px;margin:10px 0;line-height:2;color:var(--txt-pri);transition:background .25s;overflow-x:auto;white-space:pre}
+
+/* Quiz */
+.quiz-wrap{background:var(--layer-01);border:1px solid var(--bdr-00);padding:20px 24px;margin:16px 0}
+.quiz-q{font-size:14px;font-weight:600;color:var(--txt-pri);margin-bottom:14px}
+.quiz-options{display:flex;flex-direction:column;gap:8px}
+.quiz-opt{padding:10px 14px;background:var(--layer-02);border:1px solid var(--bdr-01);cursor:pointer;font-size:13px;color:var(--txt-sec);transition:background .15s}
+.quiz-opt:hover{background:var(--hover-01);color:var(--txt-pri)}
+.quiz-opt.correct{background:rgba(66,190,101,.12);border-color:var(--success);color:var(--success)}
+.quiz-opt.wrong{background:rgba(255,131,137,.1);border-color:var(--error);color:var(--error)}
+.quiz-opt.show-correct{background:rgba(66,190,101,.06);border-color:var(--success)}
+.quiz-feedback{margin-top:12px;padding:10px 14px;font-size:13px;font-weight:300;line-height:1.6;display:none;border-left:3px solid var(--success)}
+.quiz-feedback.show{display:block}
+.quiz-reset{margin-top:10px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--link);cursor:pointer;background:transparent;border:none;display:none}.quiz-reset.show{display:block}
+
+.page-nav{display:flex;justify-content:space-between;align-items:center;padding-top:40px;border-top:1px solid var(--bdr-00);margin-top:60px}
+.page-nav-btn{display:flex;align-items:center;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-sec);padding:10px 16px;border:1px solid var(--bdr-01);background:transparent;cursor:pointer;transition:background .15s;text-decoration:none}
+.page-nav-btn:hover{background:var(--hover-01);color:var(--txt-pri)}
+.page-nav-btn.primary{background:var(--ac);border-color:var(--ac);color:var(--bg)}
+.page-nav-btn.primary:hover{opacity:.9}
+@media(max-width:767px){.mob-topbar{display:flex}.sidenav{display:none}.page-grid{display:block}.main{padding:68px 16px 80px;max-width:100%}.page-hdr{padding:24px 0 20px;margin-bottom:32px}h1{font-size:24px}.grid2,.grid3{grid-template-columns:1fr}}
+@media(min-width:768px) and (max-width:1024px){.page-grid{grid-template-columns:200px 1fr}.main{padding:0 24px 80px}.grid3{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="mob-topbar" id="mob-topbar"><button class="mob-menu-btn" onclick="toggleDrawer()"><div class="mob-bar"></div><div class="mob-bar"></div><div class="mob-bar"></div></button><span class="mob-title">PCA</span><button class="mob-tog" onclick="toggleTheme()" id="mob-tog">☀</button></div>
+<div class="nav-overlay" id="nav-overlay" onclick="closeDrawer()"></div>
+<nav class="nav-drawer" id="nav-drawer"></nav>
+<div class="page-grid">
+<nav class="sidenav" id="sidenav">
+  <div class="nav-hdr"><a class="nav-back" href="index.html">← Module 1</a><div class="nav-mod">Topic 05</div><div class="nav-title">Principal Component Analysis</div></div>
+  <div class="nav-sec">Sections</div>
+  <a class="nav-item active" href="#s1"><span class="nn">01</span>Why reduce dimensions?</a>
+  <a class="nav-item" href="#s2"><span class="nn">02</span>What PCA does</a>
+  <a class="nav-item" href="#s3"><span class="nn">03</span>Visual intuition</a>
+  <a class="nav-item" href="#s4"><span class="nn">04</span>Step-by-step process</a>
+  <a class="nav-item" href="#s5"><span class="nn">05</span>Worked example</a>
+  <a class="nav-item" href="#s6"><span class="nn">06</span>Eigenvalues & eigenvectors</a>
+  <a class="nav-item" href="#s7"><span class="nn">07</span>When to use PCA</a>
+  <a class="nav-item" href="#s8"><span class="nn">08</span>Check your understanding</a>
+  <div class="tog-area"><button class="tog-btn" onclick="toggleTheme()"><span style="display:flex;align-items:center;gap:6px"><span id="tog-icon">☀</span><span id="tog-txt">Light theme</span></span><span class="tog-track"><span class="tog-thumb"></span></span></button><div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph);margin-top:10px">IBM Carbon · <span id="theme-lbl">Dark</span></div></div>
+</nav>
+<main class="main">
+<div class="page-hdr">
+  <div class="breadcrumb"><a href="../index.html">Home</a><span>/</span><a href="index.html">Module 1</a><span>/</span><span style="color:var(--txt-sec)">PCA</span></div>
+  <h1>Principal<br><em>Component Analysis</em></h1>
+  <p class="hdr-desc">When data has too many features, PCA reduces them by finding the directions where data varies the most — keeping maximum information in fewer dimensions.</p>
+</div>
+
+<!-- S1 -->
+<div class="section" id="s1">
+  <div class="eyebrow">01 · The problem</div>
+  <h2>Why do we need data reduction?</h2>
+  <p>Imagine predicting placement with 10 features: CGPA, study hours, attendance, internal marks, assignment score, mock tests, coding score, aptitude, communication, confidence. Now imagine 100 features. Then 1000.</p>
+  <div class="callout callout-y">
+    <strong>More features ≠ always better.</strong> Too many features causes: slower training, overfitting, harder visualization, and many features may be redundant. Study hours and library visits might measure the same behavior — why keep both?
+  </div>
+  <div class="grid3">
+    <div class="gcell">
+      <div class="tag t-am">Problem 1</div>
+      <h3>Slower training</h3>
+      <p style="font-size:13px;margin-bottom:0">More dimensions = exponentially more computation. 1000 features can make training impractically slow.</p>
+    </div>
+    <div class="gcell">
+      <div class="tag t-am">Problem 2</div>
+      <h3>Overfitting</h3>
+      <p style="font-size:13px;margin-bottom:0">Too many features and the model memorizes noise instead of learning real patterns. Especially bad with small datasets.</p>
+    </div>
+    <div class="gcell">
+      <div class="tag t-am">Problem 3</div>
+      <h3>Redundancy</h3>
+      <p style="font-size:13px;margin-bottom:0">Correlated features carry the same information. Math score and Physics score both measure "analytical ability" — one combined feature is enough.</p>
+    </div>
+  </div>
+</div>
+
+<!-- S2 -->
+<div class="section" id="s2">
+  <div class="eyebrow">02 · The solution</div>
+  <h2>What PCA does — intuitively</h2>
+  <p>PCA is a technique that <span class="hl-y">reduces the number of features while keeping maximum information</span>. It does this by creating new features that are combinations of the old ones.</p>
+  <div class="callout callout-g">
+    <strong>Student skills analogy:</strong> Suppose you measure Math, Physics, Programming, and Logical reasoning separately. But they all reflect one thing: "Analytical Ability." PCA finds such hidden directions and combines correlated features into fewer powerful ones.
+  </div>
+  <div class="tile">
+    <div class="tile-title">PCA in one line</div>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:14px;color:var(--ac);padding:8px 0">Rotate → Project → Reduce</div>
+    <div class="kv"><span class="kk">Rotate</span><span class="kv-v">Find axes aligned with max variance</span></div>
+    <div class="kv"><span class="kk">Project</span><span class="kv-v">Map data onto those new axes</span></div>
+    <div class="kv"><span class="kk">Reduce</span><span class="kv-v">Keep only the top components</span></div>
+  </div>
+  <div class="callout">
+    <strong>Key insight:</strong> Variance = Information. More spread in a direction = more information in that direction. PCA keeps the directions with highest variance and discards the rest.
+  </div>
+</div>
+
+<!-- S3 -->
+<div class="section" id="s3">
+  <div class="eyebrow">03 · Visual intuition</div>
+  <h2>Seeing PCA geometrically</h2>
+  <p>Imagine students plotted on a 2D graph: X-axis = Study hours, Y-axis = Internal marks. You notice points form a diagonal line — higher study hours correlates with higher internals.</p>
+  <p>Instead of keeping both axes, PCA <span class="hl">rotates the axis to align with the direction where data spreads most</span>. That diagonal becomes the new first principal component (PC1).</p>
+
+  <!-- Interactive PCA canvas -->
+  <div class="canvas-wrap">
+    <canvas id="pca-canvas" height="280"></canvas>
+  </div>
+  <p style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-ph);text-align:center;margin-top:6px">PC1 (amber) captures the most variance. PC2 (teal) is perpendicular — captures remaining variance.</p>
+
+  <div class="callout callout-b" style="border-left-color:var(--blue)">
+    <strong>Camera analogy:</strong> Taking a photo of a crowd from the wrong angle makes people overlap. Rotate the camera slightly and you capture maximum spread. That rotation is exactly what PCA does to your feature space.
+  </div>
+
+  <h3>Why does the angle matter?</h3>
+  <p>When you project data onto a line, each point becomes its "shadow" on that line. If the projection direction aligns with the data's natural stretch, shadows spread out widely — high variance. If misaligned, shadows bunch together — low variance, information lost.</p>
+  <div class="formula" style="font-size:12px;line-height:2.5">
+    Projected variance = λ · cos²(θ)<br>
+    <span style="color:var(--txt-ph);font-size:11px">λ = true variance, θ = angle between projection and true direction</span><br>
+    <span style="color:var(--ac)">Maximum when θ = 0° (perfectly aligned)</span>
+  </div>
+</div>
+
+<!-- S4 -->
+<div class="section" id="s4">
+  <div class="eyebrow">04 · The process</div>
+  <h2>PCA step by step</h2>
+
+  <div class="pca-steps">
+    <div class="pca-step">
+      <div class="pca-step-num">1</div>
+      <div class="pca-step-content">
+        <div class="pca-step-title">Standardize the data</div>
+        <div class="pca-step-body">Apply Z-score normalization so all features have mean=0 and std=1. PCA is sensitive to scale — without this, features with large values dominate the principal components.</div>
+      </div>
+    </div>
+    <div class="pca-step">
+      <div class="pca-step-num">2</div>
+      <div class="pca-step-content">
+        <div class="pca-step-title">Compute the covariance matrix</div>
+        <div class="pca-step-body">Calculate how every feature varies with every other feature. High covariance between Math & Physics tells us they move together — one component can represent both. The covariance matrix captures all these relationships.</div>
+      </div>
+    </div>
+    <div class="pca-step">
+      <div class="pca-step-num">3</div>
+      <div class="pca-step-content">
+        <div class="pca-step-title">Find eigenvectors & eigenvalues</div>
+        <div class="pca-step-body">Solve the equation Σ·v = λ·v. Eigenvectors (v) are the directions of the new axes — the principal components. Eigenvalues (λ) tell us how much variance each direction captures. Larger eigenvalue = more important direction.</div>
+      </div>
+    </div>
+    <div class="pca-step">
+      <div class="pca-step-num">4</div>
+      <div class="pca-step-content">
+        <div class="pca-step-title">Sort by eigenvalue (largest first)</div>
+        <div class="pca-step-body">PC1 has the largest eigenvalue — it captures the most variance. PC2 has the second largest, and so on. The first few PCs typically capture 90–95% of total variance.</div>
+      </div>
+    </div>
+    <div class="pca-step">
+      <div class="pca-step-num">5</div>
+      <div class="pca-step-content">
+        <div class="pca-step-title">Keep top k components</div>
+        <div class="pca-step-body">Choose how many components to keep based on how much variance you want to preserve. Transform the original data: Z = X · W, where W is the matrix of top k eigenvectors. Each column of Z is a principal component.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- S5 -->
+<div class="section" id="s5">
+  <div class="eyebrow">05 · Worked example</div>
+  <h2>Student marks: 4D → 2D</h2>
+  <p>Suppose we have student scores in 4 subjects. Goal: reduce from 4 features to 2 principal components without losing much information.</p>
+
+  <div class="tile">
+    <div class="tile-title">Original dataset — 4 features</div>
+    <table class="dtbl">
+      <thead><tr><th>Student</th><th>Math</th><th>Physics</th><th>English</th><th>History</th></tr></thead>
+      <tbody>
+        <tr><td>A</td><td style="color:var(--blue)">90</td><td style="color:var(--blue)">85</td><td style="color:var(--teal)">70</td><td style="color:var(--teal)">65</td></tr>
+        <tr><td>B</td><td style="color:var(--blue)">88</td><td style="color:var(--blue)">82</td><td style="color:var(--teal)">72</td><td style="color:var(--teal)">68</td></tr>
+        <tr><td>C</td><td style="color:var(--blue)">92</td><td style="color:var(--blue)">89</td><td style="color:var(--teal)">60</td><td style="color:var(--teal)">58</td></tr>
+        <tr><td>D</td><td style="color:var(--blue)">85</td><td style="color:var(--blue)">80</td><td style="color:var(--teal)">75</td><td style="color:var(--teal)">72</td></tr>
+        <tr><td>E</td><td style="color:var(--blue)">87</td><td style="color:var(--blue)">84</td><td style="color:var(--teal)">78</td><td style="color:var(--teal)">74</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:12px;color:var(--txt-ph);margin-top:8px;margin-bottom:0"><span style="color:var(--blue)">■ Math/Physics</span> are highly correlated · <span style="color:var(--teal)">■ English/History</span> are highly correlated</p>
+  </div>
+
+  <h3>What the covariance matrix would reveal</h3>
+  <div class="matrix">          Math    Physics  English  History
+Math     Var(M)  HIGH     LOW      LOW
+Physics  HIGH    Var(P)   LOW      LOW
+English  LOW     LOW      Var(E)   HIGH
+History  LOW     LOW      HIGH     Var(H)</div>
+  <p>High covariance between Math & Physics, and between English & History. Low covariance between Science and Arts subjects.</p>
+
+  <h3>What PCA discovers automatically</h3>
+  <div class="grid2">
+    <div class="gcell">
+      <div class="tag t-bl">PC1 — Science axis</div>
+      <div class="formula" style="font-size:12px;line-height:1.8;margin-top:8px">PC1 = 0.7·Math + 0.7·Physics<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ 0.1·English + 0.1·History</div>
+      <p style="font-size:13px;margin-bottom:0">Heavily weights Math & Physics. Captures "science performance." Largest eigenvalue → most information.</p>
+    </div>
+    <div class="gcell">
+      <div class="tag t-te">PC2 — Arts axis</div>
+      <div class="formula" style="font-size:12px;line-height:1.8;margin-top:8px;border-left-color:var(--teal)">PC2 = 0.1·Math + 0.1·Physics<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;+ 0.7·English + 0.7·History</div>
+      <p style="font-size:13px;margin-bottom:0">Heavily weights English & History. Captures "arts performance." Second largest eigenvalue.</p>
+    </div>
+  </div>
+
+  <div class="callout callout-g">
+    <strong>The big insight:</strong> PCA didn't say "let me combine Math & Physics." It mathematically found the direction with highest variance — which naturally turned out to be Science. The correlation structure drove that discovery automatically.
+  </div>
+
+  <div class="tile" style="margin-top:16px">
+    <div class="tile-title">After PCA — 4D compressed to 2D</div>
+    <table class="dtbl">
+      <thead><tr><th>Student</th><th>PC1 (Science strength)</th><th>PC2 (Arts strength)</th></tr></thead>
+      <tbody>
+        <tr><td>A</td><td style="color:var(--blue)">High science</td><td style="color:var(--teal)">Medium arts</td></tr>
+        <tr><td>C</td><td style="color:var(--success)">Very high science</td><td style="color:var(--error)">Low arts</td></tr>
+        <tr><td>D</td><td style="color:var(--warn)">Medium science</td><td style="color:var(--success)">High arts</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:12px;color:var(--txt-ph);margin-top:8px;margin-bottom:0">4 dimensions → 2 dimensions. Minimal information loss. Can now visualize all students on a 2D scatter plot.</p>
+  </div>
+</div>
+
+<!-- S6 -->
+<div class="section" id="s6">
+  <div class="eyebrow">06 · The math</div>
+  <h2>Eigenvalues &amp; eigenvectors — demystified</h2>
+  <p>These terms sound intimidating. They're just the mathematical way of finding the best rotation directions. Here's the full calculation for a 2×2 case.</p>
+
+  <div class="tile">
+    <div class="tile-title">Given covariance matrix C</div>
+    <div class="matrix">C = | 4  2 |
+    | 2  3 |</div>
+  </div>
+
+  <h3>Step 1 — Characteristic equation</h3>
+  <p>Eigenvalues λ satisfy: <strong>det(C − λI) = 0</strong></p>
+  <div class="matrix">det | 4-λ   2   | = 0
+    | 2     3-λ |
+
+(4-λ)(3-λ) - (2)(2) = 0
+12 - 7λ + λ² - 4 = 0
+λ² - 7λ + 8 = 0
+
+<span style="color:var(--ac)">Solving: λ₁ = 1,  λ₂ = 6</span></div>
+
+  <h3>Step 2 — Find eigenvectors</h3>
+  <p>For each eigenvalue, solve <strong>(C − λI)·v = 0</strong></p>
+
+  <div class="grid2">
+    <div class="gcell">
+      <div class="tag t-bl">For λ₂ = 6 (PC1)</div>
+      <div class="matrix" style="font-size:11px;line-height:1.8">| 4-6   2  | |x| = |0|
+| 2    3-6 | |y|   |0|
+
+|-2  2| |x| = |0|
+| 2 -3| |y|   |0|
+
+From row 1: -2x + 2y = 0 → y = x
+
+<span style="color:var(--success)">v₂ = (1/√2)|1|  ≈  |0.71|
+            |1|     |0.71|</span></div>
+    </div>
+    <div class="gcell">
+      <div class="tag t-am">For λ₁ = 1 (PC2)</div>
+      <div class="matrix" style="font-size:11px;line-height:1.8">| 4-1   2  | |x| = |0|
+| 2    3-1 | |y|   |0|
+
+| 3  2| |x| = |0|
+| 2  2| |y|   |0|
+
+From row 2: 2x + 2y = 0 → y = -x
+
+<span style="color:var(--warn)">v₁ = (1/√2)| 1|  ≈  | 0.71|
+            |-1|     |-0.71|</span></div>
+    </div>
+  </div>
+
+  <div class="tile" style="margin-top:12px">
+    <div class="tile-title">Interpretation</div>
+    <div class="kv"><span class="kk">λ₂ = 6 (large)</span><span class="kv-v" style="color:var(--success)">PC1 — captures most variance → keep this</span></div>
+    <div class="kv"><span class="kk">λ₁ = 1 (small)</span><span class="kv-v" style="color:var(--warn)">PC2 — captures less variance → may discard</span></div>
+    <div class="kv"><span class="kk">Eigenvector of PC1</span><span class="kv-v">[0.71, 0.71] — 45° diagonal direction</span></div>
+    <div class="kv"><span class="kk">Total variance explained by PC1</span><span class="kv-v">6/(6+1) = 85.7%</span></div>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header"><span class="code-lang">python</span><span class="code-lang">sklearn PCA</span></div>
+    <div class="code-body"><pre><span class="kw">from</span> sklearn.decomposition <span class="kw">import</span> <span class="fn">PCA</span>
+<span class="kw">from</span> sklearn.preprocessing <span class="kw">import</span> <span class="fn">StandardScaler</span>
+
+<span class="cm"># Step 1: Standardize</span>
+<span class="vr">scaler</span> = <span class="fn">StandardScaler</span>()
+<span class="vr">X_scaled</span> = <span class="vr">scaler</span>.<span class="fn">fit_transform</span>(<span class="vr">X</span>)
+
+<span class="cm"># Step 2: Apply PCA — keep 2 components</span>
+<span class="vr">pca</span> = <span class="fn">PCA</span>(n_components=<span class="nm">2</span>)
+<span class="vr">X_pca</span> = <span class="vr">pca</span>.<span class="fn">fit_transform</span>(<span class="vr">X_scaled</span>)
+
+<span class="cm"># Check how much variance each component explains</span>
+<span class="fn">print</span>(<span class="vr">pca</span>.explained_variance_ratio_)
+<span class="cm"># e.g. [0.857, 0.143] — PC1 explains 85.7%</span></pre></div>
+  </div>
+</div>
+
+<!-- S7 -->
+<div class="section" id="s7">
+  <div class="eyebrow">07 · Practical guidance</div>
+  <h2>When to use PCA — and when not to</h2>
+  <div class="grid2">
+    <div class="gcell">
+      <div class="tag t-gr">Use PCA when</div>
+      <div class="kv"><span class="kk">Many correlated features</span><span class="kv-v" style="color:var(--success)">✓</span></div>
+      <div class="kv"><span class="kk">High-dimensional data</span><span class="kv-v" style="color:var(--success)">✓</span></div>
+      <div class="kv"><span class="kk">Need 2D/3D visualization</span><span class="kv-v" style="color:var(--success)">✓</span></div>
+      <div class="kv"><span class="kk">Speed matters</span><span class="kv-v" style="color:var(--success)">✓</span></div>
+      <div class="kv"><span class="kk">Image compression</span><span class="kv-v" style="color:var(--success)">✓</span></div>
+    </div>
+    <div class="gcell">
+      <div class="tag t-am">Avoid PCA when</div>
+      <div class="kv"><span class="kk">Need feature interpretability</span><span class="kv-v" style="color:var(--error)">✗</span></div>
+      <div class="kv"><span class="kk">Features are already uncorrelated</span><span class="kv-v" style="color:var(--error)">✗</span></div>
+      <div class="kv"><span class="kk">Must keep original meaning</span><span class="kv-v" style="color:var(--error)">✗</span></div>
+    </div>
+  </div>
+  <div class="callout callout-y">
+    <strong>Important:</strong> After PCA, features lose their original meaning. PC1 is not "CGPA." It's something like 0.4·CGPA + 0.3·Internals + 0.2·Study hours... You gain compression but lose explainability. Choose accordingly.
+  </div>
+  <div class="tile" style="margin-top:16px">
+    <div class="tile-title">Real-world applications of PCA</div>
+    <div class="kv"><span class="kk">Image compression</span><span class="kv-v">Reduce 10,000 pixels to 100 components</span></div>
+    <div class="kv"><span class="kk">Face recognition</span><span class="kv-v">Eigenfaces — PCA on face image matrices</span></div>
+    <div class="kv"><span class="kk">Noise removal</span><span class="kv-v">Low-variance components often capture noise</span></div>
+    <div class="kv"><span class="kk">Genomics</span><span class="kv-v">Reduce thousands of gene expression features</span></div>
+    <div class="kv"><span class="kk">Visualization</span><span class="kv-v">Reduce any dataset to 2D for scatter plots</span></div>
+  </div>
+</div>
+
+<!-- S8 Quiz -->
+<div class="section" id="s8">
+  <div class="eyebrow">08 · Check your understanding</div>
+  <h2>Quick quiz</h2>
+
+  <div class="quiz-wrap">
+    <div class="quiz-q">1. In PCA, what does the eigenvalue associated with a principal component tell you?</div>
+    <div class="quiz-options" id="q1-opts">
+      <div class="quiz-opt" onclick="answerQ('q1',0,1,'q1-fb')">A. The original feature names in the component</div>
+      <div class="quiz-opt" onclick="answerQ('q1',1,1,'q1-fb')">B. How much variance that component captures ✓</div>
+      <div class="quiz-opt" onclick="answerQ('q1',2,1,'q1-fb')">C. The number of data points in the component</div>
+      <div class="quiz-opt" onclick="answerQ('q1',3,1,'q1-fb')">D. Whether to keep or discard the component</div>
+    </div>
+    <div class="quiz-feedback" id="q1-fb">The eigenvalue tells you the amount of variance captured by that principal component. Larger eigenvalue = more important direction. PC1 always has the largest eigenvalue — it captures the most information. ✓</div>
+    <button class="quiz-reset" id="q1-reset" onclick="resetQ('q1','q1-fb','q1-reset')">Try again</button>
+  </div>
+
+  <div class="quiz-wrap">
+    <div class="quiz-q">2. After applying PCA, the first two components explain 92% of total variance. You discard the remaining components. What happens?</div>
+    <div class="quiz-options" id="q2-opts">
+      <div class="quiz-opt" onclick="answerQ('q2',0,2,'q2-fb')">A. All information is lost</div>
+      <div class="quiz-opt" onclick="answerQ('q2',1,2,'q2-fb')">B. The model will definitely overfit</div>
+      <div class="quiz-opt" onclick="answerQ('q2',2,2,'q2-fb')">C. You lose 8% of variance — usually acceptable ✓</div>
+      <div class="quiz-opt" onclick="answerQ('q2',3,2,'q2-fb')">D. The original features are restored</div>
+    </div>
+    <div class="quiz-feedback" id="q2-fb">Discarding components that explain only 8% total variance is usually a good trade-off — you get a much simpler model with minimal information loss. In practice, 90–95% variance retention is the standard target. ✓</div>
+    <button class="quiz-reset" id="q2-reset" onclick="resetQ('q2','q2-fb','q2-reset')">Try again</button>
+  </div>
+
+  <div class="quiz-wrap">
+    <div class="quiz-q">3. Why must you standardize data BEFORE applying PCA?</div>
+    <div class="quiz-options" id="q3-opts">
+      <div class="quiz-opt" onclick="answerQ('q3',0,2,'q3-fb')">A. To remove duplicate rows</div>
+      <div class="quiz-opt" onclick="answerQ('q3',1,2,'q3-fb')">B. To convert categorical features</div>
+      <div class="quiz-opt" onclick="answerQ('q3',2,2,'q3-fb')">C. Because PCA is scale-sensitive — large-scale features would dominate ✓</div>
+      <div class="quiz-opt" onclick="answerQ('q3',3,2,'q3-fb')">D. To increase the number of principal components</div>
+    </div>
+    <div class="quiz-feedback" id="q3-fb">PCA finds directions of maximum variance. If Salary is in the range 0–10,00,000 and CGPA is 0–10, Salary's variance dominates purely due to scale — not importance. Standardizing (mean=0, std=1) puts everyone on equal footing. ✓</div>
+    <button class="quiz-reset" id="q3-reset" onclick="resetQ('q3','q3-fb','q3-reset')">Try again</button>
+  </div>
+</div>
+
+<div class="page-nav">
+  <a class="page-nav-btn" href="data-processing.html">← Data Processing</a>
+  <a class="page-nav-btn primary" href="index.html">Module 1 complete ✓</a>
+</div>
+</main>
+</div>
+
+<script>
+let isLight=false;
+function toggleTheme(){
+  isLight=!isLight;
+  document.documentElement.classList.toggle('light',isLight);
+  const i=isLight?'◑':'☀',l=isLight?'Light':'Dark';
+  document.getElementById('tog-icon').textContent=i;
+  document.getElementById('tog-txt').textContent=l+' theme';
+  document.getElementById('theme-lbl').textContent=l;
+  const m=document.getElementById('mob-tog');if(m)m.textContent=i;
+  drawPCA();
+}
+
+// PCA canvas visualization
+function drawPCA(){
+  const canvas=document.getElementById('pca-canvas');
+  const W=canvas.offsetWidth||700;canvas.width=W;canvas.height=280;
+  const ctx=canvas.getContext('2d');
+  const cs=getComputedStyle(document.documentElement);
+  const bg=cs.getPropertyValue('--layer-01').trim();
+  const grid=cs.getPropertyValue('--bdr-00').trim();
+  const txtC=cs.getPropertyValue('--txt-ph').trim();
+  const dotC=cs.getPropertyValue('--blue').trim();
+  const pc1C='#f1c21b';
+  const pc2C='#3ddbd9';
+  ctx.clearRect(0,0,W,280);
+  ctx.fillStyle=bg;ctx.fillRect(0,0,W,280);
+
+  const cx=W/2,cy=140;
+  // Grid
+  ctx.strokeStyle=grid;ctx.lineWidth=0.5;
+  for(let x=0;x<=W;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,280);ctx.stroke();}
+  for(let y=0;y<=280;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
+
+  // Data points (correlated diagonal cloud)
+  const pts=[];
+  const seed=[[−80,−72],[−60,−54],[−40,−38],[−20,−16],[0,4],[20,18],[40,36],[60,52],[80,74],
+    [−70,−60],[−50,−42],[−30,−22],[−10,−6],[10,14],[30,28],[50,46],[70,60],
+    [−90,−75],[−55,−50],[5,−5],[45,40],[75,68]];
+  seed.forEach(([dx,dy])=>{
+    const x=cx+dx*1.1+((dx*7)%11-5);
+    const y=cy-dy*1.1+((dy*5)%9-4);
+    pts.push([x,y]);
+    ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);
+    ctx.fillStyle=dotC+'aa';ctx.fill();
+    ctx.strokeStyle=dotC;ctx.lineWidth=1;ctx.stroke();
+  });
+
+  // PC1 — 45 degree axis (amber)
+  ctx.strokeStyle=pc1C;ctx.lineWidth=2.5;
+  ctx.beginPath();ctx.moveTo(cx-160,cy+152);ctx.lineTo(cx+160,cy-152);ctx.stroke();
+  // PC1 arrow
+  ctx.fillStyle=pc1C;
+  ctx.font='bold 11px IBM Plex Mono,monospace';
+  ctx.fillText('PC1 (max variance)',cx+120,cy-130);
+
+  // PC2 — perpendicular
+  ctx.strokeStyle=pc2C;ctx.lineWidth=1.5;ctx.setLineDash([4,4]);
+  ctx.beginPath();ctx.moveTo(cx-80,cy-88);ctx.lineTo(cx+80,cy+88);ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle=pc2C;
+  ctx.fillText('PC2',cx+60,cy+96);
+
+  // Axis labels
+  ctx.fillStyle=txtC;ctx.font='10px IBM Plex Mono,monospace';ctx.textAlign='center';
+  ctx.fillText('Study Hours →',cx,272);
+  ctx.save();ctx.translate(14,cy);ctx.rotate(-Math.PI/2);ctx.fillText('Internal Marks →',0,0);ctx.restore();
+}
+
+window.addEventListener('load',drawPCA);
+window.addEventListener('resize',drawPCA);
+
+function answerQ(qid,clicked,correct,fbId){const opts=document.getElementById(qid+'-opts').querySelectorAll('.quiz-opt');opts.forEach((o,i)=>{o.style.pointerEvents='none';if(i===correct)o.classList.add('show-correct');if(i===clicked&&clicked!==correct)o.classList.add('wrong');if(i===clicked&&clicked===correct)o.classList.add('correct');});const fb=document.getElementById(fbId);fb.classList.add('show');fb.style.background=clicked===correct?'rgba(66,190,101,.08)':'rgba(255,131,137,.08)';fb.style.borderLeftColor=clicked===correct?'var(--success)':'var(--error)';document.getElementById(qid+'-reset').classList.add('show');}
+function resetQ(qid,fbId,resetId){const opts=document.getElementById(qid+'-opts').querySelectorAll('.quiz-opt');opts.forEach(o=>{o.style.pointerEvents='';o.classList.remove('correct','wrong','show-correct');});document.getElementById(fbId).classList.remove('show');document.getElementById(resetId).classList.remove('show');}
+
+const secs=Array.from(document.querySelectorAll('.section[id]'));let lastId='',rafP=false;
+window.addEventListener('scroll',()=>{if(rafP)return;rafP=true;requestAnimationFrame(()=>{rafP=false;const t=window.scrollY+window.innerHeight*.28;let a=secs[0];for(const s of secs){if(s.offsetTop<=t)a=s;else break;}if(a&&a.id!==lastId){lastId=a.id;document.querySelectorAll('.nav-item,.drawer-nav-item').forEach(n=>n.classList.toggle('active',n.getAttribute('href')==='#'+a.id));}});},{passive:true});
+
+function buildDrawer(){const dr=document.getElementById('nav-drawer');const sn=document.getElementById('sidenav');const cl=sn.cloneNode(true);cl.removeAttribute('id');cl.removeAttribute('class');cl.querySelectorAll('.nav-item').forEach(el=>{el.classList.add('drawer-nav-item');el.addEventListener('click',closeDrawer);});const tog=cl.querySelector('.tog-area');if(tog)tog.remove();const cb=document.createElement('button');cb.textContent='✕ Close';cb.style.cssText='font-family:"IBM Plex Mono",monospace;font-size:11px;background:transparent;border:none;border-bottom:1px solid var(--bdr-00);color:var(--txt-ph);padding:12px 16px;width:100%;text-align:left;cursor:pointer';cb.onclick=closeDrawer;dr.insertBefore(cb,dr.firstChild);dr.appendChild(cl);}
+function toggleDrawer(){const ov=document.getElementById('nav-overlay');const dr=document.getElementById('nav-drawer');if(dr.classList.contains('open')){closeDrawer();}else{ov.style.display='block';setTimeout(()=>ov.classList.add('open'),10);dr.classList.add('open');document.body.style.overflow='hidden';}}
+function closeDrawer(){const ov=document.getElementById('nav-overlay');const dr=document.getElementById('nav-drawer');ov.classList.remove('open');dr.classList.remove('open');document.body.style.overflow='';setTimeout(()=>{ov.style.display='none';},270);}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer();});
+document.fonts.ready.then(()=>{buildDrawer();drawPCA();});
+document.addEventListener('contextmenu',e=>e.preventDefault());
+document.addEventListener('keydown',e=>{if(e.key==='F12'||(e.ctrlKey&&e.shiftKey&&['I','J','C'].includes(e.key))||(e.ctrlKey&&e.key==='U'))e.preventDefault();});
+</script>
+</body>
+</html>
