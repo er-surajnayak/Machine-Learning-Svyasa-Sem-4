@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Types in ML — Module 1 · Svyasa</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;1,300&family=IBM+Plex+Serif:ital,wght@0,300;1,300&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#161616;--layer-01:#262626;--layer-02:#393939;--layer-03:#525252;--hover-01:#333333;--hover-02:#474747;--bdr-00:#393939;--bdr-01:#474747;--bdr-str:#6f6f6f;--txt-pri:#f4f4f4;--txt-sec:#c6c6c6;--txt-ph:#6f6f6f;--blue:#4589ff;--blue-hov:#0f62fe;--accent:#3ddbd9;--accent-dim:rgba(61,219,217,.12);--link:#78a9ff;--success:#42be65;--warn:#f1c21b;--error:#ff8389;--teal:#3ddbd9;--purple:#d4bbff;--tag-blu-bg:#0043ce;--tag-blu-tx:#a6c8ff;--tag-tel-bg:#005d5d;--tag-tel-tx:#3ddbd9;--tag-red-bg:#750e13;--tag-red-tx:#ffb3b8;--tag-grn-bg:#044317;--tag-grn-tx:#a7f0ba;--tag-pur-bg:#491d8b;--tag-pur-tx:#d4bbff;--tag-amb-bg:#533b00;--tag-amb-tx:#f1c21b;--tag-cyn-bg:#003a6d;--tag-cyn-tx:#82cfff;}
+html.light{--bg:#ffffff;--layer-01:#f4f4f4;--layer-02:#e0e0e0;--layer-03:#c6c6c6;--hover-01:#e8e8e8;--hover-02:#d1d1d1;--bdr-00:#e0e0e0;--bdr-01:#c6c6c6;--bdr-str:#8d8d8d;--txt-pri:#161616;--txt-sec:#525252;--txt-ph:#8d8d8d;--blue:#0f62fe;--accent:#007d79;--accent-dim:rgba(0,125,121,.08);--link:#0043ce;--success:#198038;--warn:#b28600;--error:#da1e28;--teal:#007d79;--purple:#6929c4;--tag-blu-bg:#d0e2ff;--tag-blu-tx:#0043ce;--tag-tel-bg:#9ef0f0;--tag-tel-tx:#005d5d;--tag-red-bg:#ffd7d9;--tag-red-tx:#750e13;--tag-grn-bg:#a7f0ba;--tag-grn-tx:#044317;--tag-pur-bg:#e8daff;--tag-pur-tx:#491d8b;--tag-amb-bg:#ffd6a4;--tag-amb-tx:#4d3800;--tag-cyn-bg:#bae6ff;--tag-cyn-tx:#003a6d;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'IBM Plex Sans',sans-serif;font-size:14px;line-height:1.5;background:var(--bg);color:var(--txt-pri);-webkit-font-smoothing:antialiased;transition:background-color .25s,color .2s}
+.page-grid{display:grid;grid-template-columns:264px 1fr;min-height:100vh}
+.sidenav{background:var(--layer-01);border-right:1px solid var(--bdr-00);position:sticky;top:0;height:100vh;overflow-y:auto;padding-bottom:40px;transition:background .25s,border-color .2s}
+.nav-hdr{padding:18px 16px;border-bottom:1px solid var(--bdr-00);margin-bottom:4px}
+.nav-product{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;color:var(--txt-ph);text-transform:uppercase;margin-bottom:4px}
+.nav-title{font-size:13px;font-weight:600;color:var(--txt-pri);line-height:1.35}
+.nav-back{display:flex;align-items:center;gap:6px;padding:8px 16px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph);text-decoration:none;letter-spacing:.04em;border-bottom:1px solid var(--bdr-00);transition:color .15s,background .15s}
+.nav-back:hover{color:var(--link);background:var(--hover-01)}
+.nav-sec-lbl{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;color:var(--txt-ph);text-transform:uppercase;padding:14px 16px 4px}
+.nav-item{display:flex;align-items:center;gap:8px;padding:9px 16px;font-size:13px;color:var(--txt-sec);cursor:pointer;border-left:3px solid transparent;transition:background .15s,color .15s,border-color .15s;text-decoration:none}
+.nav-item:hover{background:var(--hover-01);color:var(--txt-pri)}
+.nav-item.active{background:var(--hover-01);color:var(--txt-pri);border-left-color:var(--accent);font-weight:600}
+.nav-item.active .nn{color:var(--accent);font-weight:600}
+.nav-item.active .cell-tag{background:var(--accent);color:#fff}
+.nav-item .nn{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph);min-width:18px}
+.nav-item .cell-tag{font-family:'IBM Plex Mono',monospace;font-size:9px;padding:1px 5px;background:var(--tag-cyn-bg);color:var(--tag-cyn-tx);margin-left:auto;flex-shrink:0}
+.search-wrap{padding:10px 12px;border-bottom:1px solid var(--bdr-00);position:relative}
+.search-input-row{display:flex;align-items:center;background:var(--layer-02);border:1px solid var(--bdr-01);transition:border-color .2s}
+.search-input-row:focus-within{border-color:var(--accent);box-shadow:0 0 0 2px rgba(61,219,217,.2)}
+.search-icon{padding:0 10px;color:var(--txt-ph);font-size:14px;pointer-events:none;flex-shrink:0;line-height:34px}
+.search-input{flex:1;height:34px;background:transparent;border:none;outline:none;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--txt-pri);min-width:0}
+.search-input::placeholder{color:var(--txt-ph)}
+.search-clear{width:30px;height:34px;background:transparent;border:none;color:var(--txt-ph);cursor:pointer;font-size:13px;display:none;align-items:center;justify-content:center;transition:color .15s;flex-shrink:0;padding:0}
+.search-clear:hover{color:var(--txt-pri)}.search-clear.visible{display:flex}
+.search-results{position:fixed;background:var(--layer-01);border:1px solid var(--accent);border-top:2px solid var(--accent);z-index:400;max-height:60vh;overflow-y:auto;display:none;width:264px}
+.search-results.open{display:block}
+.search-result-item{display:flex;flex-direction:column;gap:4px;padding:11px 14px;cursor:pointer;border-bottom:1px solid var(--bdr-00);transition:background .1s;text-decoration:none;color:inherit}
+.search-result-item:hover{background:var(--hover-01)}
+.sri-top{display:flex;align-items:center;gap:8px}
+.sri-num{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--txt-ph);min-width:16px}
+.sri-title{font-size:12px;font-weight:600;color:var(--txt-pri);flex:1;line-height:1.3}
+.sri-snippet{font-size:11px;color:var(--txt-sec);line-height:1.5;padding-left:24px}
+.sri-snippet mark{background:rgba(69,137,255,.28);color:var(--link);font-weight:600;border-radius:2px;padding:0 2px}
+.search-no-results{padding:16px 14px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-ph);text-align:center}
+.main{max-width:860px;padding:0 40px 100px}
+.page-header{padding:56px 0 44px;border-bottom:1px solid var(--bdr-00);margin-bottom:56px}
+.breadcrumb{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-ph);letter-spacing:.05em;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.breadcrumb a{color:var(--link);text-decoration:none}
+.breadcrumb a:hover{text-decoration:underline}
+h1{font-family:'IBM Plex Serif',serif;font-size:40px;font-weight:300;line-height:1.1;color:var(--txt-pri);margin-bottom:14px;letter-spacing:-.5px}
+h1 em{font-style:italic;color:var(--link)}
+.page-desc{font-size:15px;font-weight:300;color:var(--txt-sec);max-width:620px;line-height:1.65}
+.section{margin-bottom:64px;opacity:0;transform:translateY(16px);animation:fadeUp .4s ease forwards}
+.section:nth-child(1){animation-delay:.04s}.section:nth-child(2){animation-delay:.08s}.section:nth-child(3){animation-delay:.12s}.section:nth-child(4){animation-delay:.16s}.section:nth-child(5){animation-delay:.20s}.section:nth-child(6){animation-delay:.24s}.section:nth-child(7){animation-delay:.28s}.section:nth-child(8){animation-delay:.32s}
+@keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;color:var(--accent);text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.eyebrow::before{content:'';display:inline-block;width:16px;height:1px;background:var(--accent)}
+h2{font-family:'IBM Plex Serif',serif;font-size:26px;font-weight:300;color:var(--txt-pri);margin-bottom:14px;line-height:1.25}
+h3{font-size:14px;font-weight:600;color:var(--txt-pri);margin-bottom:8px}
+p{font-size:14px;font-weight:300;color:var(--txt-sec);margin-bottom:12px;line-height:1.75}
+p strong{color:var(--txt-pri);font-weight:600}
+.hl{color:var(--link);font-weight:600}.hl-g{color:var(--success);font-weight:600}.hl-r{color:var(--error);font-weight:600}.hl-y{color:var(--warn);font-weight:600}.hl-t{color:var(--teal);font-weight:600}.hl-p{color:var(--purple);font-weight:600}
+.callout{border-left:3px solid var(--accent);background:var(--layer-01);padding:14px 18px;margin:14px 0;font-size:14px;font-weight:300;color:var(--txt-sec);line-height:1.75;transition:background .25s}
+.callout strong{color:var(--txt-pri);font-weight:600}
+.callout-g{border-left-color:var(--success)}.callout-y{border-left-color:var(--warn)}.callout-r{border-left-color:var(--error)}.callout-t{border-left-color:var(--teal)}
+.tag{display:inline-flex;align-items:center;height:22px;padding:0 10px;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.03em;margin-bottom:8px}
+.t-blu{background:var(--tag-blu-bg);color:var(--tag-blu-tx)}.t-tel{background:var(--tag-tel-bg);color:var(--tag-tel-tx)}.t-grn{background:var(--tag-grn-bg);color:var(--tag-grn-tx)}.t-pur{background:var(--tag-pur-bg);color:var(--tag-pur-tx)}.t-amb{background:var(--tag-amb-bg);color:var(--tag-amb-tx)}.t-cyn{background:var(--tag-cyn-bg);color:var(--tag-cyn-tx)}.t-red{background:var(--tag-red-bg);color:var(--tag-red-tx)}
+.tile{background:var(--layer-01);border:1px solid var(--bdr-00);padding:18px 22px;margin-bottom:12px;transition:background .25s}
+.tile-title{font-size:13px;font-weight:600;color:var(--txt-pri);margin-bottom:3px}
+.tile-sub{font-size:12px;color:var(--txt-ph);margin-bottom:14px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--bdr-00);border:1px solid var(--bdr-00);margin:14px 0}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--bdr-00);border:1px solid var(--bdr-00);margin:14px 0}
+.gcell{background:var(--layer-01);padding:18px 22px;transition:background .25s}
+.kv{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--bdr-00);font-size:13px;gap:12px}
+.kv:last-child{border-bottom:none}
+.kk{color:var(--txt-sec);font-weight:300;flex-shrink:0}.kv-v{color:var(--txt-pri);font-weight:400;text-align:right}
+.dtbl{width:100%;border-collapse:collapse;margin:8px 0}
+.dtbl thead tr{background:var(--layer-02);border-bottom:1px solid var(--bdr-str)}
+.dtbl th{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--txt-sec);padding:9px 14px;text-align:left}
+.dtbl td{padding:9px 14px;font-size:13px;border-bottom:1px solid var(--bdr-00);color:var(--txt-pri);vertical-align:middle}
+.dtbl tbody tr:hover{background:var(--hover-01)}
+.formula{font-family:'IBM Plex Mono',monospace;font-size:13px;background:var(--layer-02);border:1px solid var(--bdr-01);border-left:3px solid var(--accent);padding:11px 15px;margin:10px 0;line-height:2;color:var(--txt-pri);transition:background .25s}
+hr{border:none;border-top:1px solid var(--bdr-00);margin:48px 0}
+
+/* ── Type showcase card ── */
+.type-showcase{border:1px solid var(--bdr-00);margin-bottom:1px;overflow:hidden}
+.ts-header{padding:16px 22px;background:var(--layer-02);border-bottom:1px solid var(--bdr-00);display:flex;align-items:center;gap:14px;cursor:pointer;transition:background .15s}
+.ts-header:hover{background:var(--hover-02)}
+.ts-icon{font-size:22px;flex-shrink:0}
+.ts-info{flex:1}
+.ts-name{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--txt-ph);margin-bottom:3px}
+.ts-title{font-size:14px;font-weight:600;color:var(--txt-pri)}
+.ts-arrow{font-family:'IBM Plex Mono',monospace;font-size:14px;color:var(--txt-ph);transition:transform .2s}
+.ts-arrow.open{transform:rotate(90deg)}
+.ts-body{display:none;padding:20px 22px;border-top:1px solid var(--bdr-00);background:var(--layer-01)}
+.ts-body.open{display:block}
+
+/* ── Interactive sorter quiz ── */
+.sorter-wrap{border:1px solid var(--bdr-00);background:var(--layer-01);margin:16px 0;overflow:hidden}
+.sorter-header{background:var(--layer-02);padding:12px 18px;border-bottom:1px solid var(--bdr-00);display:flex;justify-content:space-between;align-items:center}
+.sorter-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--blue)}
+.sorter-score{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-ph)}
+.sorter-body{padding:18px}
+.sorter-instruction{font-size:13px;color:var(--txt-sec);margin-bottom:16px;line-height:1.6}
+.sorter-items{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+.sort-chip{padding:8px 14px;background:var(--layer-02);border:1px solid var(--bdr-01);font-size:13px;color:var(--txt-sec);cursor:pointer;transition:all .15s;user-select:none}
+.sort-chip:hover{background:var(--hover-02);color:var(--txt-pri);border-color:var(--bdr-str)}
+.sort-chip.selected{background:var(--blue);color:#fff;border-color:var(--blue)}
+.sort-chip.correct{background:rgba(66,190,101,.15);border-color:var(--success);color:var(--success)}
+.sort-chip.wrong{background:rgba(255,131,137,.15);border-color:var(--error);color:var(--error)}
+.sort-buckets{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--bdr-00);border:1px solid var(--bdr-00);margin-bottom:14px}
+.sort-bucket{background:var(--layer-01);padding:14px;min-height:80px;transition:background .15s}
+.sort-bucket.highlight{background:var(--hover-01)}
+.sb-label{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--txt-ph);margin-bottom:8px}
+.sb-items{display:flex;flex-direction:column;gap:4px}
+.sb-item{font-size:12px;padding:4px 8px;background:var(--layer-02)}
+.sorter-btn{padding:7px 16px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.05em;border:1px solid var(--bdr-01);background:var(--layer-02);color:var(--txt-sec);cursor:pointer;transition:background .15s}
+.sorter-btn:hover{background:var(--blue);color:#fff;border-color:var(--blue)}
+.sorter-feedback{margin-top:12px;padding:10px 14px;font-size:13px;line-height:1.6;display:none}
+.sorter-feedback.show{display:block}
+
+/* ── Quiz ── */
+.quiz-wrap{border:1px solid var(--bdr-00);background:var(--layer-01);margin:16px 0;overflow:hidden}
+.quiz-header{background:var(--layer-02);padding:12px 18px;border-bottom:1px solid var(--bdr-00);display:flex;justify-content:space-between;align-items:center}
+.quiz-q-label{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.quiz-counter{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-ph)}
+.quiz-body{padding:18px}
+.quiz-question{font-size:15px;color:var(--txt-pri);margin-bottom:16px;line-height:1.6}
+.quiz-options{display:flex;flex-direction:column;gap:6px}
+.quiz-opt{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;background:var(--layer-02);border:1px solid var(--bdr-01);cursor:pointer;transition:background .15s;font-size:13px;color:var(--txt-sec);line-height:1.5;text-align:left;width:100%}
+.quiz-opt:hover{background:var(--hover-02);color:var(--txt-pri)}
+.quiz-opt.correct{background:rgba(66,190,101,.12);border-color:var(--success);color:var(--success)}
+.quiz-opt.wrong{background:rgba(255,131,137,.12);border-color:var(--error);color:var(--error)}
+.quiz-opt.reveal{background:rgba(66,190,101,.08);border-color:var(--success);color:var(--txt-sec)}
+.opt-letter{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--txt-ph);flex-shrink:0;min-width:16px;padding-top:1px}
+.quiz-feedback{margin-top:12px;padding:10px 14px;font-size:13px;line-height:1.6;display:none}
+.quiz-feedback.show{display:block}
+.quiz-feedback.correct-fb{background:rgba(66,190,101,.1);border-left:3px solid var(--success);color:var(--success)}
+.quiz-feedback.wrong-fb{background:rgba(255,131,137,.1);border-left:3px solid var(--error);color:var(--txt-sec)}
+.quiz-nav{display:flex;gap:8px;margin-top:14px;justify-content:flex-end}
+.quiz-btn{padding:7px 16px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.05em;border:1px solid var(--bdr-01);background:var(--layer-02);color:var(--txt-sec);cursor:pointer;transition:background .15s}
+.quiz-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+.quiz-btn:disabled{opacity:.4;cursor:default}
+
+.theme-btn{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:16px 16px 0;padding:9px 12px;width:calc(100% - 32px);background:var(--layer-02);border:1px solid var(--bdr-01);cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-sec);letter-spacing:.05em;transition:background .15s}
+.theme-btn:hover{background:var(--hover-02);color:var(--txt-pri)}
+.tog-left{display:flex;align-items:center;gap:6px}
+.tog-track{width:30px;height:15px;background:var(--bdr-str);border-radius:8px;position:relative;flex-shrink:0;transition:background .25s}
+.tog-thumb{position:absolute;top:2px;left:2px;width:11px;height:11px;border-radius:50%;background:#fff;transition:transform .25s}
+html.light .tog-track{background:var(--accent)}
+html.light .tog-thumb{transform:translateX(15px)}
+.section.search-highlight{animation:searchFlash 1.6s ease forwards}
+@keyframes searchFlash{0%{box-shadow:inset 0 0 0 2px var(--accent),0 0 0 4px rgba(61,219,217,.18)}100%{box-shadow:none}}
+.page-nav{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--bdr-00);border:1px solid var(--bdr-00);margin-top:64px}
+.pnav-card{background:var(--layer-01);padding:16px 20px;text-decoration:none;color:inherit;transition:background .15s;display:flex;flex-direction:column;gap:4px}
+.pnav-card:hover{background:var(--hover-01)}
+.pnav-card.next{text-align:right}
+.pnav-dir{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;color:var(--txt-ph);text-transform:uppercase}
+.pnav-title{font-size:13px;font-weight:600;color:var(--link)}
+.mobile-topbar{display:none;position:fixed;top:0;left:0;right:0;z-index:300;height:48px;background:var(--layer-01);border-bottom:1px solid var(--bdr-00);align-items:center;justify-content:space-between;padding:0 12px 0 6px;transition:background .25s}
+.hamburger-btn{background:transparent;border:none;padding:10px;cursor:pointer;display:flex;align-items:center}
+.hamburger-icon{display:flex;flex-direction:column;gap:4px;width:18px}
+.hamburger-icon span{display:block;height:2px;background:var(--txt-sec)}
+.mobile-topbar-title{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.06em;color:var(--txt-sec);text-transform:uppercase;flex:1;padding:0 8px}
+.mobile-topbar-right{display:flex;align-items:center;gap:4px}
+.mobile-search-btn,.mobile-theme-btn{background:transparent;border:none;font-size:16px;color:var(--txt-sec);cursor:pointer;padding:8px}
+.nav-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:150;opacity:0;transition:opacity .3s}
+.nav-overlay.open{opacity:1}
+.sidenav-drawer{position:fixed;left:0;top:0;bottom:0;z-index:160;width:280px;background:var(--layer-01);border-right:1px solid var(--bdr-00);overflow-y:auto;transform:translateX(-100%);transition:transform .3s cubic-bezier(.4,0,.2,1);padding-bottom:40px}
+.sidenav-drawer.open{transform:translateX(0)}
+.mobile-search-overlay{display:none;position:fixed;inset:0;z-index:350;background:var(--bg);flex-direction:column}
+.mobile-search-overlay.open{display:flex}
+.mobile-search-header{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--bdr-00)}
+.mobile-search-cancel{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--link);background:transparent;border:none;cursor:pointer;white-space:nowrap;padding:0 4px}
+.mobile-search-results{flex:1;overflow-y:auto;padding-top:4px}
+.drawer-nav-item{display:flex;align-items:center;gap:8px;padding:9px 16px;font-size:13px;color:var(--txt-sec);cursor:pointer;border-left:3px solid transparent;transition:background .15s,color .15s,border-color .15s;text-decoration:none}
+.drawer-nav-item:hover{background:var(--hover-01);color:var(--txt-pri)}
+.drawer-nav-item.active{background:var(--hover-01);color:var(--txt-pri);border-left-color:var(--accent);font-weight:600}
+@media(min-width:768px) and (max-width:1024px){.page-grid{grid-template-columns:220px 1fr}.main{padding:0 24px 80px}h1{font-size:32px}.grid3{grid-template-columns:1fr 1fr}}
+@media(max-width:767px){.mobile-topbar{display:flex}.sidenav{display:none}.page-grid{display:block}.main{padding:68px 16px 80px;max-width:100%}h1{font-size:26px}h2{font-size:20px}.page-header{padding:24px 0 20px;margin-bottom:32px}.section{margin-bottom:40px}.grid2,.grid3{grid-template-columns:1fr}.sort-buckets{grid-template-columns:1fr}.page-nav{grid-template-columns:1fr}}
+</style>
+<div class="nav-overlay" id="nav-overlay" onclick="closeDrawer()"></div>
+<nav class="sidenav-drawer" id="sidenav-drawer"></nav>
+</head>
+<body>
+<div class="mobile-topbar" id="mobile-topbar">
+  <button class="hamburger-btn" id="hamburger-btn" onclick="toggleDrawer()"><div class="hamburger-icon"><span></span><span></span><span></span></div></button>
+  <span class="mobile-topbar-title">Data Types in ML</span>
+  <div class="mobile-topbar-right">
+    <button class="mobile-search-btn" onclick="openMobileSearch()">⌕</button>
+    <button class="mobile-theme-btn" onclick="toggleTheme()" id="mobile-theme-icon">☀</button>
+  </div>
+</div>
+<div class="mobile-search-overlay" id="mobile-search-overlay">
+  <div class="mobile-search-header">
+    <div class="search-input-row" style="flex:1"><span class="search-icon">⌕</span><input class="search-input" id="mobile-search-input" type="text" placeholder="Search topics..." autocomplete="off"><button class="search-clear visible" id="mobile-search-clear" onclick="clearMobileSearch()">✕</button></div>
+    <button class="mobile-search-cancel" onclick="closeMobileSearch()">Cancel</button>
+  </div>
+  <div class="mobile-search-results" id="mobile-search-results"><div class="search-no-results" style="padding-top:32px">Start typing to search...</div></div>
+</div>
+
+<div class="page-grid">
+<nav class="sidenav">
+  <div class="nav-hdr">
+    <div class="nav-product">Module 01 · Introduction to ML</div>
+    <div class="nav-title">Data Types<br>in Machine Learning</div>
+  </div>
+  <a class="nav-back" href="index.html">← Back to Module 1</a>
+  <div class="search-wrap">
+    <div class="search-input-row"><span class="search-icon">⌕</span><input class="search-input" id="search-input" type="text" placeholder="Search topics..." autocomplete="off"><button class="search-clear" id="search-clear" onclick="clearSearch()">✕</button></div>
+    <div class="search-results" id="search-results"></div>
+  </div>
+  <div class="nav-sec-lbl">Part 1 · Core types</div>
+  <a class="nav-item active" href="#s1"><span class="nn">01</span>Why data types matter<span class="cell-tag">intro</span></a>
+  <a class="nav-item" href="#s2"><span class="nn">02</span>Numerical data<span class="cell-tag">numbers</span></a>
+  <a class="nav-item" href="#s3"><span class="nn">03</span>Categorical data<span class="cell-tag">labels</span></a>
+  <a class="nav-item" href="#s4"><span class="nn">04</span>Ordinal data<span class="cell-tag">ordered</span></a>
+  <div class="nav-sec-lbl">Part 2 · Beyond tables</div>
+  <a class="nav-item" href="#s5"><span class="nn">05</span>Text, image & audio<span class="cell-tag">real-world</span></a>
+  <a class="nav-item" href="#s6"><span class="nn">06</span>All types compared<span class="cell-tag">summary</span></a>
+  <div class="nav-sec-lbl">Part 3 · Practice</div>
+  <a class="nav-item" href="#s7"><span class="nn">07</span>Sort the features<span class="cell-tag">interactive</span></a>
+  <a class="nav-item" href="#s8"><span class="nn">08</span>Quick check<span class="cell-tag">quiz</span></a>
+  <div style="padding:24px 16px 0">
+    <button class="theme-btn" onclick="toggleTheme()">
+      <span class="tog-left"><span id="tog-icon">☀</span><span id="tog-txt">Light theme</span></span>
+      <span class="tog-track"><span class="tog-thumb"></span></span>
+    </button>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph);line-height:1.6;letter-spacing:.04em;margin-top:10px">IBM Carbon Design System<br><span id="theme-label">Gray 100 · Dark</span></div>
+  </div>
+</nav>
+
+<main class="main">
+<div class="page-header">
+  <div class="breadcrumb"><a href="index.html">ML Svyasa</a><span>/</span><a href="index.html">Module 1</a><span>/</span><span style="color:var(--txt-sec)">Data Types in ML</span></div>
+  <h1>ML only understands<br><em>numbers.</em><br>Everything else must convert.</h1>
+  <p class="page-desc">ML doesn't understand emotions, words, or "good vibes." It only understands numbers. This topic explains the 3 core data types and why treating them incorrectly breaks your model.</p>
+</div>
+
+<!-- S1 -->
+<div class="section" id="s1">
+  <div class="eyebrow">01 · The core idea</div>
+  <h2>Why data types matter in ML</h2>
+  <p>When we build ML models, the type of data we feed matters enormously. Different data types behave differently — and if we treat them incorrectly, the model learns the wrong relationships.</p>
+  <div class="grid3">
+    <div class="gcell" style="border-top:3px solid var(--blue);text-align:center">
+      <div style="font-size:28px;margin-bottom:8px">🔢</div>
+      <div class="tag t-blu">Numerical</div>
+      <p style="font-size:12px;margin:0">Measurable quantities — age, salary, CGPA</p>
+    </div>
+    <div class="gcell" style="border-top:3px solid var(--teal);text-align:center">
+      <div style="font-size:28px;margin-bottom:8px">🏷️</div>
+      <div class="tag t-tel">Categorical</div>
+      <p style="font-size:12px;margin:0">Names & labels — branch, city, blood group</p>
+    </div>
+    <div class="gcell" style="border-top:3px solid var(--purple);text-align:center">
+      <div style="font-size:28px;margin-bottom:8px">📊</div>
+      <div class="tag t-pur">Ordinal</div>
+      <p style="font-size:12px;margin:0">Ordered labels — Low/Medium/High, grades</p>
+    </div>
+  </div>
+  <div class="callout">
+    <strong>Memory trick:</strong> "What type is this?" → Categorical. "How much?" → Numerical. Has order but no exact gap → Ordinal.
+  </div>
+</div>
+
+<!-- S2 -->
+<div class="section" id="s2">
+  <div class="eyebrow">02 · First type</div>
+  <h2>Numerical Data</h2>
+  <span class="tag t-blu">Measurable</span><span class="tag t-grn" style="margin-left:6px">Direct to model</span>
+  <p>Numbers with real magnitude. If someone studies 10 hours and another studies 5, the first has genuinely done double. The numbers carry mathematical meaning.</p>
+  <div class="tile">
+    <div class="tile-title">Examples in a placement dataset</div>
+    <table class="dtbl">
+      <thead><tr><th>Feature</th><th>Sample Value</th><th>Type</th><th>Why numerical?</th></tr></thead>
+      <tbody>
+        <tr><td>Study Hours</td><td>10 hrs/week</td><td><span class="tag t-blu" style="margin:0;height:18px;font-size:9px">discrete</span></td><td>Countable whole numbers</td></tr>
+        <tr><td>CGPA</td><td>8.5</td><td><span class="tag t-tel" style="margin:0;height:18px;font-size:9px">continuous</span></td><td>Any decimal value possible</td></tr>
+        <tr><td>Salary</td><td>₹6,00,000</td><td><span class="tag t-tel" style="margin:0;height:18px;font-size:9px">continuous</span></td><td>Measurable on a spectrum</td></tr>
+        <tr><td>Internships</td><td>2</td><td><span class="tag t-blu" style="margin:0;height:18px;font-size:9px">discrete</span></td><td>Can't have 2.3 internships</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 style="margin-top:20px">Discrete vs Continuous</h3>
+  <div class="grid2">
+    <div class="gcell">
+      <span class="tag t-blu">Discrete</span>
+      <h3>Whole countable numbers</h3>
+      <div class="kv"><span class="kk">Internships</span><span class="kv-v hl">0, 1, 2, 3…</span></div>
+      <div class="kv"><span class="kk">Siblings</span><span class="kv-v hl">0, 1, 2…</span></div>
+      <div class="kv"><span class="kk">Projects</span><span class="kv-v hl">can't have 2.3</span></div>
+    </div>
+    <div class="gcell">
+      <span class="tag t-tel">Continuous</span>
+      <h3>Any value in a range</h3>
+      <div class="kv"><span class="kk">Height</span><span class="kv-v hl-t">170.5 cm ✓</span></div>
+      <div class="kv"><span class="kk">Temperature</span><span class="kv-v hl-t">36.8°C ✓</span></div>
+      <div class="kv"><span class="kk">CGPA</span><span class="kv-v hl-t">8.47 ✓</span></div>
+    </div>
+  </div>
+  <div class="callout callout-t">
+    <strong>Quick test:</strong> Can I break this into smaller decimals meaningfully? Yes → Continuous. No → Discrete. You can have height 170.2 cm. You can't have 2.3 internships.
+  </div>
+</div>
+
+<!-- S3 -->
+<div class="section" id="s3">
+  <div class="eyebrow">03 · Second type</div>
+  <h2>Categorical Data</h2>
+  <span class="tag t-tel">Labels & names</span><span class="tag t-red" style="margin-left:6px">Needs encoding</span>
+  <p>These are names or labels — not numbers, and not ordered. The model <strong>cannot understand text</strong>, so we must convert categories to numbers carefully.</p>
+  <div class="callout callout-r">
+    <strong>The trap:</strong> If you encode CSE=1, ECE=2, MECH=3 — the model assumes MECH &gt; ECE &gt; CSE. That's wrong! There's no ranking between branches. This is why naive number assignment breaks models.
+  </div>
+  <div class="tile">
+    <div class="tile-title">Examples of categorical features</div>
+    <table class="dtbl">
+      <thead><tr><th>Feature</th><th>Values</th><th>Problem if numbered</th></tr></thead>
+      <tbody>
+        <tr><td>Branch</td><td>CSE, ECE, MECH</td><td>Model thinks MECH(3) > CSE(1)</td></tr>
+        <tr><td>City</td><td>Bangalore, Delhi, Mumbai</td><td>No ordering between cities</td></tr>
+        <tr><td>Blood Group</td><td>A, B, AB, O</td><td>AB(3) ≠ better than A(1)</td></tr>
+        <tr><td>Placed</td><td>Yes, No</td><td>This one IS safe as 1/0 — only 2 values</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>The solution is <span class="hl">One-Hot Encoding</span> — covered in detail in Topic 4 (Data Processing). Instead of one column with numbers, we create one column per category using 0s and 1s.</p>
+</div>
+
+<!-- S4 -->
+<div class="section" id="s4">
+  <div class="eyebrow">04 · Third type</div>
+  <h2>Ordinal Data</h2>
+  <span class="tag t-pur">Has order</span><span class="tag t-amb" style="margin-left:6px">No exact gap</span>
+  <p>A special case between categorical and numerical. There <strong>is a meaningful order</strong>, but we can't say exactly how much gap there is between levels.</p>
+  <div class="grid2">
+    <div class="gcell">
+      <h3>Examples</h3>
+      <div class="kv"><span class="kk">Communication skill</span><span class="kv-v">Low &lt; Medium &lt; High</span></div>
+      <div class="kv"><span class="kk">T-shirt size</span><span class="kv-v">S &lt; M &lt; L &lt; XL</span></div>
+      <div class="kv"><span class="kk">Rating</span><span class="kv-v">★ &lt; ★★ &lt; ★★★★★</span></div>
+      <div class="kv"><span class="kk">Grade</span><span class="kv-v">C &lt; B &lt; A &lt; A+</span></div>
+    </div>
+    <div class="gcell">
+      <h3>The key distinction</h3>
+      <div class="kv"><span class="kk">Order exists?</span><span class="kv-v hl-g">Yes ✓</span></div>
+      <div class="kv"><span class="kk">Exact numeric gap?</span><span class="kv-v hl-r">No ✗</span></div>
+      <div class="kv"><span class="kk">Is High = 2× Medium?</span><span class="kv-v hl-r">Not necessarily</span></div>
+      <div class="kv"><span class="kk">Safe to encode as 1,2,3?</span><span class="kv-v hl-y">Careful ⚠</span></div>
+    </div>
+  </div>
+  <div class="callout callout-y">
+    <strong>Ordinal vs Categorical:</strong> Both are labels. But ordinal has a clear ranking (Low &lt; Medium &lt; High). Categorical has no ranking (CSE is not greater or lesser than ECE). The difference determines how you encode it.
+  </div>
+</div>
+
+<hr>
+
+<!-- S5 -->
+<div class="section" id="s5">
+  <div class="eyebrow">05 · Beyond tables</div>
+  <h2>Text, Image & Audio — everything is still numbers</h2>
+  <p>ML doesn't only work with neat tables. Real-world ML works with text, images, and sound. But behind the scenes — <strong>it all becomes numbers.</strong></p>
+
+  <div class="type-showcase">
+    <div class="ts-header" onclick="toggleShowcase('text')">
+      <div class="ts-icon">📝</div>
+      <div class="ts-info"><div class="ts-name">Text Data</div><div class="ts-title">Emails, tweets, reviews, chat messages</div></div>
+      <div class="ts-arrow" id="arrow-text">▶</div>
+    </div>
+    <div class="ts-body" id="body-text">
+      <p>Text must be converted to numbers before any model can process it. The model doesn't "read" — it sees numerical representations.</p>
+      <div class="grid2">
+        <div class="gcell"><h3>Examples</h3><div class="kv"><span class="kk">Spam detection</span><span class="kv-v">email → numbers</span></div><div class="kv"><span class="kk">Sentiment analysis</span><span class="kv-v">review → score</span></div><div class="kv"><span class="kk">Chatbots</span><span class="kv-v">message → vector</span></div></div>
+        <div class="gcell"><h3>How it converts</h3><p style="font-size:12px">Techniques like TF-IDF, Word2Vec, or tokenization turn each word into a number or vector. "spam" might become [0.8, 0.1, 0.3…]</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="type-showcase">
+    <div class="ts-header" onclick="toggleShowcase('image')">
+      <div class="ts-icon">🖼️</div>
+      <div class="ts-info"><div class="ts-name">Image Data</div><div class="ts-title">Photos, X-rays, satellite images, faces</div></div>
+      <div class="ts-arrow" id="arrow-image">▶</div>
+    </div>
+    <div class="ts-body" id="body-image">
+      <p>Images look visual to us. To ML, they are just huge matrices of pixel values — each pixel is a number from 0 to 255.</p>
+      <div class="formula" style="font-size:12px">
+        A 28×28 grayscale image = matrix of 784 numbers (0–255)<br>
+        A 100×100 RGB image = 3 matrices × 10,000 = <span style="color:var(--warn)">30,000 numbers</span>
+      </div>
+      <div class="callout callout-t">This is why image ML models are computationally expensive — each image is tens of thousands of input features.</div>
+    </div>
+  </div>
+
+  <div class="type-showcase">
+    <div class="ts-header" onclick="toggleShowcase('audio')">
+      <div class="ts-icon">🎵</div>
+      <div class="ts-info"><div class="ts-name">Audio Data</div><div class="ts-title">Voice assistants, music recognition, speech-to-text</div></div>
+      <div class="ts-arrow" id="arrow-audio">▶</div>
+    </div>
+    <div class="ts-body" id="body-audio">
+      <p>Voice assistants don't "hear" words like humans do. Audio is converted into waveforms → frequencies → numerical feature vectors before any ML model processes it.</p>
+      <div class="kv" style="padding:12px 0"><span class="kk">Sound wave</span><span class="kv-v hl">→ Waveform samples (numbers)</span></div>
+      <div class="kv" style="padding:12px 0"><span class="kk">Waveform</span><span class="kv-v hl-t">→ Frequency spectrum (FFT)</span></div>
+      <div class="kv" style="padding:12px 0;border:none"><span class="kk">Spectrum</span><span class="kv-v hl-p">→ Feature vector → ML model</span></div>
+    </div>
+  </div>
+
+  <div class="callout callout-g" style="margin-top:16px">
+    <strong>The big realization:</strong> Text, images, audio, video — everything must be converted into numeric form before ML can process it. That conversion step is the real skill. The algorithms are just math on top of those numbers.
+  </div>
+</div>
+
+<!-- S6 -->
+<div class="section" id="s6">
+  <div class="eyebrow">06 · Summary</div>
+  <h2>All data types at a glance</h2>
+  <table class="dtbl">
+    <thead><tr><th>Type</th><th>Definition</th><th>Examples</th><th>ML treatment</th></tr></thead>
+    <tbody>
+      <tr><td><span class="tag t-blu" style="margin:0">Numerical — Discrete</span></td><td>Countable whole numbers</td><td>Internships, projects</td><td>Use directly</td></tr>
+      <tr><td><span class="tag t-tel" style="margin:0">Numerical — Continuous</span></td><td>Any decimal in a range</td><td>CGPA, height, salary</td><td>Normalize/standardize</td></tr>
+      <tr><td><span class="tag t-tel" style="margin:0">Categorical</span></td><td>Labels with no order</td><td>Branch, city, blood group</td><td>One-hot encoding</td></tr>
+      <tr><td><span class="tag t-pur" style="margin:0">Ordinal</span></td><td>Labels with order, no exact gap</td><td>Low/Med/High, grades</td><td>Label encoding (1,2,3)</td></tr>
+      <tr><td><span class="tag t-amb" style="margin:0">Text</span></td><td>Words and sentences</td><td>Reviews, emails, tweets</td><td>TF-IDF, Word2Vec</td></tr>
+      <tr><td><span class="tag t-red" style="margin:0">Image</span></td><td>Pixel matrices</td><td>Photos, X-rays</td><td>Pixel values 0–255</td></tr>
+      <tr><td><span class="tag t-grn" style="margin:0">Audio</span></td><td>Sound waveforms</td><td>Voice, music</td><td>Frequency features</td></tr>
+    </tbody>
+  </table>
+  <div class="formula">
+    Numerical = Quantity (how much?)<br>
+    Categorical = Identity (what type?)<br>
+    Ordinal = Ranked identity (what level?)
+  </div>
+</div>
+
+<!-- S7 Interactive sorter -->
+<div class="section" id="s7">
+  <div class="eyebrow">07 · Interactive</div>
+  <h2>Sort the features</h2>
+  <p>Click a feature below, then click the correct type bucket. Classify all 9 features to complete the exercise.</p>
+
+  <div class="sorter-wrap">
+    <div class="sorter-header">
+      <span class="sorter-label">Feature Classifier</span>
+      <span class="sorter-score" id="sorter-score">0 / 9 correct</span>
+    </div>
+    <div class="sorter-body">
+      <div class="sorter-instruction">Click a feature to select it (highlighted in blue), then click the correct type bucket below.</div>
+      <div class="sorter-items" id="sorter-items"></div>
+      <div class="sort-buckets">
+        <div class="sort-bucket" id="bucket-numerical" onclick="dropTobucket('Numerical')">
+          <div class="sb-label">🔢 Numerical</div>
+          <div class="sb-items" id="placed-numerical"></div>
+        </div>
+        <div class="sort-bucket" id="bucket-categorical" onclick="dropTobucket('Categorical')">
+          <div class="sb-label">🏷️ Categorical</div>
+          <div class="sb-items" id="placed-categorical"></div>
+        </div>
+        <div class="sort-bucket" id="bucket-ordinal" onclick="dropTobucket('Ordinal')">
+          <div class="sb-label">📊 Ordinal</div>
+          <div class="sb-items" id="placed-ordinal"></div>
+        </div>
+      </div>
+      <div class="sorter-feedback" id="sorter-feedback"></div>
+      <button class="sorter-btn" onclick="resetSorter()">↺ Reset</button>
+    </div>
+  </div>
+</div>
+
+<!-- S8 Quiz -->
+<div class="section" id="s8">
+  <div class="eyebrow">08 · Quick check</div>
+  <h2>Test your understanding</h2>
+  <div class="quiz-wrap" id="quiz-wrap">
+    <div class="quiz-header"><span class="quiz-q-label">Quick check</span><span class="quiz-counter" id="quiz-counter">Question 1 / 5</span></div>
+    <div class="quiz-body">
+      <div class="quiz-question" id="quiz-q"></div>
+      <div class="quiz-options" id="quiz-opts"></div>
+      <div class="quiz-feedback" id="quiz-fb"></div>
+      <div class="quiz-nav"><button class="quiz-btn" id="quiz-next" onclick="nextQuestion()" disabled>Next →</button></div>
+    </div>
+  </div>
+  <div id="quiz-score" style="display:none" class="tile">
+    <div class="tile-title">Quiz complete 🎯</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--bdr-00);border:1px solid var(--bdr-00);margin-top:10px">
+      <div style="background:var(--layer-02);padding:14px"><div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--txt-ph);margin-bottom:5px">Score</div><div style="font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:600;color:var(--success)" id="score-val">—</div></div>
+      <div style="background:var(--layer-02);padding:14px"><div style="font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--txt-ph);margin-bottom:5px">Result</div><div style="font-size:13px;font-weight:600" id="score-label">—</div></div>
+    </div>
+    <button class="quiz-btn" onclick="resetQuiz()" style="margin-top:12px">↺ Retry</button>
+  </div>
+</div>
+
+<div class="page-nav">
+  <a class="pnav-card" href="ml-workflow_2.html">
+    <div class="pnav-dir">← Previous</div>
+    <div class="pnav-title">ML Framework & Workflow</div>
+  </a>
+  <a class="pnav-card next" href="data_processing_1.html">
+    <div class="pnav-dir">Next Topic →</div>
+    <div class="pnav-title">Data Processing Methods</div>
+  </a>
+</div>
+</main>
+</div>
+
+<script>
+/* ── ACCORDION ── */
+function toggleShowcase(id){
+  const body=document.getElementById('body-'+id);
+  const arrow=document.getElementById('arrow-'+id);
+  const isOpen=body.classList.contains('open');
+  body.classList.toggle('open',!isOpen);
+  arrow.classList.toggle('open',!isOpen);
+  arrow.textContent=isOpen?'▶':'▼';
+}
+
+/* ── SORTER ── */
+const FEATURES=[
+  {label:'CGPA',correct:'Numerical'},{label:'Branch (CSE/ECE)',correct:'Categorical'},
+  {label:'Communication Skill',correct:'Ordinal'},{label:'Salary',correct:'Numerical'},
+  {label:'City',correct:'Categorical'},{label:'Rating (1-5 stars)',correct:'Ordinal'},
+  {label:'Number of Internships',correct:'Numerical'},{label:'Blood Group',correct:'Categorical'},
+  {label:'Performance (Low/Med/High)',correct:'Ordinal'}
+];
+let selectedChip=null,sorterCorrect=0;
+
+function buildSorter(){
+  const container=document.getElementById('sorter-items');
+  container.innerHTML='';
+  FEATURES.forEach((f,i)=>{
+    const chip=document.createElement('div');
+    chip.className='sort-chip';chip.textContent=f.label;chip.dataset.idx=i;
+    chip.onclick=()=>selectChip(chip,i);
+    container.appendChild(chip);
+  });
+  ['numerical','categorical','ordinal'].forEach(b=>{document.getElementById('placed-'+b).innerHTML='';});
+  sorterCorrect=0;selectedChip=null;
+  document.getElementById('sorter-score').textContent='0 / 9 correct';
+  document.getElementById('sorter-feedback').className='sorter-feedback';
+}
+
+function selectChip(chip,idx){
+  document.querySelectorAll('.sort-chip').forEach(c=>c.classList.remove('selected'));
+  if(selectedChip===chip){selectedChip=null;return;}
+  chip.classList.add('selected');selectedChip=chip;
+}
+
+function dropToucket(type){dropToucket2(type);}
+function dropToucket2(type){
+  if(!selectedChip)return;
+  const idx=parseInt(selectedChip.dataset.idx);
+  const feature=FEATURES[idx];
+  const isCorrect=feature.correct===type;
+  selectedChip.classList.remove('selected');
+  selectedChip.classList.add(isCorrect?'correct':'wrong');
+  selectedChip.style.pointerEvents='none';
+  const bucket=document.getElementById('placed-'+type.toLowerCase());
+  const item=document.createElement('div');
+  item.className='sb-item';item.style.color=isCorrect?'var(--success)':'var(--error)';
+  item.textContent=(isCorrect?'✓ ':'✗ ')+feature.label;
+  bucket.appendChild(item);
+  if(isCorrect)sorterCorrect++;
+  document.getElementById('sorter-score').textContent=sorterCorrect+' / '+FEATURES.length+' correct';
+  selectedChip=null;
+  if(sorterCorrect===FEATURES.length){const fb=document.getElementById('sorter-feedback');fb.className='sorter-feedback show';fb.style.background='rgba(66,190,101,.1)';fb.style.borderLeft='3px solid var(--success)';fb.style.color='var(--success)';fb.textContent='✓ Perfect! You correctly identified all 9 features.';}
+}
+function dropToucket3(t){dropToucket2(t);}
+
+// Fix the onclick handlers
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('bucket-numerical').onclick=()=>dropToucket2('Numerical');
+  document.getElementById('bucket-categorical').onclick=()=>dropToucket2('Categorical');
+  document.getElementById('bucket-ordinal').onclick=()=>dropToucket2('Ordinal');
+});
+
+function resetSorter(){buildSorter();}
+
+/* ── SEARCH ── */
+const SECTIONS=[
+  {id:'s1',num:'01',title:'Why data types matter',tag:'intro',snippet:'data types numerical categorical ordinal ML models wrong results'},
+  {id:'s2',num:'02',title:'Numerical Data',tag:'numbers',snippet:'discrete continuous CGPA salary internships measurement count'},
+  {id:'s3',num:'03',title:'Categorical Data',tag:'labels',snippet:'labels names branch city blood group no ranking one-hot encoding'},
+  {id:'s4',num:'04',title:'Ordinal Data',tag:'ordered',snippet:'ordered labels low medium high grades no exact gap'},
+  {id:'s5',num:'05',title:'Text Image Audio',tag:'real-world',snippet:'text image audio pixel waveform everything becomes numbers'},
+  {id:'s6',num:'06',title:'All types compared',tag:'summary',snippet:'summary table comparison numerical categorical ordinal treatment'},
+  {id:'s7',num:'07',title:'Sort the features',tag:'interactive',snippet:'interactive classify features type exercise sorter'},
+  {id:'s8',num:'08',title:'Quick check',tag:'quiz',snippet:'quiz test data types questions'},
+];
+function doSearch(q,el){q=q.trim().toLowerCase();el.innerHTML='';if(!q){el.classList.remove('open');return;}const hits=SECTIONS.filter(s=>s.title.toLowerCase().includes(q)||s.snippet.toLowerCase().includes(q)||s.tag.toLowerCase().includes(q));if(!hits.length){el.innerHTML='<div class="search-no-results">No results</div>';el.classList.add('open');return;}function hl(t){return t.replace(new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi'),'<mark>$1</mark>');}hits.forEach(s=>{const a=document.createElement('a');a.className='search-result-item';a.href='#'+s.id;a.innerHTML=`<div class="sri-top"><span class="sri-num">${s.num}</span><span class="sri-title">${hl(s.title)}</span></div><div class="sri-snippet">${hl(s.snippet.substring(0,80))}…</div>`;a.onclick=()=>{el.classList.remove('open');flashSection(s.id);};el.appendChild(a);});el.classList.add('open');}
+const si=document.getElementById('search-input'),sc=document.getElementById('search-clear'),sr=document.getElementById('search-results');
+si.addEventListener('input',()=>{sc.classList.toggle('visible',!!si.value);doSearch(si.value,sr);});
+function clearSearch(){si.value='';sc.classList.remove('visible');sr.classList.remove('open');}
+document.addEventListener('click',e=>{if(!e.target.closest('.search-wrap'))sr.classList.remove('open');});
+function openMobileSearch(){document.getElementById('mobile-search-overlay').classList.add('open');document.getElementById('mobile-search-input').focus();}
+function closeMobileSearch(){document.getElementById('mobile-search-overlay').classList.remove('open');}
+function clearMobileSearch(){document.getElementById('mobile-search-input').value='';document.getElementById('mobile-search-results').innerHTML='<div class="search-no-results" style="padding-top:32px">Start typing…</div>';}
+document.getElementById('mobile-search-input').addEventListener('input',function(){doSearch(this.value,document.getElementById('mobile-search-results'));});
+function flashSection(id){const el=document.getElementById(id);if(!el)return;el.classList.remove('search-highlight');requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add('search-highlight')));el.scrollIntoView({behavior:'smooth',block:'start'});}
+
+/* ── NAV ── */
+let _lastId='',_rafPending=false;
+function getActiveSection(){const secs=document.querySelectorAll('.section[id]');let found=null;secs.forEach(s=>{if(s.getBoundingClientRect().top<=120)found=s;});return found;}
+function syncNav(id){document.querySelectorAll('.nav-item,.drawer-nav-item').forEach(a=>a.classList.toggle('active',a.getAttribute('href')==='#'+id));}
+function onScroll(){if(_rafPending)return;_rafPending=true;requestAnimationFrame(()=>{_rafPending=false;const a=getActiveSection();if(a&&a.id!==_lastId){_lastId=a.id;syncNav(a.id);}});}
+window.addEventListener('scroll',onScroll,{passive:true});
+window.addEventListener('load',()=>onScroll());
+
+/* ── DRAWER ── */
+function buildDrawer(){const drawer=document.getElementById('sidenav-drawer');const clone=document.querySelector('.sidenav').cloneNode(true);clone.removeAttribute('class');clone.querySelectorAll('.nav-item').forEach(el=>{el.classList.add('drawer-nav-item');el.addEventListener('click',()=>closeDrawer());});const ta=clone.querySelector('[style*="padding:24px"]');if(ta)ta.remove();drawer.appendChild(clone);const cb=document.createElement('button');cb.innerHTML='✕ Close';cb.style.cssText='font-family:"IBM Plex Mono",monospace;font-size:11px;background:transparent;border:none;border-bottom:1px solid var(--bdr-00);color:var(--txt-ph);padding:12px 16px;width:100%;text-align:left;cursor:pointer;';cb.onclick=closeDrawer;drawer.insertBefore(cb,drawer.firstChild);}
+function toggleDrawer(){const o=document.getElementById('nav-overlay'),d=document.getElementById('sidenav-drawer');const isOpen=d.classList.contains('open');if(isOpen){closeDrawer();}else{o.style.display='block';setTimeout(()=>o.classList.add('open'),10);d.classList.add('open');document.body.style.overflow='hidden';}}
+function closeDrawer(){const o=document.getElementById('nav-overlay'),d=document.getElementById('sidenav-drawer');o.classList.remove('open');d.classList.remove('open');document.body.style.overflow='';setTimeout(()=>{o.style.display='none';},270);}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer();});
+
+/* ── THEME ── */
+let isLight=false;
+function toggleTheme(){isLight=!isLight;document.documentElement.classList.toggle('light',isLight);const icon=isLight?'◑':'☀';document.getElementById('tog-icon').textContent=icon;document.getElementById('tog-txt').textContent=isLight?'Dark theme':'Light theme';document.getElementById('theme-label').textContent=isLight?'White · Light':'Gray 100 · Dark';const mi=document.getElementById('mobile-theme-icon');if(mi)mi.textContent=icon;}
+
+/* ── QUIZ ── */
+const QUESTIONS=[
+  {q:'A dataset has a column "Communication Skill" with values: Low, Medium, High. What type of data is this?',opts:['Numerical Continuous','Categorical','Ordinal','Numerical Discrete'],ans:2,exp:'Ordinal! There is a clear order (Low < Medium < High) but we cannot say High is exactly twice Medium. It\'s ordered but not numerically measurable.'},
+  {q:'You encode Branch as CSE=1, ECE=2, MECH=3 and train a model. What is the main problem?',opts:['Nothing — numbers are fine','Model may think MECH(3) > ECE(2) > CSE(1) which is meaningless','The model will take longer to train','Memory issues from extra columns'],ans:1,exp:'The model assumes mathematical ordering — 3 > 2 > 1. But there is no ranking between engineering branches. This misleads the model. We need One-Hot Encoding instead.'},
+  {q:'An image of 100×100 pixels (RGB). How many numbers does the ML model actually receive?',opts:['100','10,000','30,000','1,000'],ans:2,exp:'30,000! Each pixel has 3 colour channels (R, G, B) each with a value 0–255. So 100 × 100 × 3 = 30,000 numbers. Images are just giant numerical matrices.'},
+  {q:'Which of these is a DISCRETE numerical feature?',opts:['Height (cm)','Temperature (°C)','Number of internships','CGPA'],ans:2,exp:'Number of internships is discrete — you can only have 0, 1, 2, 3… You cannot have 2.3 internships. The others (height, temperature, CGPA) can take decimal values, so they are continuous.'},
+  {q:'What is the key difference between Ordinal and Categorical data?',opts:['Ordinal has numbers, categorical does not','Ordinal has a meaningful order, categorical does not','Categorical needs encoding, ordinal does not','There is no difference'],ans:1,exp:'Ordinal data has a meaningful ranking (Low < Medium < High, Grade C < B < A). Categorical data has no inherent order (CSE is not greater or lesser than ECE). Both need encoding, but the type of encoding differs.'},
+];
+let qIdx=0,score=0,answered=false;
+function renderQuestion(){const q=QUESTIONS[qIdx];document.getElementById('quiz-counter').textContent=`Question ${qIdx+1} / ${QUESTIONS.length}`;document.getElementById('quiz-q').textContent=q.q;const optsEl=document.getElementById('quiz-opts');optsEl.innerHTML='';const letters=['A','B','C','D'];q.opts.forEach((opt,i)=>{const btn=document.createElement('button');btn.className='quiz-opt';btn.innerHTML=`<span class="opt-letter">${letters[i]}</span><span>${opt}</span>`;btn.onclick=()=>selectAnswer(i);optsEl.appendChild(btn);});document.getElementById('quiz-fb').className='quiz-feedback';document.getElementById('quiz-fb').innerHTML='';document.getElementById('quiz-next').disabled=true;answered=false;}
+function selectAnswer(i){if(answered)return;answered=true;const q=QUESTIONS[qIdx];document.querySelectorAll('.quiz-opt').forEach((o,idx)=>{if(idx===q.ans)o.classList.add(i===q.ans?'correct':'reveal');else if(idx===i)o.classList.add('wrong');o.disabled=true;});if(i===q.ans)score++;const fb=document.getElementById('quiz-fb');fb.className='quiz-feedback show '+(i===q.ans?'correct-fb':'wrong-fb');fb.textContent=(i===q.ans?'✓ ':'✗ ')+q.exp;document.getElementById('quiz-next').disabled=false;}
+function nextQuestion(){qIdx++;if(qIdx>=QUESTIONS.length){document.getElementById('quiz-wrap').style.display='none';document.getElementById('quiz-score').style.display='block';document.getElementById('score-val').textContent=`${score}/${QUESTIONS.length}`;const pct=score/QUESTIONS.length;document.getElementById('score-label').textContent=pct>=0.8?'Excellent 🎯':pct>=0.6?'Good, review missed 📖':'Review data types 🔄';document.getElementById('score-label').style.color=pct>=0.8?'var(--success)':pct>=0.6?'var(--warn)':'var(--error)';}else{renderQuestion();}}
+function resetQuiz(){qIdx=0;score=0;answered=false;document.getElementById('quiz-wrap').style.display='block';document.getElementById('quiz-score').style.display='none';renderQuestion();}
+
+/* ── INIT ── */
+document.fonts.ready.then(()=>{buildDrawer();buildSorter();renderQuestion();});
+</script>
+</body>
+</html>
