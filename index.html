@@ -757,7 +757,7 @@ h1 em{font-style:italic;color:var(--link)}
     <div class="qb-open">Access bank →</div>
   </div>
 
-  <div class="qb-card locked" data-mod="2">
+  <div class="qb-card" data-mod="2" onclick="openQB(2)">
     <div class="qb-top">
       <span class="qb-badge" style="background:var(--m2)">2</span>
       <span class="qb-lock">🔒</span>
@@ -765,9 +765,11 @@ h1 em{font-style:italic;color:var(--link)}
     <div class="qb-title">Module 02 Questions</div>
     <div class="qb-sub">Classification Models</div>
     <div class="qb-meta">
-      <span class="qb-chip qb-chip-dim">Coming soon</span>
+      <span class="qb-chip">MCQ</span>
+      <span class="qb-chip">Short answer</span>
+      <span class="qb-chip">Long answer</span>
     </div>
-    <div class="qb-open" style="color:var(--txt-ph)">Not available yet</div>
+    <div class="qb-open">Access bank →</div>
   </div>
 
   <div class="qb-card locked" data-mod="3">
@@ -908,7 +910,7 @@ async function _sha(s){
 
 let _mod=0;
 const _modTitles=['','Module 01 — Introduction to ML','Module 02 — Classification','Module 03 — Ensemble Learning','Module 04 — Clustering','Module 05 — Applications'];
-const _modFiles=['','ml_module1_questions.html','','','',''];
+const _modFiles=['','ml_module1_questions.html','ml_module2_questions.html','','',''];
 
 function openQB(mod){
   _mod=mod;
