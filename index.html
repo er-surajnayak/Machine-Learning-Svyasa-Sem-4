@@ -898,8 +898,8 @@ function toggleTheme(){
 }
 
 // Obfuscated password check — hashed, not plaintext
-// SHA-256 of "ml2425" stored as hex — change this hash to change the password
-const _h='8a9bcf6e1d2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b';
+// SHA-256 of "mliseasy" stored as hex — change this hash to change the password
+const _h='da313d3957eb6a6e5a6b0c265e3a89a05b3f15037d45761352e4f0c43ea0693a';
 async function _sha(s){
   const b=new TextEncoder().encode(s);
   const d=await crypto.subtle.digest('SHA-256',b);
@@ -924,8 +924,8 @@ async function checkPW(){
   const v=document.getElementById('pw-input').value.trim();
   if(!v){document.getElementById('pw-err').textContent='Enter the access code.';return;}
   const h=await _sha(v);
-  // Accept if hash matches OR if raw value matches fallback "ml2425"
-  if(h===_h||v==='ml2425'){
+  // Accept if hash matches OR if raw value matches fallback "mliseasy"
+  if(h===_h||v==='mliseasy'){
     closePW();
     const f=_modFiles[_mod];
     if(f) window.location.href=f;

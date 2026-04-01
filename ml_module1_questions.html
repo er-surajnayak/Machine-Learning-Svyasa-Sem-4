@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="machine-learning-model.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 01 Question Bank | Machine Learning</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;1,300&family=IBM+Plex+Serif:ital,wght@0,300;1,300&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#161616;--layer-01:#262626;--layer-02:#393939;--layer-03:#525252;
+  --hover-01:#333333;--bdr-00:#393939;--bdr-01:#474747;--bdr-str:#6f6f6f;
+  --txt-pri:#f4f4f4;--txt-sec:#c6c6c6;--txt-ph:#6f6f6f;
+  --blue:#4589ff;--link:#78a9ff;--success:#42be65;--warn:#f1c21b;--error:#ff8389;--teal:#3ddbd9;--purple:#d4bbff;
+  --m1:#4589ff;
+  --ac:var(--m1);
+}
+html.light{
+  --bg:#fff;--layer-01:#f4f4f4;--layer-02:#e0e0e0;--layer-03:#c6c6c6;
+  --hover-01:#e8e8e8;--bdr-00:#e0e0e0;--bdr-01:#c6c6c6;--bdr-str:#8d8d8d;
+  --txt-pri:#161616;--txt-sec:#525252;--txt-ph:#8d8d8d;
+  --blue:#0f62fe;--link:#0043ce;--success:#198038;--warn:#b28600;--error:#da1e28;--teal:#007d79;--purple:#6929c4;
+  --ac:#0f62fe;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'IBM Plex Sans',sans-serif;font-size:15px;line-height:1.5;background:var(--bg);color:var(--txt-pri);-webkit-font-smoothing:antialiased;transition:background .25s,color .2s}
+
+/* Topbar */
+.topbar{position:sticky;top:0;z-index:100;background:var(--layer-01);border-bottom:1px solid var(--bdr-00);height:60px;display:flex;align-items:center;padding:0 40px;gap:16px;transition:background .25s}
+.topbar-logo{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;letter-spacing:.1em;color:var(--txt-pri);text-transform:uppercase;display:flex;align-items:center;gap:10px}
+.logo-mark{width:26px;height:26px;background:var(--m1);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#fff}
+.topbar-divider{width:1px;height:20px;background:var(--bdr-00)}
+.topbar-title{font-size:14px;color:var(--txt-sec);font-weight:300}
+
+.tog-btn{margin-left:auto;display:flex;align-items:center;gap:8px;padding:6px 12px;background:transparent;border:1px solid var(--bdr-01);cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-sec);letter-spacing:.05em;transition:background .15s}
+.tog-btn:hover{background:var(--hover-01);color:var(--txt-pri)}
+.tog-track{width:28px;height:14px;background:var(--bdr-str);border-radius:7px;position:relative;flex-shrink:0;transition:background .25s}
+.tog-thumb{position:absolute;top:2px;left:2px;width:10px;height:10px;border-radius:50%;background:#fff;transition:transform .25s}
+html.light .tog-track{background:var(--ac)}
+html.light .tog-thumb{transform:translateX(14px)}
+
+/* Layout */
+.main-wrap{max-width:1000px;margin:0 auto;padding:64px 40px 120px}
+
+/* Header */
+.page-header{margin-bottom:64px}
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;letter-spacing:.12em;color:var(--ac);text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:10px}
+.eyebrow::before{content:'';display:inline-block;width:20px;height:1px;background:var(--ac)}
+h1{font-family:'IBM Plex Serif',serif;font-size:clamp(34px,5vw,52px);font-weight:300;line-height:1.1;color:var(--txt-pri);margin-bottom:16px}
+.header-desc{font-size:17px;font-weight:300;color:var(--txt-sec);max-width:700px;line-height:1.6}
+
+/* Sections */
+.section{margin-bottom:100px}
+.section-hdr{margin-bottom:36px;border-bottom:1px solid var(--bdr-00);padding-bottom:12px;display:flex;align-items:baseline;gap:12px}
+.section-idx{font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;color:var(--ac)}
+.section-lbl{font-family:'IBM Plex Serif',serif;font-size:24px;font-weight:300;color:var(--txt-pri);letter-spacing:-.2px}
+.section-sub{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-ph);text-transform:uppercase;letter-spacing:.1em;margin-left:auto}
+
+/* Question Card */
+.q-card{background:var(--layer-01);border:1px solid var(--bdr-00);margin-bottom:1px;transition:background .15s}
+.q-card:hover{background:var(--hover-01)}
+.q-hdr{padding:20px 24px;display:flex;gap:16px;cursor:pointer;align-items:flex-start}
+.q-num{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ac);font-weight:600;min-width:24px;margin-top:2px}
+.q-text{font-size:15px;font-weight:400;color:var(--txt-pri);line-height:1.4;flex:1}
+.q-badge{font-family:'IBM Plex Mono',monospace;font-size:9px;padding:2px 8px;background:var(--layer-02);color:var(--txt-ph);border:1px solid var(--bdr-01);text-transform:uppercase;letter-spacing:.05em}
+
+/* Numerical Tile */
+.num-tile{background:var(--layer-01);border:1px solid var(--bdr-00);padding:28px;margin-bottom:24px;display:flex;flex-direction:column;gap:16px}
+.num-q{font-size:16px;font-weight:600;color:var(--txt-pri);margin-bottom:8px}
+.num-data{font-family:'IBM Plex Mono',monospace;font-size:13px;background:var(--bg);padding:12px 16px;border-left:3px solid var(--ac);color:var(--txt-sec)}
+.num-action{display:flex;align-items:center;gap:12px;margin-top:8px}
+.btn-sol{background:var(--ac);color:#fff;border:none;padding:8px 16px;font-family:'IBM Plex Mono',monospace;font-size:11px;cursor:pointer;transition:opacity .15s}
+.btn-sol:hover{opacity:.9}
+
+/* Sticky Nav for Sections */
+.nav-dots{position:fixed;right:40px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:16px;z-index:90}
+.nav-dot{width:8px;height:8px;border:1px solid var(--bdr-str);border-radius:50%;transition:background .2s,border-color .2s}
+.nav-dot.active{background:var(--ac);border-color:var(--ac)}
+
+/* Footer */
+.footer{border-top:1px solid var(--bdr-00);padding:40px 0;display:flex;justify-content:space-between;align-items:center;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-ph)}
+.back-home{color:var(--link);text-decoration:none;display:flex;align-items:center;gap:6px;transition:opacity .15s}
+.back-home:hover{opacity:.7}
+
+@media(max-width:640px){
+  .topbar{padding:0 20px}
+  .main-wrap{padding:40px 20px 80px}
+  .nav-dots{display:none}
+  .q-hdr{padding:16px}
+  .footer{flex-direction:column;gap:20px;text-align:center}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-logo">
+    <div class="logo-mark">ML</div>
+    Machine Learning
+  </div>
+  <div class="topbar-divider"></div>
+  <span class="topbar-title">Module 01 Question Bank</span>
+  <button class="tog-btn" onclick="toggleTheme()">
+    <span id="tog-icon">☀</span>
+    <span id="tog-txt">Light</span>
+    <span class="tog-track"><span class="tog-thumb"></span></span>
+  </button>
+</header>
+
+<div class="nav-dots">
+  <a href="#part-a" class="nav-dot active" title="Part A"></a>
+  <a href="#part-b" class="nav-dot" title="Part B"></a>
+  <a href="#numericals" class="nav-dot" title="Numericals"></a>
+</div>
+
+<div class="main-wrap">
+  
+  <header class="page-header">
+    <div class="eyebrow">Module 01: Question Bank</div>
+    <h1>Question Bank:<br><em>Core Framework & Preprocessing</em></h1>
+    <p class="header-desc">A comprehensive list of theoretical questions and numerical problems covering machine learning basics, learning types, data types, and normalization techniques.</p>
+  </header>
+
+  <!-- Section 1 -->
+  <section class="section" id="part-a">
+    <div class="section-hdr">
+      <span class="section-idx">01</span>
+      <h2 class="section-lbl">Part A: Strategy & Framework</h2>
+      <span class="section-sub">11 Core questions</span>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">01</span>
+        <span class="q-text">Define Machine Learning and explain its purpose.</span>
+        <span class="q-badge">Core</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">02</span>
+        <span class="q-text">Differentiate between Machine Learning and traditional programming.</span>
+        <span class="q-badge">Diff</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">03</span>
+        <span class="q-text">What are the types of Machine Learning? Briefly explain each.</span>
+        <span class="q-badge">Intro</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">04</span>
+        <span class="q-text">What is Supervised Learning? Give one example.</span>
+        <span class="q-badge">Type 1</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">05</span>
+        <span class="q-text">What is Unsupervised Learning? Mention one use case.</span>
+        <span class="q-badge">Type 2</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">06</span>
+        <span class="q-text">Define Reinforcement Learning with a simple example.</span>
+        <span class="q-badge">Type 4</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">07</span>
+        <span class="q-text">What are the key components of a Machine Learning system?</span>
+        <span class="q-badge">Arch</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">08</span>
+        <span class="q-text">What are the different data types used in Machine Learning?</span>
+        <span class="q-badge">Data</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">09</span>
+        <span class="q-text">Define data preprocessing and explain its need.</span>
+        <span class="q-badge">Step 1</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">10</span>
+        <span class="q-text">What is discretization? Explain its purpose.</span>
+        <span class="q-badge">Method</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">11</span>
+        <span class="q-text">What is normalization? Why is it important?</span>
+        <span class="q-badge">Method</span>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- Section 1.5 -->
+  <section class="section" id="part-b">
+    <div class="section-hdr">
+      <span class="section-idx">02</span>
+      <h2 class="section-lbl">Part B: Data & Methods</h2>
+      <span class="section-sub">13 Detailed questions</span>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">12</span>
+        <span class="q-text">Explain the Machine Learning process/workflow with all steps.</span>
+        <span class="q-badge">Workflow</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">13</span>
+        <span class="q-text">Compare Supervised, Unsupervised, and Reinforcement Learning with examples.</span>
+        <span class="q-badge">Comparison</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">14</span>
+        <span class="q-text">Explain real-life applications of different types of Machine Learning.</span>
+        <span class="q-badge">Applied</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">15</span>
+        <span class="q-text">Describe data preprocessing techniques and their importance.</span>
+        <span class="q-badge">Prep</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">16</span>
+        <span class="q-text">Explain different types of data used in ML with examples.</span>
+        <span class="q-badge">Data</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">17</span>
+        <span class="q-text">Compare categorical and numerical data with use cases.</span>
+        <span class="q-badge">Comparison</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">18</span>
+        <span class="q-text">Explain discretization techniques with an example.</span>
+        <span class="q-badge">Method</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">19</span>
+        <span class="q-text">Explain normalization techniques.</span>
+        <span class="q-badge">Method</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">20</span>
+        <span class="q-text">Explain One-Hot Encoding and when it is preferred with an example.</span>
+        <span class="q-badge">Encoding</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">21</span>
+        <span class="q-text">Compare One-Hot Encoding and Label Encoding.</span>
+        <span class="q-badge">Comparison</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">22</span>
+        <span class="q-text">Explain the need for data reduction in Machine Learning.</span>
+        <span class="q-badge">Reduction</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">23</span>
+        <span class="q-text">Describe Principal Component Analysis (PCA) and its steps.</span>
+        <span class="q-badge">PCA</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">24</span>
+        <span class="q-text">Explain how PCA reduces dimensionality with an example data.</span>
+        <span class="q-badge">PCA</span>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- Section 2 -->
+  <section class="section" id="numericals">
+    <div class="section-hdr">
+      <span class="section-idx">03</span>
+      <h2 class="section-lbl">Numericals: Data Problems</h2>
+      <span class="section-sub">6 Transformation problems</span>
+    </div>
+
+    <div class="num-tile">
+      <div class="num-q">Perform Min–Max Normalization for value 200 in the given dataset.</div>
+      <div class="num-data">Dataset A = [100, 200, 300, 400, 500]</div>
+      <div class="num-action">
+        <div class="q-badge">Goal: Scale to [0,1]</div>
+      </div>
+    </div>
+
+    <div class="num-tile">
+      <div class="num-q">Apply Z-score normalization for value 200 in the given dataset.</div>
+      <div class="num-data">Dataset A = [100, 200, 300, 400, 500]</div>
+      <div class="num-action">
+        <div class="q-badge">Goal: Standardize (μ=0, σ=1)</div>
+      </div>
+    </div>
+
+    <div class="num-tile">
+      <div class="num-q">Normalize the following dataset using Min-Max [0,1] and Z-score techniques.</div>
+      <div class="num-data">Dataset = [1.9, 2.1, 6.0, 6.1, 6.5, 6.6]</div>
+      <div class="num-action">
+        <div class="q-badge">Goal: Comparative scaling</div>
+      </div>
+    </div>
+
+    <div class="num-tile">
+      <div class="num-q">Apply Normalization techniques for the given signed dataset.</div>
+      <div class="num-data">Dataset = [-8.6, -8.0, -5.8, -1.4, 2.0, 6.0, 7.9]</div>
+      <div class="num-action">
+        <div class="q-badge">Goal: Handling negative values</div>
+      </div>
+    </div>
+
+    <div class="num-tile">
+      <div class="num-q">Normalize the dataset using Min–Max (0 to 1 range).</div>
+      <div class="num-data">Dataset = [10, 20, 30]</div>
+      <div class="num-action">
+        <div class="q-badge">Goal: Complete transformation</div>
+      </div>
+    </div>
+
+    <div class="num-tile">
+      <div class="num-q">Find the Z-score for value 50 given the following statistics.</div>
+      <div class="num-data">Mean = 40, Standard Deviation = 5</div>
+      <div class="num-action">
+        <div class="q-badge">Goal: Z = (x - μ) / σ</div>
+      </div>
+    </div>
+
+  </section>
+
+  <footer class="footer">
+    <a href="index.html" class="back-home">← Back to Course Home</a>
+    <div>© 2024 · B.Tech CSE Semester 4 · Machine Learning</div>
+  </footer>
+
+</div>
+
+<script>
+// Theme toggle
+let isLight=false;
+function toggleTheme(){
+  isLight=!isLight;
+  document.documentElement.classList.toggle('light',isLight);
+  const i=isLight?'◑':'☀',t=isLight?'Dark':'Light';
+  document.getElementById('tog-icon').textContent=i;
+  document.getElementById('tog-txt').textContent=t;
+}
+
+// ── Code Protection ──
+(function(){
+  var _p=function(e){e.preventDefault();return false;};
+  document.addEventListener('contextmenu',_p);
+  document.addEventListener('keydown',function(e){
+    var k=(e.key||'').toUpperCase(),c=e.ctrlKey||e.metaKey,s=e.shiftKey;
+    if(e.key==='F12'||(c&&s&&['I','J','C','K'].includes(k))||
+       (c&&['U','S','P'].includes(k))){
+      e.preventDefault();return false;
+    }
+  },true);
+})();
+// Scroll active dots
+const secs = Array.from(document.querySelectorAll('section[id]'));
+function syncDots(id){
+  document.querySelectorAll('.nav-dot').forEach(d=>{
+    d.classList.toggle('active', d.getAttribute('href')==='#'+id);
+  });
+}
+let lastId='', rafP=false;
+window.addEventListener('scroll',()=>{
+  if(rafP)return; rafP=true;
+  requestAnimationFrame(()=>{
+    rafP=false;
+    const trigger=window.scrollY+window.innerHeight*.3;
+    let active=secs[0];
+    for(const s of secs){if(s.offsetTop<=trigger)active=s;else break;}
+    if(active&&active.id!==lastId){lastId=active.id;syncDots(active.id);}
+  });
+},{passive:true});
+</script>
+</body>
+</html>
