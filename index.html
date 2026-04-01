@@ -913,7 +913,7 @@ function toggleTheme(){
 
 // Obfuscated password check — hashed, not plaintext
 // SHA-256 of "mliseasy" stored as hex — change this hash to change the password
-const _h='da313d3957eb6a6e5a6b0c265e3a89a05b3f15037d45761352e4f0c43ea0693a';
+const _h='10000c48f8ae4b5bc362436bbf016715642576fdc8bc01f5f524ff6adeceeea0';
 async function _sha(s){
   const b=new TextEncoder().encode(s);
   const d=await crypto.subtle.digest('SHA-256',b);
