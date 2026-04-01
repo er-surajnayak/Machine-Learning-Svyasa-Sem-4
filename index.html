@@ -710,8 +710,8 @@ h1 em{font-style:italic;color:var(--link)}
       </div>
       <div class="pb-row">
         <span class="pb-lbl">Module 02</span>
-        <div class="pb-track"><div class="pb-fill" style="width:5%;background:var(--m2)"></div></div>
-        <span class="pb-pct">Soon</span>
+        <div class="pb-track"><div class="pb-fill" style="width:100%;background:var(--m2)"></div></div>
+        <span class="pb-pct" style="color:var(--m2)">Live</span>
       </div>
       <div class="pb-row">
         <span class="pb-lbl">Module 03</span>
@@ -977,16 +977,39 @@ const US_INDEX = [
     desc:'Dimensionality reduction · Covariance matrix · Eigenvectors · Eigenvalues',
     tags:['pca','dimensionality reduction','covariance','eigenvectors','eigenvalues','principal components','variance'],
     url:'module1/PCA_1.html', live:true },
-  // ── Module 2 (Coming soon) ──
+  // ── Module 2 (Live) ──
   { module:2, accentVar:'--m2', title:'Decision Trees',
-    desc:'Entropy · Gini index · Tree construction · Pruning',
-    tags:['decision tree','entropy','gini','classification','pruning'], url:null, live:false },
+    desc:'Entropy · Gini index · Information gain · Tree construction · Pruning',
+    tags:['decision tree','entropy','gini','information gain','classification','pruning','id3','cart'],
+    url:'module2/decision-tree.html', live:true },
   { module:2, accentVar:'--m2', title:'Logistic Regression & Model Evaluation',
-    desc:'Logistic regression · Confusion matrix · Precision · Recall · F1',
-    tags:['logistic regression','confusion matrix','precision','recall','f1','roc'], url:null, live:false },
-  { module:2, accentVar:'--m2', title:'K-NN, Naive Bayes & SVM',
-    desc:'K-nearest neighbours · Naive Bayes classifier · Support Vector Machine',
-    tags:['knn','k-nearest','naive bayes','svm','support vector machine'], url:null, live:false },
+    desc:'Logistic regression · Confusion matrix · Precision · Recall · F1 · ROC curve',
+    tags:['logistic regression','confusion matrix','precision','recall','f1','roc','evaluation','accuracy','classification metrics'],
+    url:'module2/evaluation_1.html', live:true },
+  { module:2, accentVar:'--m2', title:'K-NN & Naive Bayes',
+    desc:'K-nearest neighbours · Distance metrics · Naive Bayes classifier · Bayes theorem',
+    tags:['knn','k-nearest','k nearest neighbours','naive bayes','bayes theorem','distance','euclidean'],
+    url:'module2/knn.html', live:true },
+  { module:2, accentVar:'--m2', title:'Naive Bayes Classifier',
+    desc:'Bayes theorem · Prior & posterior probability · Gaussian Naive Bayes · Text classification',
+    tags:['naive bayes','bayes','probability','gaussian','prior','posterior','text classification'],
+    url:'module2/naive-bayes.html', live:true },
+  { module:2, accentVar:'--m2', title:'Support Vector Machine (SVM)',
+    desc:'Hyperplane · Margin · Support vectors · Kernel trick · RBF · Linear SVM',
+    tags:['svm','support vector machine','hyperplane','margin','kernel','rbf','linear','classification'],
+    url:'module2/svm.html', live:true },
+  { module:2, accentVar:'--m2', title:'Logistic Regression',
+    desc:'Sigmoid function · Binary classification · Odds ratio · Gradient descent · Regularization',
+    tags:['logistic regression','sigmoid','binary classification','odds','gradient descent','regularization','log loss'],
+    url:'module2/logistic-regression.html', live:true },
+  { module:2, accentVar:'--m2', title:'Bias-Variance Tradeoff',
+    desc:'Bias · Variance · Model complexity · Underfitting · Overfitting · Tradeoff',
+    tags:['bias','variance','bias-variance','tradeoff','model complexity','generalization'],
+    url:'module2/bias-variance.html', live:true },
+  { module:2, accentVar:'--m2', title:'Overfitting & Underfitting',
+    desc:'Overfitting · Underfitting · Regularization · Cross-validation · Train-test split',
+    tags:['overfitting','underfitting','regularization','cross validation','train test split','generalization','model fit'],
+    url:'module2/overfitting.html', live:true },
   // ── Module 3 (Coming soon) ──
   { module:3, accentVar:'--m3', title:'Ensemble Learning — Bagging',
     desc:'Bootstrap aggregating · Random forests · Variance reduction',
