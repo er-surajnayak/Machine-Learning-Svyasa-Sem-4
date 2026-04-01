@@ -610,13 +610,19 @@ h1{font-family:'IBM Plex Serif',serif;font-size:clamp(34px,5vw,52px);font-weight
 
 <script>
 // Theme toggle
-let isLight=false;
-function toggleTheme(){
-  isLight=!isLight;
+let isLight = localStorage.getItem('theme') === 'light';
+function applyTheme(){
   document.documentElement.classList.toggle('light',isLight);
   const i=isLight?'◑':'☀',t=isLight?'Dark':'Light';
-  document.getElementById('tog-icon').textContent=i;
-  document.getElementById('tog-txt').textContent=t;
+  if(document.getElementById('tog-icon')) document.getElementById('tog-icon').textContent=i;
+  if(document.getElementById('tog-txt')) document.getElementById('tog-txt').textContent=t;
+}
+applyTheme();
+
+function toggleTheme(){
+  isLight=!isLight;
+  localStorage.setItem('theme', isLight?'light':'dark');
+  applyTheme();
 }
 
 // ── Code Protection ──

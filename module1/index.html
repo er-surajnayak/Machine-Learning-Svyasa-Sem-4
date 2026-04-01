@@ -233,12 +233,19 @@ img{-webkit-user-drag:none;user-drag:none;pointer-events:none}
 </div>
 
 <script>
-let isLight=false;
+let isLight = localStorage.getItem('theme') === 'light';
+function applyTheme(){
+  document.documentElement.classList.toggle('light',isLight);
+  const i=isLight?'◑':'☀',t=isLight?'Dark':'Light';
+  if(document.getElementById('tog-icon')) document.getElementById('tog-icon').textContent=i;
+  if(document.getElementById('tog-txt')) document.getElementById('tog-txt').textContent=t;
+}
+applyTheme();
+
 function toggleTheme(){
   isLight=!isLight;
-  document.documentElement.classList.toggle('light',isLight);
-  document.getElementById('tog-icon').textContent=isLight?'◑':'☀';
-  document.getElementById('tog-txt').textContent=isLight?'Dark':'Light';
+  localStorage.setItem('theme', isLight?'light':'dark');
+  applyTheme();
 }
 
 // ── Code Protection ──

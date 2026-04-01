@@ -336,8 +336,21 @@ hr{border:none;border-top:1px solid var(--bdr-00);margin:44px 0}
 </main>
 </div>
 <script>
-let isLight=false;
-function toggleTheme(){isLight=!isLight;document.documentElement.classList.toggle('light',isLight);const i=isLight?'◑':'☀',l=isLight?'Light':'Dark';document.getElementById('tog-icon').textContent=i;document.getElementById('tog-txt').textContent=l+' theme';document.getElementById('theme-lbl').textContent=l;const m=document.getElementById('mob-tog');if(m)m.textContent=i;}
+let isLight = localStorage.getItem('theme') === 'light';
+function applyTheme(){
+  document.documentElement.classList.toggle('light', isLight);
+  const i = isLight ? '◑' : '☀', l = isLight ? 'Light' : 'Dark';
+  document.getElementById('tog-icon').textContent = i;
+  document.getElementById('tog-txt').textContent  = l + ' theme';
+  document.getElementById('theme-lbl').textContent = l;
+  const m = document.getElementById('mob-tog'); if(m) m.textContent = i;
+}
+applyTheme();
+function toggleTheme(){
+  isLight = !isLight;
+  localStorage.setItem('theme', isLight?'light':'dark');
+  applyTheme();
+}
 function answerQ(qid,clicked,correct,fbId){const opts=document.getElementById(qid+'-opts').querySelectorAll('.quiz-opt');opts.forEach((o,i)=>{o.style.pointerEvents='none';if(i===correct)o.classList.add('show-correct');if(i===clicked&&clicked!==correct)o.classList.add('wrong');if(i===clicked&&clicked===correct)o.classList.add('correct');});const fb=document.getElementById(fbId);fb.classList.add('show');fb.style.background=clicked===correct?'rgba(66,190,101,.08)':'rgba(255,131,137,.08)';fb.style.borderLeftColor=clicked===correct?'var(--success)':'var(--error)';document.getElementById(qid+'-reset').classList.add('show');}
 function resetQ(qid,fbId,resetId){const opts=document.getElementById(qid+'-opts').querySelectorAll('.quiz-opt');opts.forEach(o=>{o.style.pointerEvents='';o.classList.remove('correct','wrong','show-correct');});document.getElementById(fbId).classList.remove('show');document.getElementById(resetId).classList.remove('show');}
 const secs=Array.from(document.querySelectorAll('.section[id]'));let lastId='',rafP=false;

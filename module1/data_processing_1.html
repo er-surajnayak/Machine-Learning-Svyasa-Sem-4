@@ -621,8 +621,23 @@ function buildDrawer(){const drawer=document.getElementById('sidenav-drawer');co
 function toggleDrawer(){const o=document.getElementById('nav-overlay'),d=document.getElementById('sidenav-drawer');const isOpen=d.classList.contains('open');if(isOpen){closeDrawer();}else{o.style.display='block';setTimeout(()=>o.classList.add('open'),10);d.classList.add('open');document.body.style.overflow='hidden';}}
 function closeDrawer(){const o=document.getElementById('nav-overlay'),d=document.getElementById('sidenav-drawer');o.classList.remove('open');d.classList.remove('open');document.body.style.overflow='';setTimeout(()=>{o.style.display='none';},270);}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer();});
-let isLight=false;
-function toggleTheme(){isLight=!isLight;document.documentElement.classList.toggle('light',isLight);const icon=isLight?'◑':'☀';document.getElementById('tog-icon').textContent=icon;document.getElementById('tog-txt').textContent=isLight?'Dark theme':'Light theme';document.getElementById('theme-label').textContent=isLight?'White · Light':'Gray 100 · Dark';const mi=document.getElementById('mobile-theme-icon');if(mi)mi.textContent=icon;}
+
+let isLight = localStorage.getItem('theme') === 'light';
+function applyTheme(){
+  document.documentElement.classList.toggle('light', isLight);
+  const i = isLight ? '◑' : '☀', l = isLight ? 'Light' : 'Dark';
+  document.getElementById('tog-icon').textContent = i;
+  document.getElementById('tog-txt').textContent  = l + ' theme';
+  document.getElementById('theme-label').textContent = isLight?'White · Light':'Gray 100 · Dark';
+  const m = document.getElementById('mobile-theme-icon'); if(m) m.textContent = i;
+}
+applyTheme();
+function toggleTheme(){
+  isLight = !isLight;
+  localStorage.setItem('theme', isLight?'light':'dark');
+  applyTheme();
+}
+
 const QUESTIONS=[
   {q:'You have marks data ranging 0–100 and apply pd.cut() with bins=[0,40,60,80,100]. What preprocessing technique is this?',opts:['Z-Score Normalization','Min-Max Normalization','Discretization / Equal Width Binning','One-Hot Encoding'],ans:2,exp:'Discretization! You\'re converting continuous marks into discrete categories (Fail, Average, Good, Excellent). pd.cut() with explicit bins is equal width / domain-based binning.'},
   {q:'A dataset has CGPA (0–10) and Salary (0–10,00,000). Without scaling, which feature will dominate the ML model?',opts:['CGPA — it\'s more important','Salary — larger numbers dominate','Both equally','Neither — models handle this automatically'],ans:1,exp:'Salary dominates because its numbers are 100,000x larger. The model sees larger values as more significant by default. Normalization / standardization is needed to put both features on the same scale.'},

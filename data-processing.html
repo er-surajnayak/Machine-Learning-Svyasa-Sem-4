@@ -441,8 +441,21 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;heigh
 </main>
 </div>
 <script>
-let isLight=false;
-function toggleTheme(){isLight=!isLight;document.documentElement.classList.toggle('light',isLight);const i=isLight?'◑':'☀',l=isLight?'Light':'Dark';document.getElementById('tog-icon').textContent=i;document.getElementById('tog-txt').textContent=l+' theme';document.getElementById('theme-lbl').textContent=l;const m=document.getElementById('mob-tog');if(m)m.textContent=i;}
+let isLight = localStorage.getItem('theme') === 'light';
+function applyTheme(){
+  document.documentElement.classList.toggle('light', isLight);
+  const i = isLight ? '◑' : '☀', l = isLight ? 'Light' : 'Dark';
+  document.getElementById('tog-icon').textContent = i;
+  document.getElementById('tog-txt').textContent  = l + ' theme';
+  document.getElementById('theme-lbl').textContent = l;
+  const m = document.getElementById('mob-tog'); if(m) m.textContent = i;
+}
+applyTheme();
+function toggleTheme(){
+  isLight = !isLight;
+  localStorage.setItem('theme', isLight?'light':'dark');
+  applyTheme();
+}
 
 // Min-Max interactive demo
 document.getElementById('cgpa-slider').addEventListener('input',function(){
