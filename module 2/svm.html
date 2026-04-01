@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Support Vector Machine | Module 2</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;1,300&family=IBM+Plex+Serif:ital,wght@0,300;1,300&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#161616;--layer-01:#262626;--layer-02:#393939;--layer-03:#525252;
+  --hover-01:#333333;--bdr-00:#393939;--bdr-01:#474747;--bdr-str:#6f6f6f;
+  --txt-pri:#f4f4f4;--txt-sec:#c6c6c6;--txt-ph:#6f6f6f;
+  --blue:#4589ff;--link:#78a9ff;--success:#42be65;--warn:#f1c21b;--error:#ff8389;--teal:#3ddbd9;--purple:#d4bbff;
+  --ac:#ff8389;
+}
+html.light{
+  --bg:#fff;--layer-01:#f4f4f4;--layer-02:#e0e0e0;--layer-03:#c6c6c6;
+  --hover-01:#e8e8e8;--bdr-00:#e0e0e0;--bdr-01:#c6c6c6;--bdr-str:#8d8d8d;
+  --txt-pri:#161616;--txt-sec:#525252;--txt-ph:#8d8d8d;
+  --blue:#0f62fe;--link:#0043ce;--success:#198038;--warn:#b28600;--error:#da1e28;--teal:#007d79;--purple:#6929c4;
+  --ac:#da1e28;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'IBM Plex Sans',sans-serif;font-size:15px;line-height:1.5;background:var(--bg);color:var(--txt-pri);-webkit-font-smoothing:antialiased;transition:background .25s,color .2s}
+a{text-decoration:none;color:inherit}
+.page-grid{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+.sidenav{background:var(--layer-01);border-right:1px solid var(--bdr-00);position:sticky;top:0;height:100vh;overflow-y:auto;padding-bottom:32px;transition:background .25s,border-color .2s}
+.nav-hdr{padding:16px;border-bottom:1px solid var(--bdr-00);margin-bottom:4px}
+.nav-back{display:flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph);letter-spacing:.06em;margin-bottom:8px;transition:color .15s}
+.nav-back:hover{color:var(--ac)}
+.nav-mod{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;color:var(--ac);text-transform:uppercase;margin-bottom:3px}
+.nav-title{font-size:13px;font-weight:600;color:var(--txt-pri);line-height:1.3}
+.nav-sec{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;color:var(--txt-ph);text-transform:uppercase;padding:12px 16px 4px}
+.nav-item{display:flex;align-items:center;gap:8px;padding:8px 16px;font-size:13px;color:var(--txt-sec);cursor:pointer;border-left:3px solid transparent;transition:background .1s,color .1s,border-color .1s;text-decoration:none}
+.nav-item:hover{background:var(--hover-01);color:var(--txt-pri)}
+.nav-item.active{background:var(--hover-01);color:var(--txt-pri);border-left-color:var(--ac);font-weight:600}
+.nav-item.active .nn{color:var(--ac)}
+.nn{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--txt-ph);min-width:16px;transition:color .15s}
+.tog-area{padding:20px 16px 0}
+.tog-btn{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding:8px 10px;background:var(--layer-02);border:1px solid var(--bdr-01);cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-sec);letter-spacing:.05em;transition:background .15s}
+.tog-btn:hover{background:var(--hover-01);color:var(--txt-pri)}
+.tog-track{width:26px;height:13px;background:var(--bdr-str);border-radius:7px;position:relative;flex-shrink:0;transition:background .25s}
+.tog-thumb{position:absolute;top:2px;left:2px;width:9px;height:9px;border-radius:50%;background:#fff;transition:transform .25s}
+html.light .tog-track{background:var(--ac)}
+html.light .tog-thumb{transform:translateX(13px)}
+.mob-topbar{display:none;position:fixed;top:0;left:0;right:0;z-index:200;height:52px;background:var(--layer-01);border-bottom:1px solid var(--bdr-00);align-items:center;padding:0 16px;gap:8px;transition:background .25s}
+.mob-menu-btn{width:34px;height:34px;background:transparent;border:1px solid var(--bdr-01);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-direction:column;gap:4px}
+.mob-bar{width:14px;height:1.5px;background:var(--txt-pri)}
+.mob-title{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--txt-pri);flex:1;letter-spacing:.04em}
+.mob-tog{width:34px;height:34px;background:transparent;border:1px solid var(--bdr-01);cursor:pointer;font-size:14px;color:var(--txt-sec)}
+.nav-overlay{display:none;position:fixed;inset:0;z-index:150;background:rgba(0,0,0,.6);opacity:0;transition:opacity .25s}
+.nav-overlay.open{opacity:1}
+.nav-drawer{position:fixed;left:0;top:0;bottom:0;z-index:160;width:260px;background:var(--layer-01);border-right:1px solid var(--bdr-00);overflow-y:auto;transform:translateX(-100%);transition:transform .3s cubic-bezier(.4,0,.2,1);padding-bottom:32px}
+.nav-drawer.open{transform:translateX(0)}
+.main{padding:0 48px 100px;max-width:820px;transition:background .25s}
+.page-hdr{padding:52px 0 40px;border-bottom:1px solid var(--bdr-00);margin-bottom:52px}
+.breadcrumb{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-ph);letter-spacing:.05em;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.breadcrumb a{color:var(--ac);transition:opacity .15s}.breadcrumb a:hover{opacity:.7}
+h1{font-family:'IBM Plex Serif',serif;font-size:clamp(34px,5vw,54px);font-weight:300;line-height:1.15;color:var(--txt-pri);margin-bottom:12px}
+h1 em{font-style:italic;color:var(--ac)}
+.hdr-desc{font-size:15px;font-weight:300;color:var(--txt-sec);max-width:580px;line-height:1.7}
+.section{margin-bottom:60px;opacity:0;transform:translateY(14px);animation:fadeUp .4s ease forwards}
+.section:nth-child(1){animation-delay:.05s}.section:nth-child(2){animation-delay:.10s}
+.section:nth-child(3){animation-delay:.15s}.section:nth-child(4){animation-delay:.20s}
+.section:nth-child(5){animation-delay:.25s}.section:nth-child(6){animation-delay:.30s}
+.section:nth-child(7){animation-delay:.35s}.section:nth-child(8){animation-delay:.40s}
+.section:nth-child(9){animation-delay:.45s}.section:nth-child(10){animation-delay:.50s}
+@keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;color:var(--ac);text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.eyebrow::before{content:'';display:inline-block;width:14px;height:1px;background:var(--ac)}
+h2{font-family:'IBM Plex Serif',serif;font-size:24px;font-weight:300;color:var(--txt-pri);margin-bottom:14px;line-height:1.25}
+p{font-size:14px;font-weight:300;color:var(--txt-sec);margin-bottom:12px;line-height:1.75}
+p strong{color:var(--txt-pri);font-weight:600}
+.hl{color:var(--ac);font-weight:600}
+.hl-g{color:var(--success);font-weight:600}
+.hl-b{color:var(--link);font-weight:600}
+.hl-y{color:var(--warn);font-weight:600}
+.hl-p{color:var(--purple);font-weight:600}
+.callout{border-left:3px solid var(--ac);background:var(--layer-01);padding:14px 18px;margin:14px 0;font-size:14px;font-weight:300;color:var(--txt-sec);line-height:1.75;transition:background .25s}
+.callout strong{color:var(--txt-pri);font-weight:600}
+.callout-g{border-left-color:var(--success)}
+.callout-y{border-left-color:var(--warn)}
+.callout-b{border-left-color:var(--link)}
+.callout-p{border-left-color:var(--purple)}
+.tile{background:var(--layer-01);border:1px solid var(--bdr-00);padding:20px 24px;margin-bottom:12px;transition:background .25s,border-color .2s}
+.tile-title{font-size:13px;font-weight:600;color:var(--txt-pri);margin-bottom:12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--bdr-00);border:1px solid var(--bdr-00);margin:14px 0}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--bdr-00);border:1px solid var(--bdr-00);margin:14px 0}
+.gcell{background:var(--layer-01);padding:20px 22px;transition:background .25s}
+.kv{display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--bdr-00);font-size:13px;gap:12px;transition:border-color .2s}
+.kv:last-child{border-bottom:none}
+.kk{color:var(--txt-sec);font-weight:300;flex-shrink:0}
+.kv-v{color:var(--txt-pri);font-weight:400;text-align:right}
+.tag{display:inline-flex;align-items:center;height:22px;padding:0 10px;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.03em;margin-bottom:10px}
+.t-rd{background:#520408;color:#ff8389}
+.t-gr{background:#044317;color:#a7f0ba}
+.t-re{background:#750e13;color:#ffb3b8}
+.t-am{background:#533b00;color:#f1c21b}
+.t-bl{background:#0043ce;color:#a6c8ff}
+.t-te{background:#005d5d;color:#3ddbd9}
+html.light .t-rd{background:#ffd7d9;color:#da1e28}
+html.light .t-gr{background:#a7f0ba;color:#044317}
+html.light .t-re{background:#ffd7d9;color:#750e13}
+html.light .t-am{background:#ffd6a4;color:#4d3800}
+html.light .t-bl{background:#d0e2ff;color:#0043ce}
+html.light .t-te{background:#9ef0f0;color:#005d5d}
+.formula{font-family:'IBM Plex Mono',monospace;font-size:13px;background:var(--layer-02);border:1px solid var(--bdr-01);border-left:3px solid var(--ac);padding:11px 15px;margin:10px 0;line-height:2;color:var(--txt-pri);transition:background .25s}
+.dtbl{width:100%;border-collapse:collapse;margin:8px 0;font-size:13px}
+.dtbl thead tr{background:var(--layer-02);border-bottom:1px solid var(--bdr-str)}
+.dtbl th{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--txt-sec);padding:9px 14px;text-align:left}
+.dtbl td{padding:9px 14px;border-bottom:1px solid var(--bdr-00);color:var(--txt-pri);vertical-align:middle;font-size:13px}
+.dtbl tbody tr:hover{background:var(--hover-01)}
+.comp-card{background:var(--layer-01);border:1px solid var(--bdr-00);margin-bottom:2px;transition:background .15s}
+.comp-card-hdr{display:flex;align-items:center;gap:10px;padding:14px 18px;cursor:pointer}
+.comp-card-icon{width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;flex-shrink:0}
+.comp-card-title{font-size:14px;font-weight:600;color:var(--txt-pri);flex:1}
+.comp-card-arrow{font-size:10px;color:var(--txt-ph);transition:transform .2s}
+.comp-card.open .comp-card-arrow{transform:rotate(90deg)}
+.comp-card-body{display:none;border-top:1px solid var(--bdr-00);margin:0 18px;padding:14px 0 16px;font-size:13px;font-weight:300;color:var(--txt-sec);line-height:1.75}
+.comp-card.open .comp-card-body{display:block}
+/* ── Step tabs (S2 only) ── */
+.step-tabs{display:flex;gap:0;background:var(--bdr-00);border:1px solid var(--bdr-00);margin-bottom:0}
+.step-tab{flex:1;padding:10px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;color:var(--txt-sec);background:var(--layer-02);cursor:pointer;text-align:center;border-right:1px solid var(--bdr-00);transition:background .15s,color .15s;border-top:none;border-bottom:none;border-left:none}
+.step-tab:last-child{border-right:none}
+.step-tab.active{background:var(--ac);color:#fff}
+html.light .step-tab.active{color:#fff}
+.step-content{background:var(--layer-01);border:1px solid var(--bdr-00);border-top:none;padding:20px 24px}
+.step-panel{display:none}.step-panel.active{display:block}
+/* ── Kernel tabs (S8 only) ── */
+.kern-tabs{display:flex;gap:0;background:var(--bdr-00);border:1px solid var(--bdr-00);margin-bottom:0}
+.kern-tab{flex:1;padding:10px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;color:var(--txt-sec);background:var(--layer-02);cursor:pointer;text-align:center;border-right:1px solid var(--bdr-00);transition:background .15s,color .15s;border-top:none;border-bottom:none;border-left:none}
+.kern-tab:last-child{border-right:none}
+.kern-tab.active{background:var(--ac);color:#fff}
+html.light .kern-tab.active{color:#fff}
+/* ── Quiz ── */
+.quiz-wrap{background:var(--layer-01);border:1px solid var(--bdr-00);padding:20px 24px;margin:16px 0}
+.quiz-q{font-size:14px;font-weight:600;color:var(--txt-pri);margin-bottom:14px}
+.quiz-options{display:flex;flex-direction:column;gap:8px}
+.quiz-opt{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--layer-02);border:1px solid var(--bdr-01);cursor:pointer;font-size:13px;color:var(--txt-sec);transition:background .15s,border-color .15s}
+.quiz-opt:hover{background:var(--hover-01);color:var(--txt-pri)}
+.quiz-opt.correct{background:rgba(255,131,137,.12);border-color:var(--ac);color:var(--ac)}
+.quiz-opt.wrong{background:rgba(218,30,40,.12);border-color:var(--error);color:var(--error)}
+.quiz-opt.show-correct{background:rgba(255,131,137,.06);border-color:var(--ac)}
+.quiz-feedback{margin-top:12px;padding:10px 14px;font-size:13px;font-weight:300;line-height:1.6;display:none;border-left:3px solid var(--ac)}
+.quiz-feedback.show{display:block}
+.quiz-reset{margin-top:10px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ac);cursor:pointer;letter-spacing:.05em;background:transparent;border:none;display:none}
+.quiz-reset.show{display:block}
+/* ── Sliders ── */
+.slider-row{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+.slider-lbl{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-ph);min-width:80px}
+input[type=range]{-webkit-appearance:none;appearance:none;flex:1;height:2px;background:var(--bdr-str);outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;background:var(--ac);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;background:var(--ac);border:none;cursor:pointer}
+.slider-val{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--ac);min-width:40px;text-align:right}
+/* ── Metric row ── */
+.metric-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--bdr-00);border:1px solid var(--bdr-00);margin-top:14px}
+.metric-cell{background:var(--layer-01);padding:14px 16px;text-align:center}
+.metric-lbl{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--txt-ph);margin-bottom:6px}
+.metric-val{font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:600;line-height:1}
+.metric-note{font-size:10px;color:var(--txt-ph);margin-top:5px;font-weight:300}
+/* ── Bottom nav ── */
+.page-nav{display:flex;justify-content:space-between;align-items:center;padding-top:40px;border-top:1px solid var(--bdr-00);margin-top:60px}
+.page-nav-btn{display:flex;align-items:center;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-sec);padding:10px 16px;border:1px solid var(--bdr-01);background:transparent;cursor:pointer;transition:background .15s,color .15s;text-decoration:none}
+.page-nav-btn:hover{background:var(--hover-01);color:var(--txt-pri)}
+.page-nav-btn.primary{background:var(--ac);border-color:var(--ac);color:#fff}
+.page-nav-btn.primary:hover{opacity:.9}
+@media(max-width:767px){
+  .mob-topbar{display:flex}.sidenav{display:none}.page-grid{display:block}
+  .main{padding:68px 16px 80px;max-width:100%}.page-hdr{padding:24px 0 20px;margin-bottom:32px}
+  h1{font-size:24px}.grid2,.grid3,.metric-row{grid-template-columns:1fr}
+  .step-tabs,.kern-tabs{flex-wrap:wrap}
+  .step-tab,.kern-tab{flex:none;width:50%}
+}
+@media(min-width:768px) and (max-width:1024px){
+  .page-grid{grid-template-columns:200px 1fr}.main{padding:0 24px 80px}
+  .grid3{grid-template-columns:1fr 1fr}
+}
+*{-webkit-user-select:none;user-select:none;-moz-user-select:none;-ms-user-select:none}
+input,textarea,select{-webkit-user-select:text;user-select:text}
+@media print{body{display:none!important;visibility:hidden!important}}
+img{-webkit-user-drag:none;user-drag:none;pointer-events:none}
+</style>
+</head>
+<body>
+
+<div class="mob-topbar" id="mob-topbar">
+  <button class="mob-menu-btn" onclick="toggleDrawer()" aria-label="Menu">
+    <div class="mob-bar"></div><div class="mob-bar"></div><div class="mob-bar"></div>
+  </button>
+  <span class="mob-title">Support Vector Machine</span>
+  <button class="mob-tog" onclick="toggleTheme()" id="mob-tog">☀</button>
+</div>
+<div class="nav-overlay" id="nav-overlay" onclick="closeDrawer()"></div>
+<nav class="nav-drawer" id="nav-drawer"></nav>
+
+<div class="page-grid">
+<nav class="sidenav" id="sidenav">
+  <div class="nav-hdr">
+    <a class="nav-back" href="index.html">← Module 2</a>
+    <div class="nav-mod">Topic 08</div>
+    <div class="nav-title">Support Vector Machine</div>
+  </div>
+  <div class="nav-sec">Sections</div>
+  <a class="nav-item active" href="#s1"><span class="nn">01</span>Intuition & analogy</a>
+  <a class="nav-item" href="#s2"><span class="nn">02</span>The hyperplane</a>
+  <a class="nav-item" href="#s3"><span class="nn">03</span>Support vectors & margin</a>
+  <a class="nav-item" href="#s4"><span class="nn">04</span>Interactive margin demo</a>
+  <a class="nav-item" href="#s5"><span class="nn">05</span>Soft margin & C parameter</a>
+  <a class="nav-item" href="#s6"><span class="nn">06</span>The kernel trick</a>
+  <a class="nav-item" href="#s7"><span class="nn">07</span>Kernel types</a>
+  <a class="nav-item" href="#s8"><span class="nn">08</span>Interactive kernel demo</a>
+  <a class="nav-item" href="#s9"><span class="nn">09</span>SVM vs Logistic Regression</a>
+  <a class="nav-item" href="#s10"><span class="nn">10</span>Quick quiz</a>
+  <div class="tog-area">
+    <button class="tog-btn" onclick="toggleTheme()">
+      <span style="display:flex;align-items:center;gap:6px"><span id="tog-icon">☀</span><span id="tog-txt">Light theme</span></span>
+      <span class="tog-track"><span class="tog-thumb"></span></span>
+    </button>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph);margin-top:10px;line-height:1.6">IBM Carbon · <span id="theme-lbl">Dark</span></div>
+  </div>
+</nav>
+
+<main class="main">
+<div class="page-hdr">
+  <div class="breadcrumb">
+    <a href="../index.html">Home</a><span>/</span>
+    <a href="index.html">Module 2</a><span>/</span>
+    <span style="color:var(--txt-sec)">Support Vector Machine</span>
+  </div>
+  <h1>Support Vector<br><em>Machine</em></h1>
+  <p class="hdr-desc">SVM finds the fairest possible boundary between classes — not just any line that separates them, but the one with the widest breathing room. Add the kernel trick and it conquers data no straight line could ever separate.</p>
+</div>
+
+<!-- S1 -->
+<div class="section" id="s1">
+  <div class="eyebrow">01 · The concept</div>
+  <h2>Intuition & analogy</h2>
+  <p>Every classifier draws a line between classes. But most just need <em>any</em> line. SVM asks a harder question: <span class="hl">which line is the most confident separator?</span> The answer is the one that stays as far as possible from both classes — the maximum-margin hyperplane.</p>
+
+  <div class="callout callout-g">
+    <strong>Analogy — The fairest aisle in the cafeteria:</strong> Two rival groups sit on opposite sides. You must draw a line between them. You could draw it 1 cm from Group A — unfair and unstable. The <strong>fairest line maximises the gap from both groups equally</strong>. The students closest to this line are the "support vectors" — remove anyone else and the line stays. SVM finds this maximum-margin boundary.
+  </div>
+
+  <div class="callout">
+    <strong>Analogy — Drawing with a fat marker:</strong> A thin pen can draw many valid separating lines. But a fat marker — only the widest possible gap fits the marker's width. SVM finds the widest marker that fits between classes. The width is the <strong>margin</strong>.
+  </div>
+
+  <div class="grid3">
+    <div class="gcell">
+      <div class="tag t-rd">Most classifiers</div>
+      <p style="font-size:13px;margin:0">Find <strong>any</strong> separating boundary. Multiple valid answers. No guarantee of generalisation quality.</p>
+    </div>
+    <div class="gcell">
+      <div class="tag t-gr">SVM</div>
+      <p style="font-size:13px;margin:0">Finds the <strong>maximum-margin</strong> boundary. Unique optimal solution. Maximises the distance to the nearest training points.</p>
+    </div>
+    <div class="gcell">
+      <div class="tag t-bl">Why it matters</div>
+      <p style="font-size:13px;margin:0">Wider margin = more robust to new data = better generalisation. SVM handles the hardest points most carefully.</p>
+    </div>
+  </div>
+</div>
+
+<!-- S2 -->
+<div class="section" id="s2">
+  <div class="eyebrow">02 · The boundary</div>
+  <h2>The hyperplane</h2>
+  <p>In 2D, SVM draws a line. In 3D, a plane. In higher dimensions, a <strong>hyperplane</strong> — a flat subspace dividing feature space into two half-spaces, one per class.</p>
+
+  <div class="formula">Decision hyperplane:  w · x + b = 0
+<br><br>
+Prediction rule:
+  If  w · x + b ≥ +1  →  Class +1
+  If  w · x + b ≤ −1  →  Class −1
+<br><br>
+where  w = weight vector · x = input features · b = bias</div>
+
+  <div class="grid2">
+    <div class="gcell">
+      <div class="tag t-rd">w — weight vector</div>
+      <div class="kv"><span class="kk">Meaning</span><span class="kv-v">Points perpendicular to hyperplane</span></div>
+      <div class="kv"><span class="kk">Determines</span><span class="kv-v">Orientation of boundary</span></div>
+    </div>
+    <div class="gcell">
+      <div class="tag t-bl">b — bias</div>
+      <div class="kv"><span class="kk">Meaning</span><span class="kv-v">Shifts hyperplane from origin</span></div>
+      <div class="kv"><span class="kk">Determines</span><span class="kv-v">Position of boundary</span></div>
+    </div>
+  </div>
+
+  <div class="tile">
+    <div class="tile-title">What SVM optimises — step by step</div>
+    <!-- FIX: separate step-tabs from kernel kern-tabs with distinct classes -->
+    <div class="step-tabs">
+      <button class="step-tab active" onclick="switchStep('st1',this)">Objective</button>
+      <button class="step-tab" onclick="switchStep('st2',this)">Constraint</button>
+      <button class="step-tab" onclick="switchStep('st3',this)">Margin width</button>
+      <button class="step-tab" onclick="switchStep('st4',this)">Intuition</button>
+    </div>
+    <div class="step-content">
+      <div class="step-panel active" id="st1">
+        <p style="margin-bottom:8px"><strong>Minimise ½ ‖w‖²</strong> — this is equivalent to maximising the margin width.</p>
+        <div class="kv"><span class="kk">Why minimise ‖w‖?</span><span class="kv-v">Smaller ‖w‖ = wider margin = 2/‖w‖ grows</span></div>
+        <div class="kv"><span class="kk">Type of problem</span><span class="kv-v">Quadratic programming (QP) — convex, global optimum</span></div>
+      </div>
+      <div class="step-panel" id="st2">
+        <p style="margin-bottom:8px"><strong>yᵢ(w·xᵢ + b) ≥ 1</strong> for all training points — no point inside the margin.</p>
+        <div class="kv"><span class="kk">yᵢ = +1 (Class A)</span><span class="kv-v">Must satisfy w·x + b ≥ +1</span></div>
+        <div class="kv"><span class="kk">yᵢ = −1 (Class B)</span><span class="kv-v">Must satisfy w·x + b ≤ −1</span></div>
+      </div>
+      <div class="step-panel" id="st3">
+        <div class="kv"><span class="kk">Margin width</span><span class="kv-v" style="color:var(--ac)">2 / ‖w‖</span></div>
+        <div class="kv"><span class="kk">To maximise margin</span><span class="kv-v">Minimise ‖w‖</span></div>
+        <div class="kv"><span class="kk">Unique solution?</span><span class="kv-v" style="color:var(--success)">Yes — QP has a single global optimum</span></div>
+      </div>
+      <div class="step-panel" id="st4">
+        <p style="margin-bottom:0;font-size:13px">Think of it like maximising the gap between two parallel rulers — one touching the nearest Class A point, one touching the nearest Class B point. SVM finds the orientation and position that makes this gap as wide as possible while respecting both constraints.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- S3 -->
+<div class="section" id="s3">
+  <div class="eyebrow">03 · The key players</div>
+  <h2>Support vectors & the margin</h2>
+  <p>Not all training points matter equally. Only a tiny subset — the <strong>support vectors</strong> — actually define the boundary. Delete any other point and the hyperplane doesn't move.</p>
+
+  <div class="callout callout-y">
+    <strong>Analogy — Load-bearing walls:</strong> Most walls in a building are decorative — remove them, structure stands. But load-bearing walls are critical — remove one and everything shifts. Support vectors are SVM's load-bearing walls: they're the training points sitting exactly on the margin boundaries, holding the hyperplane in place.
+  </div>
+
+  <!-- Static SVM diagram -->
+  <div style="background:var(--layer-01);border:1px solid var(--bdr-00);padding:16px;margin:14px 0">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">SVM — maximum margin hyperplane with support vectors</div>
+    <canvas id="svmDiagram" width="720" height="300" style="display:block;width:100%"></canvas>
+  </div>
+
+  <div class="grid3">
+    <div class="gcell">
+      <div class="tag t-rd">Support vectors</div>
+      <div class="kv"><span class="kk">What they are</span><span class="kv-v">Points on the margin boundaries</span></div>
+      <div class="kv"><span class="kk">Remove a SV?</span><span class="kv-v" style="color:var(--error)">Hyperplane shifts</span></div>
+      <div class="kv"><span class="kk">Remove others?</span><span class="kv-v" style="color:var(--success)">No change</span></div>
+    </div>
+    <div class="gcell">
+      <div class="tag t-am">The margin</div>
+      <div class="kv"><span class="kk">Definition</span><span class="kv-v">Distance between margin lines</span></div>
+      <div class="kv"><span class="kk">Width</span><span class="kv-v">2 / ‖w‖</span></div>
+      <div class="kv"><span class="kk">Goal</span><span class="kv-v" style="color:var(--ac)">Maximise this</span></div>
+    </div>
+    <div class="gcell">
+      <div class="tag t-gr">Hard margin SVM</div>
+      <div class="kv"><span class="kk">Constraint</span><span class="kv-v">No point inside margin</span></div>
+      <div class="kv"><span class="kk">Requires</span><span class="kv-v">Linearly separable data</span></div>
+      <div class="kv"><span class="kk">Problem</span><span class="kv-v" style="color:var(--error)">One outlier ruins it</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- S4 -->
+<div class="section" id="s4">
+  <div class="eyebrow">04 · Hands-on</div>
+  <h2>Interactive margin demo</h2>
+  <p>Click to place points on the canvas. <strong>Left-click = Class A (red)</strong>, <strong>Right-click = Class B (blue)</strong>. The SVM hyperplane and margin update live.</p>
+
+  <div class="tile">
+    <div class="tile-title">SVM live classifier — click to add points</div>
+    <div style="display:flex;gap:16px;margin-bottom:10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-ph);flex-wrap:wrap">
+      <span>Left-click → <span style="color:var(--ac)">● Class A</span></span>
+      <span>Right-click → <span style="color:var(--link)">● Class B</span></span>
+      <button onclick="clearSVM()" style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:10px;background:transparent;border:1px solid var(--bdr-01);color:var(--txt-ph);padding:4px 12px;cursor:pointer">Clear</button>
+    </div>
+    <canvas id="svmCanvas" width="720" height="300" style="border:1px solid var(--bdr-00);display:block;width:100%;cursor:crosshair"></canvas>
+    <div id="svmStatus" style="margin-top:10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-ph);min-height:18px"></div>
+    <div class="metric-row">
+      <div class="metric-cell">
+        <div class="metric-lbl">Class A points</div>
+        <div class="metric-val" id="mCA" style="color:var(--ac)">0</div>
+        <div class="metric-note">left-click to add</div>
+      </div>
+      <div class="metric-cell">
+        <div class="metric-lbl">Class B points</div>
+        <div class="metric-val" id="mCB" style="color:var(--link)">0</div>
+        <div class="metric-note">right-click to add</div>
+      </div>
+      <div class="metric-cell">
+        <div class="metric-lbl">Estimated SVs</div>
+        <div class="metric-val" id="mSV" style="color:var(--warn)">—</div>
+        <div class="metric-note">points on margin</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- S5 -->
+<div class="section" id="s5">
+  <div class="eyebrow">05 · Real-world SVM</div>
+  <h2>Soft margin & the C parameter</h2>
+  <p>Hard margin SVM requires perfectly linearly separable data — one outlier and it fails. Real data is messy. <strong>Soft margin SVM</strong> allows some points to violate the margin, controlled by the hyperparameter C.</p>
+
+  <div class="callout callout-y">
+    <strong>Analogy — The tolerant referee:</strong> Hard margin calls a foul for any contact at all — perfect but impractical. Soft margin allows minor fouls if it keeps the game flowing better. C is how strict this referee is. <strong>High C</strong> = very strict (few violations). <strong>Low C</strong> = lenient (allows more violations for a wider, stable boundary).
+  </div>
+
+  <div class="tile">
+    <div class="tile-title">Effect of C — drag to explore</div>
+    <div class="slider-row">
+      <span class="slider-lbl">C value</span>
+      <input type="range" id="cSlider" min="1" max="100" value="10" oninput="updateCDemo()">
+      <span class="slider-val" id="cVal">C = 10</span>
+    </div>
+    <canvas id="cCanvas" width="720" height="220" style="display:block;width:100%;border:1px solid var(--bdr-00)"></canvas>
+    <div class="metric-row" style="margin-top:8px">
+      <div class="metric-cell">
+        <div class="metric-lbl">C value</div>
+        <div class="metric-val" id="cDisplay" style="color:var(--ac)">10</div>
+        <div class="metric-note">regularisation</div>
+      </div>
+      <div class="metric-cell">
+        <div class="metric-lbl">Margin width</div>
+        <div class="metric-val" id="cMargin" style="color:var(--warn)">Medium</div>
+        <div class="metric-note">gap between classes</div>
+      </div>
+      <div class="metric-cell">
+        <div class="metric-lbl">Behaviour</div>
+        <div class="metric-val" id="cBehaviour" style="font-size:12px;padding-top:4px">Balanced</div>
+        <div class="metric-note" id="cNote">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="gcell">
+      <div class="tag t-am">High C (strict)</div>
+      <div class="kv"><span class="kk">Margin</span><span class="kv-v" style="color:var(--error)">Narrow</span></div>
+      <div class="kv"><span class="kk">Violations allowed</span><span class="kv-v" style="color:var(--error)">Very few</span></div>
+      <div class="kv"><span class="kk">Risk</span><span class="kv-v">Overfitting</span></div>
+    </div>
+    <div class="gcell">
+      <div class="tag t-gr">Low C (lenient)</div>
+      <div class="kv"><span class="kk">Margin</span><span class="kv-v" style="color:var(--success)">Wide</span></div>
+      <div class="kv"><span class="kk">Violations allowed</span><span class="kv-v" style="color:var(--success)">Many</span></div>
+      <div class="kv"><span class="kk">Risk</span><span class="kv-v">Underfitting</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- S6 -->
+<div class="section" id="s6">
+  <div class="eyebrow">06 · The magic move</div>
+  <h2>The kernel trick</h2>
+  <p>What if data isn't linearly separable? SVM's secret weapon is the <strong>kernel trick</strong> — it implicitly maps data to a higher-dimensional space where a linear hyperplane does exist, without ever computing the transformation explicitly.</p>
+
+  <div class="callout callout-p">
+    <strong>Analogy — Coins on a table:</strong> Red and blue coins mixed on a flat table — no straight line can separate them (concentric circles). Bang the table — they briefly fly up into 3D. In that 3D moment, you slip a flat paper between them perfectly. <strong>The kernel trick does this lift mathematically without computing the 3D coordinates.</strong>
+  </div>
+
+  <div class="callout callout-b">
+    <strong>Why it's a "trick":</strong> Computing high-dimensional coordinates is expensive — sometimes infinite-dimensional. But the kernel K(xᵢ, xⱼ) computes the dot product in that high-D space directly from original features — no explicit transformation needed.
+  </div>
+
+  <div class="formula">K(xᵢ, xⱼ) = φ(xᵢ) · φ(xⱼ)
+<br><br>
+Computes the inner product in high-D space directly from original features.
+No explicit φ(x) transformation required.</div>
+
+  <div class="tile">
+    <div class="tile-title">Concrete example — XOR problem</div>
+    <div class="kv"><span class="kk">Original 2D</span><span class="kv-v" style="color:var(--error)">No line separates (0,0),(1,1) from (0,1),(1,0)</span></div>
+    <div class="kv"><span class="kk">Add z = x·y</span><span class="kv-v" style="color:var(--success)">Now separable with z = 0.5 plane</span></div>
+    <div class="kv"><span class="kk">Kernel handles this</span><span class="kv-v" style="color:var(--ac)">Polynomial k(x,y) = (x·y + 1)² implicitly</span></div>
+  </div>
+</div>
+
+<!-- S7 -->
+<div class="section" id="s7">
+  <div class="eyebrow">07 · Kernel menu</div>
+  <h2>Kernel types</h2>
+  <p>Different kernels create different boundary shapes. Choosing the right kernel determines what patterns SVM can separate.</p>
+
+  <div class="comp-card open" id="cc1">
+    <div class="comp-card-hdr" onclick="toggleCard('cc1')">
+      <div class="comp-card-icon" style="background:#520408;color:#ff8389">L</div>
+      <div class="comp-card-title">Linear Kernel</div>
+      <div class="comp-card-arrow">›</div>
+    </div>
+    <div class="comp-card-body">
+      <strong>Formula:</strong> K(xᵢ, xⱼ) = xᵢ · xⱼ<br><br>
+      <strong>Boundary:</strong> Straight hyperplane<br><br>
+      <strong>Best for:</strong> Linearly separable data, high-dimensional sparse text data<br><br>
+      <strong>Speed:</strong> Fastest — no transformation needed. Always start here.
+    </div>
+  </div>
+
+  <div class="comp-card" id="cc2">
+    <div class="comp-card-hdr" onclick="toggleCard('cc2')">
+      <div class="comp-card-icon" style="background:#520408;color:#ff8389">R</div>
+      <div class="comp-card-title">RBF Kernel (Radial Basis Function)</div>
+      <div class="comp-card-arrow">›</div>
+    </div>
+    <div class="comp-card-body">
+      <strong>Formula:</strong> K(xᵢ, xⱼ) = exp(−γ ‖xᵢ − xⱼ‖²)<br><br>
+      <strong>Boundary:</strong> Circular / spherical — can model any smooth shape<br><br>
+      <strong>γ (gamma):</strong> High γ = small radius = wiggly boundary (overfit). Low γ = large radius = smooth boundary.<br><br>
+      <strong>Default in scikit-learn SVC.</strong> Most versatile — try this if linear fails.
+    </div>
+  </div>
+
+  <div class="comp-card" id="cc3">
+    <div class="comp-card-hdr" onclick="toggleCard('cc3')">
+      <div class="comp-card-icon" style="background:#520408;color:#ff8389">P</div>
+      <div class="comp-card-title">Polynomial Kernel</div>
+      <div class="comp-card-arrow">›</div>
+    </div>
+    <div class="comp-card-body">
+      <strong>Formula:</strong> K(xᵢ, xⱼ) = (xᵢ · xⱼ + c)ᵈ<br><br>
+      <strong>Boundary:</strong> Polynomial curves — parabolas, ellipses<br><br>
+      <strong>Best for:</strong> Image processing, NLP with polynomial feature interactions<br><br>
+      <strong>Caution:</strong> High degree = easy to overfit. Stick to d=2 or d=3.
+    </div>
+  </div>
+
+  <div class="comp-card" id="cc4">
+    <div class="comp-card-hdr" onclick="toggleCard('cc4')">
+      <div class="comp-card-icon" style="background:#520408;color:#ff8389">S</div>
+      <div class="comp-card-title">Sigmoid Kernel</div>
+      <div class="comp-card-arrow">›</div>
+    </div>
+    <div class="comp-card-body">
+      <strong>Formula:</strong> K(xᵢ, xⱼ) = tanh(γ xᵢ · xⱼ + c)<br><br>
+      <strong>Boundary:</strong> S-shaped — similar to neural network activations<br><br>
+      <strong>Note:</strong> Rarely outperforms RBF. Not always a valid kernel for all parameter settings.
+    </div>
+  </div>
+
+  <div class="tile" style="margin-top:12px">
+    <div class="tile-title">Kernel selection guide</div>
+    <div class="kv"><span class="kk">Start with</span><span class="kv-v" style="color:var(--ac)">Linear — fastest, good baseline</span></div>
+    <div class="kv"><span class="kk">If linear fails</span><span class="kv-v" style="color:var(--ac)">RBF — most versatile</span></div>
+    <div class="kv"><span class="kk">Text classification</span><span class="kv-v">Linear — sparse high-D is already separable</span></div>
+    <div class="kv"><span class="kk">Unknown boundary shape</span><span class="kv-v">Cross-validate RBF with different γ values</span></div>
+  </div>
+</div>
+
+<!-- S8 -->
+<div class="section" id="s8">
+  <div class="eyebrow">08 · Hands-on</div>
+  <h2>Interactive kernel comparison</h2>
+  <p>See how different kernels handle the same XOR-like dataset that no straight line can separate. Adjust C and gamma sliders to explore boundary complexity.</p>
+
+  <div class="tile">
+    <div class="tile-title">Kernel explorer</div>
+    <!-- FIX: Use kern-tabs / kern-tab classes, separate from step-tabs -->
+    <div class="kern-tabs">
+      <button class="kern-tab active" onclick="switchKernel('linear',this)">Linear</button>
+      <button class="kern-tab" onclick="switchKernel('rbf',this)">RBF</button>
+      <button class="kern-tab" onclick="switchKernel('poly',this)">Polynomial</button>
+    </div>
+    <div style="background:var(--layer-01);border:1px solid var(--bdr-00);border-top:none;padding:16px">
+      <div class="slider-row">
+        <span class="slider-lbl">C value</span>
+        <input type="range" id="kernelC" min="1" max="50" value="10" oninput="drawKernelDemo()">
+        <span class="slider-val" id="kernelCVal">10</span>
+      </div>
+      <div class="slider-row" id="gammaRow">
+        <span class="slider-lbl">Gamma (γ)</span>
+        <input type="range" id="kernelGamma" min="1" max="20" value="5" oninput="drawKernelDemo()">
+        <span class="slider-val" id="kernelGammaVal">5</span>
+      </div>
+      <canvas id="kernelCanvas" width="720" height="280" style="display:block;width:100%;border:1px solid var(--bdr-00)"></canvas>
+      <div id="kernelDesc" style="margin-top:10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-ph)"></div>
+    </div>
+  </div>
+</div>
+
+<!-- S9 -->
+<div class="section" id="s9">
+  <div class="eyebrow">09 · Head to head</div>
+  <h2>SVM vs Logistic Regression</h2>
+  <p>Both are popular linear classifiers but they approach the problem differently.</p>
+
+  <div class="grid2">
+    <div class="gcell">
+      <div class="tag t-rd">SVM</div>
+      <div class="kv"><span class="kk">Objective</span><span class="kv-v">Maximise margin</span></div>
+      <div class="kv"><span class="kk">Loss</span><span class="kv-v">Hinge loss</span></div>
+      <div class="kv"><span class="kk">Output</span><span class="kv-v">Class label</span></div>
+      <div class="kv"><span class="kk">Kernel trick</span><span class="kv-v" style="color:var(--ac)">Yes</span></div>
+      <div class="kv"><span class="kk">High dimensions</span><span class="kv-v" style="color:var(--ac)">Excellent</span></div>
+      <div class="kv"><span class="kk">Large datasets</span><span class="kv-v" style="color:var(--error)">Slow O(n²–n³)</span></div>
+    </div>
+    <div class="gcell">
+      <div class="tag t-bl">Logistic Regression</div>
+      <div class="kv"><span class="kk">Objective</span><span class="kv-v">Maximise likelihood</span></div>
+      <div class="kv"><span class="kk">Loss</span><span class="kv-v">Log loss</span></div>
+      <div class="kv"><span class="kk">Output</span><span class="kv-v" style="color:var(--success)">Probabilities</span></div>
+      <div class="kv"><span class="kk">Kernel trick</span><span class="kv-v">No</span></div>
+      <div class="kv"><span class="kk">High dimensions</span><span class="kv-v" style="color:var(--ac)">Good</span></div>
+      <div class="kv"><span class="kk">Large datasets</span><span class="kv-v" style="color:var(--success)">Fast</span></div>
+    </div>
+  </div>
+
+  <div class="tile">
+    <div class="tile-title">Decision guide</div>
+    <div class="kv"><span class="kk">Need probabilities</span><span class="kv-v" style="color:var(--link)">Logistic Regression</span></div>
+    <div class="kv"><span class="kk">Non-linear boundary needed</span><span class="kv-v" style="color:var(--ac)">SVM with RBF kernel</span></div>
+    <div class="kv"><span class="kk">High-dimensional sparse text</span><span class="kv-v" style="color:var(--ac)">SVM linear often wins</span></div>
+    <div class="kv"><span class="kk">Large dataset (&gt;100k)</span><span class="kv-v" style="color:var(--link)">Logistic Regression much faster</span></div>
+  </div>
+
+  <div class="formula" style="font-size:12px">
+from sklearn.svm import SVC, LinearSVC
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+
+<span style="color:var(--txt-ph)"># Always scale features before SVM!</span>
+svm_rbf = Pipeline([
+    ('scaler', StandardScaler()),
+    ('svm',    SVC(kernel='rbf', C=1.0, gamma='scale'))
+])
+svm_linear = Pipeline([
+    ('scaler', StandardScaler()),
+    ('svm',    LinearSVC(C=1.0, max_iter=2000))
+])
+svm_rbf.fit(X_train, y_train)
+preds = svm_rbf.predict(X_test)
+  </div>
+</div>
+
+<!-- S10 -->
+<div class="section" id="s10">
+  <div class="eyebrow">10 · Check your understanding</div>
+  <h2>Quick quiz</h2>
+  <p>Four questions — test yourself on SVM.</p>
+
+  <div class="quiz-wrap">
+    <div class="quiz-q">1. What are "support vectors" in SVM?</div>
+    <div class="quiz-options" id="q1-opts">
+      <div class="quiz-opt" onclick="answerQ('q1',0,2,'q1-fb')">A. All training data points used to train the model</div>
+      <div class="quiz-opt" onclick="answerQ('q1',1,2,'q1-fb')">B. The weight vectors that define the hyperplane direction</div>
+      <div class="quiz-opt" onclick="answerQ('q1',2,2,'q1-fb')">C. Training points closest to the boundary that define the margin ✓</div>
+      <div class="quiz-opt" onclick="answerQ('q1',3,2,'q1-fb')">D. Vector representations of text used in NLP</div>
+    </div>
+    <div class="quiz-feedback" id="q1-fb">Support vectors lie exactly on the margin boundaries (w·x + b = ±1). They are the only points that "support" the hyperplane — remove any non-SV training point and the hyperplane stays exactly the same. ✓</div>
+    <button class="quiz-reset" id="q1-reset" onclick="resetQ('q1','q1-fb','q1-reset')">Try again</button>
+  </div>
+
+  <div class="quiz-wrap">
+    <div class="quiz-q">2. What happens when you increase C in a soft-margin SVM?</div>
+    <div class="quiz-options" id="q2-opts">
+      <div class="quiz-opt" onclick="answerQ('q2',0,1,'q2-fb')">A. The margin gets wider — more violations are allowed</div>
+      <div class="quiz-opt" onclick="answerQ('q2',1,1,'q2-fb')">B. The margin gets narrower — fewer violations, tighter fit ✓</div>
+      <div class="quiz-opt" onclick="answerQ('q2',2,1,'q2-fb')">C. The kernel changes from linear to RBF automatically</div>
+      <div class="quiz-opt" onclick="answerQ('q2',3,1,'q2-fb')">D. The number of support vectors increases proportionally</div>
+    </div>
+    <div class="quiz-feedback" id="q2-fb">High C = high penalty for misclassification = narrower margin, more complex boundary, risk of overfitting. Low C = allows more violations = wider margin, better generalisation. ✓</div>
+    <button class="quiz-reset" id="q2-reset" onclick="resetQ('q2','q2-fb','q2-reset')">Try again</button>
+  </div>
+
+  <div class="quiz-wrap">
+    <div class="quiz-q">3. The kernel trick allows SVM to handle non-linear data by:</div>
+    <div class="quiz-options" id="q3-opts">
+      <div class="quiz-opt" onclick="answerQ('q3',0,2,'q3-fb')">A. Drawing curved lines instead of straight hyperplanes</div>
+      <div class="quiz-opt" onclick="answerQ('q3',1,2,'q3-fb')">B. Training multiple linear SVMs and combining votes</div>
+      <div class="quiz-opt" onclick="answerQ('q3',2,2,'q3-fb')">C. Computing dot products in a higher-dimensional space without explicit transformation ✓</div>
+      <div class="quiz-opt" onclick="answerQ('q3',3,2,'q3-fb')">D. Reducing features with PCA before classification</div>
+    </div>
+    <div class="quiz-feedback" id="q3-fb">K(xᵢ,xⱼ) = φ(xᵢ)·φ(xⱼ) computes the inner product in high-dimensional space directly from original features. The hyperplane remains linear in this high-D space — the boundary just appears curved in original space. ✓</div>
+    <button class="quiz-reset" id="q3-reset" onclick="resetQ('q3','q3-fb','q3-reset')">Try again</button>
+  </div>
+
+  <div class="quiz-wrap">
+    <div class="quiz-q">4. Which kernel is scikit-learn SVC's default and the best first choice for non-linear data?</div>
+    <div class="quiz-options" id="q4-opts">
+      <div class="quiz-opt" onclick="answerQ('q4',0,1,'q4-fb')">A. Linear kernel — fastest and simplest</div>
+      <div class="quiz-opt" onclick="answerQ('q4',1,1,'q4-fb')">B. RBF (Radial Basis Function) kernel ✓</div>
+      <div class="quiz-opt" onclick="answerQ('q4',2,1,'q4-fb')">C. Polynomial kernel with degree 3</div>
+      <div class="quiz-opt" onclick="answerQ('q4',3,1,'q4-fb')">D. Sigmoid kernel for neural-network-like boundaries</div>
+    </div>
+    <div class="quiz-feedback" id="q4-fb">RBF is the default in sklearn SVC because it works well across a wide variety of datasets and can model any smooth decision boundary by controlling γ. ✓</div>
+    <button class="quiz-reset" id="q4-reset" onclick="resetQ('q4','q4-fb','q4-reset')">Try again</button>
+  </div>
+</div>
+
+<div class="page-nav">
+  <a class="page-nav-btn" href="naive-bayes.html">← Naive Bayes</a>
+  <a class="page-nav-btn primary" href="multiclass.html">Next: Multi-class Classification →</a>
+</div>
+
+</main>
+</div>
+
+<script>
+/* ── Theme ── */
+let isLight=false;
+function toggleTheme(){
+  isLight=!isLight;
+  document.documentElement.classList.toggle('light',isLight);
+  const i=isLight?'◑':'☀',l=isLight?'Light':'Dark';
+  document.getElementById('tog-icon').textContent=i;
+  document.getElementById('tog-txt').textContent=l+' theme';
+  document.getElementById('theme-lbl').textContent=l;
+  const m=document.getElementById('mob-tog');if(m)m.textContent=i;
+  setTimeout(()=>{ drawSVMDiagram(); updateCDemo(); drawKernelDemo(); },30);
+}
+
+/* ── Collapsible ── */
+function toggleCard(id){ document.getElementById(id).classList.toggle('open'); }
+
+/* ── FIX: Separate step tabs (S2) from kernel tabs (S8) ── */
+function switchStep(id,btn){
+  document.querySelectorAll('.step-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.step-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+
+/* ── Quiz ── */
+function answerQ(qid,clicked,correct,fbId){
+  const opts=document.getElementById(qid+'-opts').querySelectorAll('.quiz-opt');
+  opts.forEach((o,i)=>{
+    o.style.pointerEvents='none';
+    if(i===correct)o.classList.add('show-correct');
+    if(i===clicked&&clicked!==correct)o.classList.add('wrong');
+    if(i===clicked&&clicked===correct)o.classList.add('correct');
+  });
+  const fb=document.getElementById(fbId);
+  fb.classList.add('show');
+  /* FIX: different background for correct vs wrong */
+  fb.style.background=clicked===correct?'rgba(255,131,137,.08)':'rgba(218,30,40,.06)';
+  fb.style.borderLeftColor=clicked===correct?'var(--ac)':'var(--error)';
+  document.getElementById(qid+'-reset').classList.add('show');
+}
+function resetQ(qid,fbId,resetId){
+  document.getElementById(qid+'-opts').querySelectorAll('.quiz-opt').forEach(o=>{
+    o.style.pointerEvents='';o.classList.remove('correct','wrong','show-correct');
+  });
+  document.getElementById(fbId).classList.remove('show');
+  document.getElementById(resetId).classList.remove('show');
+}
+
+/* ── Scroll nav ── */
+const secs=Array.from(document.querySelectorAll('.section[id]'));
+let lastId='',rafP=false;
+window.addEventListener('scroll',()=>{
+  if(rafP)return;rafP=true;
+  requestAnimationFrame(()=>{
+    rafP=false;
+    const trigger=window.scrollY+window.innerHeight*.28;
+    let active=secs[0];
+    for(const s of secs){if(s.offsetTop<=trigger)active=s;else break;}
+    if(active&&active.id!==lastId){
+      lastId=active.id;
+      document.querySelectorAll('.nav-item,.drawer-nav-item').forEach(n=>{
+        n.classList.toggle('active',n.getAttribute('href')==='#'+active.id);
+      });
+    }
+  });
+},{passive:true});
+
+/* ── Drawer ── */
+function buildDrawer(){
+  const dr=document.getElementById('nav-drawer');
+  const sn=document.getElementById('sidenav');
+  const cl=sn.cloneNode(true);
+  cl.removeAttribute('id');cl.removeAttribute('class');
+  cl.querySelectorAll('.nav-item').forEach(el=>{el.classList.add('drawer-nav-item');el.addEventListener('click',closeDrawer);});
+  const tog=cl.querySelector('.tog-area');if(tog)tog.remove();
+  const cb=document.createElement('button');
+  cb.textContent='✕ Close';
+  cb.style.cssText='font-family:"IBM Plex Mono",monospace;font-size:11px;background:transparent;border:none;border-bottom:1px solid var(--bdr-00);color:var(--txt-ph);padding:12px 16px;width:100%;text-align:left;cursor:pointer';
+  cb.onclick=closeDrawer;
+  dr.insertBefore(cb,dr.firstChild);
+  dr.appendChild(cl);
+}
+function toggleDrawer(){
+  const ov=document.getElementById('nav-overlay'),dr=document.getElementById('nav-drawer');
+  if(dr.classList.contains('open')){closeDrawer();}
+  else{ov.style.display='block';setTimeout(()=>ov.classList.add('open'),10);dr.classList.add('open');document.body.style.overflow='hidden';}
+}
+function closeDrawer(){
+  const ov=document.getElementById('nav-overlay'),dr=document.getElementById('nav-drawer');
+  ov.classList.remove('open');dr.classList.remove('open');document.body.style.overflow='';
+  setTimeout(()=>{ov.style.display='none';},270);
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer();});
+document.fonts.ready.then(()=>buildDrawer());
+
+/* ── FIX: Color helper — hardcoded hex values, not CSS vars ── */
+function getC(){
+  const lt=document.documentElement.classList.contains('light');
+  return{
+    bg:   lt?'#f4f4f4':'#262626',
+    bg2:  lt?'#e0e0e0':'#393939',
+    grid: lt?'#e0e0e0':'#393939',
+    ax:   '#6f6f6f',
+    ac:   lt?'#da1e28':'#ff8389',   // accent — always hex
+    lnk:  lt?'#0043ce':'#78a9ff',   // link — always hex
+    suc:  lt?'#198038':'#42be65',
+    warn: '#f1c21b',
+    pur:  '#d4bbff',
+    txt:  lt?'#161616':'#f4f4f4'
+  };
+}
+
+/* ══ STATIC SVM DIAGRAM ══ */
+function drawSVMDiagram(){
+  const canvas=document.getElementById('svmDiagram');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height;
+  const c=getC();
+
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle=c.bg;ctx.fillRect(0,0,W,H);
+
+  // Shaded zones
+  ctx.fillStyle=c.ac+'18';
+  ctx.beginPath();ctx.moveTo(0,H);ctx.lineTo(0,0);ctx.lineTo(W*0.38,0);ctx.lineTo(W*0.62,H);ctx.closePath();ctx.fill();
+  ctx.fillStyle=c.lnk+'18';
+  ctx.beginPath();ctx.moveTo(W*0.38,0);ctx.lineTo(W,0);ctx.lineTo(W,H);ctx.lineTo(W*0.62,H);ctx.closePath();ctx.fill();
+
+  // Margin lines (dashed)
+  ctx.strokeStyle=c.ax;ctx.lineWidth=1;ctx.setLineDash([6,4]);
+  ctx.beginPath();ctx.moveTo(W*0.30,0);ctx.lineTo(W*0.54,H);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(W*0.46,0);ctx.lineTo(W*0.70,H);ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Hyperplane
+  ctx.strokeStyle=c.ac;ctx.lineWidth=2.5;
+  ctx.beginPath();ctx.moveTo(W*0.38,0);ctx.lineTo(W*0.62,H);ctx.stroke();
+
+  // Class A points
+  [[0.12,0.25],[0.18,0.55],[0.08,0.70],[0.22,0.40],[0.15,0.75],[0.25,0.65]].forEach(([px,py])=>{
+    ctx.beginPath();ctx.arc(px*W,py*H,7,0,Math.PI*2);
+    ctx.fillStyle=c.ac;ctx.fill();ctx.strokeStyle=c.bg;ctx.lineWidth=1.5;ctx.stroke();
+  });
+  // Class B points
+  [[0.75,0.20],[0.85,0.45],[0.72,0.60],[0.88,0.30],[0.78,0.72],[0.92,0.58]].forEach(([px,py])=>{
+    ctx.beginPath();ctx.arc(px*W,py*H,7,0,Math.PI*2);
+    ctx.fillStyle=c.lnk;ctx.fill();ctx.strokeStyle=c.bg;ctx.lineWidth=1.5;ctx.stroke();
+  });
+
+  // Support vectors — double ring
+  [[0.26,0.30],[0.25,0.65]].forEach(([px,py])=>{
+    ctx.beginPath();ctx.arc(px*W,py*H,11,0,Math.PI*2);ctx.strokeStyle=c.ac;ctx.lineWidth=2;ctx.stroke();
+    ctx.beginPath();ctx.arc(px*W,py*H,7,0,Math.PI*2);ctx.fillStyle=c.ac;ctx.fill();ctx.strokeStyle=c.bg;ctx.lineWidth=1.5;ctx.stroke();
+  });
+  [[0.50,0.30],[0.50,0.70]].forEach(([px,py])=>{
+    ctx.beginPath();ctx.arc(px*W,py*H,11,0,Math.PI*2);ctx.strokeStyle=c.lnk;ctx.lineWidth=2;ctx.stroke();
+    ctx.beginPath();ctx.arc(px*W,py*H,7,0,Math.PI*2);ctx.fillStyle=c.lnk;ctx.fill();ctx.strokeStyle=c.bg;ctx.lineWidth=1.5;ctx.stroke();
+  });
+
+  // Labels
+  ctx.font='10px IBM Plex Mono,monospace';ctx.textAlign='center';
+  ctx.fillStyle=c.ac;ctx.fillText('CLASS A',W*0.12,22);
+  ctx.fillStyle=c.lnk;ctx.fillText('CLASS B',W*0.88,22);
+  ctx.fillStyle=c.ac;ctx.fillText('HYPERPLANE',W*0.5,16);
+  ctx.fillStyle=c.ax;ctx.fillText('← margin →',W*0.5,H-8);
+  ctx.fillStyle=c.warn;ctx.font='9px IBM Plex Mono,monospace';
+  ctx.fillText('SV',W*0.26-16,H*0.30);ctx.fillText('SV',W*0.26-16,H*0.65);
+  ctx.fillText('SV',W*0.50+12,H*0.30);ctx.fillText('SV',W*0.50+12,H*0.70);
+}
+drawSVMDiagram();
+
+/* ══ LIVE SVM CANVAS ══ */
+let userPtsA=[],userPtsB=[];
+
+function clearSVM(){
+  userPtsA=[];userPtsB=[];
+  ['mCA','mCB'].forEach(id=>document.getElementById(id).textContent='0');
+  document.getElementById('mSV').textContent='—';
+  document.getElementById('svmStatus').textContent='';
+  drawLiveSVM();
+}
+
+function drawLiveSVM(){
+  const canvas=document.getElementById('svmCanvas');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height;
+  const c=getC();
+
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle=c.bg;ctx.fillRect(0,0,W,H);
+
+  // Subtle grid
+  ctx.strokeStyle=c.grid;ctx.lineWidth=0.5;
+  for(let i=1;i<4;i++){
+    ctx.beginPath();ctx.moveTo(i*W/4,0);ctx.lineTo(i*W/4,H);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(0,i*H/4);ctx.lineTo(W,i*H/4);ctx.stroke();
+  }
+
+  if(userPtsA.length+userPtsB.length===0){
+    ctx.font='12px IBM Plex Mono,monospace';ctx.textAlign='center';ctx.fillStyle=c.ax;
+    ctx.fillText('Left-click to add Class A points',W/2,H/2-14);
+    ctx.fillText('Right-click to add Class B points',W/2,H/2+10);
+    return;
+  }
+
+  /* FIX: coordinates are already in pixels — compare centroids in pixel space */
+  if(userPtsA.length>=1&&userPtsB.length>=1){
+    const cA={
+      x:userPtsA.reduce((s,p)=>s+p.x,0)/userPtsA.length,
+      y:userPtsA.reduce((s,p)=>s+p.y,0)/userPtsA.length
+    };
+    const cB={
+      x:userPtsB.reduce((s,p)=>s+p.x,0)/userPtsB.length,
+      y:userPtsB.reduce((s,p)=>s+p.y,0)/userPtsB.length
+    };
+    const mid={x:(cA.x+cB.x)/2,y:(cA.y+cB.y)/2};
+    const dx=cB.x-cA.x,dy=cB.y-cA.y;
+    const len=Math.sqrt(dx*dx+dy*dy);
+
+    /* FIX: use pixel threshold — 20px minimum separation */
+    if(len>20){
+      const perp={x:-dy/len,y:dx/len};
+      const ext=Math.max(W,H)*1.5;
+
+      // Coloured half-planes using scanline
+      const imgData=ctx.getImageData(0,0,W,H);
+      const d=imgData.data;
+      /* FIX: parse hex properly from c.ac and c.lnk */
+      const hexToRGB=hex=>{
+        const h=hex.replace('#','');
+        return[parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];
+      };
+      const [ar,ag,ab]=hexToRGB(c.ac);
+      const [br,bg2,bb]=hexToRGB(c.lnk);
+
+      for(let y=0;y<H;y+=2){
+        for(let x=0;x<W;x+=2){
+          const side=(x-mid.x)*dx+(y-mid.y)*dy;
+          const [r,g,b]=side<0?[ar,ag,ab]:[br,bg2,bb];
+          for(let oy=0;oy<2&&y+oy<H;oy++){
+            for(let ox=0;ox<2&&x+ox<W;ox++){
+              const idx=((y+oy)*W+(x+ox))*4;
+              d[idx]=r;d[idx+1]=g;d[idx+2]=b;d[idx+3]=22;
+            }
+          }
+        }
+      }
+      ctx.putImageData(imgData,0,0);
+
+      // Margin lines
+      const marginD=len*0.18;
+      const ndx=dx/len,ndy=dy/len;
+      ctx.setLineDash([6,4]);ctx.strokeStyle=c.ax;ctx.lineWidth=1;
+      [+marginD,-marginD].forEach(m=>{
+        const ox=ndx*m,oy=ndy*m;
+        ctx.beginPath();
+        ctx.moveTo(mid.x+ox+perp.x*ext,mid.y+oy+perp.y*ext);
+        ctx.lineTo(mid.x+ox-perp.x*ext,mid.y+oy-perp.y*ext);
+        ctx.stroke();
+      });
+      ctx.setLineDash([]);
+
+      // Hyperplane
+      ctx.strokeStyle=c.ac;ctx.lineWidth=2.5;
+      ctx.beginPath();
+      ctx.moveTo(mid.x+perp.x*ext,mid.y+perp.y*ext);
+      ctx.lineTo(mid.x-perp.x*ext,mid.y-perp.y*ext);
+      ctx.stroke();
+
+      document.getElementById('mSV').textContent='~'+Math.min(3,userPtsA.length+userPtsB.length);
+    }
+  }
+
+  userPtsA.forEach(p=>{
+    ctx.beginPath();ctx.arc(p.x,p.y,7,0,Math.PI*2);
+    ctx.fillStyle=c.ac;ctx.fill();ctx.strokeStyle=c.bg;ctx.lineWidth=1.5;ctx.stroke();
+  });
+  userPtsB.forEach(p=>{
+    ctx.beginPath();ctx.arc(p.x,p.y,7,0,Math.PI*2);
+    ctx.fillStyle=c.lnk;ctx.fill();ctx.strokeStyle=c.bg;ctx.lineWidth=1.5;ctx.stroke();
+  });
+}
+
+/* FIX: capture actual pixel coords on the canvas element */
+function getCanvasXY(e,canvas){
+  const rect=canvas.getBoundingClientRect();
+  return{
+    x:(e.clientX-rect.left)*(canvas.width/rect.width),
+    y:(e.clientY-rect.top)*(canvas.height/rect.height)
+  };
+}
+
+const svmCanvas=document.getElementById('svmCanvas');
+svmCanvas.addEventListener('click',e=>{
+  const {x,y}=getCanvasXY(e,svmCanvas);
+  userPtsA.push({x,y});
+  document.getElementById('mCA').textContent=userPtsA.length;
+  document.getElementById('svmStatus').textContent=`Class A point added (${x.toFixed(0)}, ${y.toFixed(0)})`;
+  drawLiveSVM();
+});
+svmCanvas.addEventListener('contextmenu',e=>{
+  e.preventDefault();
+  const {x,y}=getCanvasXY(e,svmCanvas);
+  userPtsB.push({x,y});
+  document.getElementById('mCB').textContent=userPtsB.length;
+  document.getElementById('svmStatus').textContent=`Class B point added (${x.toFixed(0)}, ${y.toFixed(0)})`;
+  drawLiveSVM();
+});
+drawLiveSVM();
+
+/* ══ C PARAMETER DEMO ══ */
+const cPtsA=[{x:.15,y:.30},{x:.20,y:.55},{x:.10,y:.70},{x:.25,y:.42},{x:.18,y:.75},{x:.30,y:.62},{x:.08,y:.50},{x:.22,y:.28}];
+const cPtsB=[{x:.75,y:.28},{x:.82,y:.55},{x:.70,y:.65},{x:.88,y:.38},{x:.78,y:.72},{x:.92,y:.52},{x:.68,y:.42},{x:.85,y:.65}];
+const outlierA={x:.55,y:.50},outlierB={x:.45,y:.48};
+
+function updateCDemo(){
+  const C=parseInt(document.getElementById('cSlider').value);
+  document.getElementById('cVal').textContent='C = '+C;
+  document.getElementById('cDisplay').textContent=C;
+  const marginW=C<=10?'Wide':C<=40?'Medium':'Narrow';
+  const beh=C<=10?'Lenient — allows violations':(C<=40?'Balanced':'Strict — hard margin');
+  const note=C<=10?'May underfit slightly':(C<=40?'Good generalisation':'Risk of overfitting');
+  document.getElementById('cMargin').textContent=marginW;
+  document.getElementById('cBehaviour').textContent=beh;
+  document.getElementById('cNote').textContent=note;
+  drawCDemo(C);
+}
+
+function drawCDemo(C){
+  const canvas=document.getElementById('cCanvas');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height;
+  const c=getC();
+
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle=c.bg;ctx.fillRect(0,0,W,H);
+
+  const marginFrac=C<=10?.22:(C<=40?.14:.07);
+  const mid=.50;
+
+  ctx.fillStyle=c.ac+'16';ctx.fillRect(0,0,(mid-marginFrac/2)*W,H);
+  ctx.fillStyle=c.lnk+'16';ctx.fillRect((mid+marginFrac/2)*W,0,W,H);
+  ctx.fillStyle=c.bg2+'25';ctx.fillRect((mid-marginFrac/2)*W,0,marginFrac*W,H);
+
+  ctx.strokeStyle=c.ax;ctx.lineWidth=1;ctx.setLineDash([6,4]);
+  ctx.beginPath();ctx.moveTo((mid-marginFrac/2)*W,0);ctx.lineTo((mid-marginFrac/2)*W,H);ctx.stroke();
+  ctx.beginPath();ctx.moveTo((mid+marginFrac/2)*W,0);ctx.lineTo((mid+marginFrac/2)*W,H);ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.strokeStyle=c.ac;ctx.lineWidth=2.5;
+  ctx.beginPath();ctx.moveTo(mid*W,0);ctx.lineTo(mid*W,H);ctx.stroke();
+
+  ctx.fillStyle=c.warn;ctx.font='10px IBM Plex Mono,monospace';ctx.textAlign='center';
+  ctx.fillText('← margin: '+(C<=10?'Wide':C<=40?'Medium':'Narrow')+' →',mid*W,H-10);
+
+  cPtsA.forEach(p=>{
+    ctx.beginPath();ctx.arc(p.x*W,p.y*H,6,0,Math.PI*2);
+    ctx.fillStyle=c.ac;ctx.fill();ctx.strokeStyle=c.bg;ctx.lineWidth=1.5;ctx.stroke();
+  });
+  cPtsB.forEach(p=>{
+    ctx.beginPath();ctx.arc(p.x*W,p.y*H,6,0,Math.PI*2);
+    ctx.fillStyle=c.lnk;ctx.fill();ctx.strokeStyle=c.bg;ctx.lineWidth=1.5;ctx.stroke();
+  });
+
+  const oAInside=outlierA.x>=(mid-marginFrac/2)&&outlierA.x<=(mid+marginFrac/2);
+  const oBInside=outlierB.x>=(mid-marginFrac/2)&&outlierB.x<=(mid+marginFrac/2);
+
+  ctx.beginPath();ctx.arc(outlierA.x*W,outlierA.y*H,6,0,Math.PI*2);
+  ctx.fillStyle=oAInside?c.warn:c.ac;ctx.fill();ctx.strokeStyle=c.warn;ctx.lineWidth=2;ctx.stroke();
+  ctx.beginPath();ctx.arc(outlierB.x*W,outlierB.y*H,6,0,Math.PI*2);
+  ctx.fillStyle=oBInside?c.warn:c.lnk;ctx.fill();ctx.strokeStyle=c.warn;ctx.lineWidth=2;ctx.stroke();
+
+  ctx.font='10px IBM Plex Mono,monospace';
+  ctx.fillStyle=c.ac;ctx.textAlign='left';ctx.fillText('CLASS A',10,18);
+  ctx.fillStyle=c.lnk;ctx.textAlign='right';ctx.fillText('CLASS B',W-10,18);
+  ctx.fillStyle=c.warn;ctx.textAlign='left';ctx.fillText('⚠ outliers',10,H-10);
+}
+updateCDemo();
+
+/* ══ KERNEL DEMO ══ */
+let currentKernel='linear';
+
+const kPtsA=[{x:.15,y:.15},{x:.20,y:.25},{x:.10,y:.30},{x:.25,y:.18},{x:.70,y:.70},{x:.78,y:.80},{x:.65,y:.75},{x:.82,y:.68}];
+const kPtsB=[{x:.70,y:.15},{x:.80,y:.25},{x:.65,y:.20},{x:.78,y:.10},{x:.15,y:.70},{x:.22,y:.80},{x:.10,y:.78},{x:.28,y:.68}];
+
+/* FIX: switchKernel only touches kern-tab elements */
+function switchKernel(kernel,btn){
+  currentKernel=kernel;
+  document.querySelectorAll('.kern-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('gammaRow').style.display=(kernel==='linear')?'none':'flex';
+  drawKernelDemo();
+}
+
+function kernelScore(x,y,gamma,kernel){
+  const cA={x:kPtsA.reduce((s,p)=>s+p.x,0)/kPtsA.length,y:kPtsA.reduce((s,p)=>s+p.y,0)/kPtsA.length};
+  const cB={x:kPtsB.reduce((s,p)=>s+p.x,0)/kPtsB.length,y:kPtsB.reduce((s,p)=>s+p.y,0)/kPtsB.length};
+
+  function k(ax,ay,bx,by){
+    if(kernel==='linear')  return ax*bx+ay*by;
+    if(kernel==='rbf'){const d=(ax-bx)**2+(ay-by)**2;return Math.exp(-(gamma/10)*d*100);}
+    if(kernel==='poly')    return Math.pow(ax*bx+ay*by+1,3);
+    return ax*bx+ay*by;
+  }
+  return k(x,y,cA.x,cA.y)-k(x,y,cB.x,cB.y);
+}
+
+function drawKernelDemo(){
+  const canvas=document.getElementById('kernelCanvas');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height;
+  const c=getC();
+  const gamma=parseInt(document.getElementById('kernelGamma').value);
+  document.getElementById('kernelCVal').textContent=document.getElementById('kernelC').value;
+  document.getElementById('kernelGammaVal').textContent=gamma;
+
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle=c.bg;ctx.fillRect(0,0,W,H);
+
+  // Decision regions — coarse grid
+  const STEP=6;
+  for(let py=0;py<H;py+=STEP){
+    for(let px=0;px<W;px+=STEP){
+      const score=kernelScore(px/W,py/H,gamma,currentKernel);
+      ctx.fillStyle=score>0?(c.ac+'22'):(c.lnk+'22');
+      ctx.fillRect(px,py,STEP,STEP);
+    }
+  }
+
+  // Decision boundary — contour detection
+  for(let py=2;py<H-2;py+=2){
+    for(let px=2;px<W-2;px+=2){
+      const s =kernelScore(px/W,py/H,gamma,currentKernel);
+      const sR=kernelScore((px+2)/W,py/H,gamma,currentKernel);
+      const sD=kernelScore(px/W,(py+2)/H,gamma,currentKernel);
+      if((s>0)!==(sR>0)||(s>0)!==(sD>0)){
+        ctx.fillStyle=c.ac;ctx.fillRect(px,py,2,2);
+      }
+    }
+  }
+
+  // Points
+  kPtsA.forEach(p=>{
+    ctx.beginPath();ctx.arc(p.x*W,p.y*H,7,0,Math.PI*2);
+    ctx.fillStyle=c.ac;ctx.fill();ctx.strokeStyle=c.bg;ctx.lineWidth=1.5;ctx.stroke();
+  });
+  kPtsB.forEach(p=>{
+    ctx.beginPath();ctx.arc(p.x*W,p.y*H,7,0,Math.PI*2);
+    ctx.fillStyle=c.lnk;ctx.fill();ctx.strokeStyle=c.bg;ctx.lineWidth=1.5;ctx.stroke();
+  });
+
+  ctx.font='10px IBM Plex Mono,monospace';ctx.textAlign='left';
+  ctx.fillStyle=c.ac;ctx.fillText('● Class A',10,18);
+  ctx.fillStyle=c.lnk;ctx.fillText('● Class B',80,18);
+
+  const descs={
+    linear:'Linear kernel — straight boundary. Cannot separate this XOR-like pattern.',
+    rbf:`RBF kernel (γ=${gamma}) — circular regions. Separates XOR patterns well.`,
+    poly:'Polynomial kernel (degree 3) — curved boundary. Better than linear on non-linear data.'
+  };
+  document.getElementById('kernelDesc').textContent=descs[currentKernel];
+}
+drawKernelDemo();
+
+/* ── Code Protection ── */
+(function(){
+  var _p=function(e){e.preventDefault();return false;};
+  document.addEventListener('contextmenu',function(e){
+    if(e.target.id==='svmCanvas')return; // allow right-click on live canvas
+    _p(e);
+  });
+  document.addEventListener('keydown',function(e){
+    var k=(e.key||'').toUpperCase(),c=e.ctrlKey||e.metaKey,s=e.shiftKey;
+    if(e.key==='F12'||(c&&s&&['I','J','C','K'].includes(k))||(c&&['U','S','P'].includes(k))){
+      e.preventDefault();return false;
+    }
+  },true);
+  document.addEventListener('dragstart',_p);
+  function _dt(){
+    var dw=window.outerWidth-window.innerWidth>200,dh=window.outerHeight-window.innerHeight>200;
+    var el=document.getElementById('_dtWarn');
+    if(dw||dh){
+      document.body.style.filter='blur(18px)';document.body.style.pointerEvents='none';
+      if(!el){var d=document.createElement('div');d.id='_dtWarn';
+        d.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(22,22,22,.97);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;font-family:"IBM Plex Mono",monospace';
+        d.innerHTML='<div style="font-size:11px;letter-spacing:.14em;color:#ff8389;text-transform:uppercase">&#8856; Inspect Disabled</div><div style="font-size:10px;letter-spacing:.08em;color:#6f6f6f">Close developer tools to continue</div>';
+        document.body.appendChild(d);}
+    }else{
+      document.body.style.filter='';document.body.style.pointerEvents='';if(el)el.remove();
+    }
+  }
+  setInterval(_dt,900);
+})();
+</script>
+</body>
+</html>

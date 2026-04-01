@@ -1,0 +1,1605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Logistic Regression | Module 2</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;1,300&family=IBM+Plex+Serif:ital,wght@0,300;1,300&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#161616;--layer-01:#262626;--layer-02:#393939;--layer-03:#525252;
+  --hover-01:#333333;--bdr-00:#393939;--bdr-01:#474747;--bdr-str:#6f6f6f;
+  --txt-pri:#f4f4f4;--txt-sec:#c6c6c6;--txt-ph:#6f6f6f;
+  --blue:#4589ff;--link:#78a9ff;--success:#42be65;--warn:#f1c21b;--error:#ff8389;--teal:#3ddbd9;--purple:#d4bbff;
+  /* Topic 5 accent = purple */
+  --ac:#be95ff;
+}
+html.light{
+  --bg:#fff;--layer-01:#f4f4f4;--layer-02:#e0e0e0;--layer-03:#c6c6c6;
+  --hover-01:#e8e8e8;--bdr-00:#e0e0e0;--bdr-01:#c6c6c6;--bdr-str:#8d8d8d;
+  --txt-pri:#161616;--txt-sec:#525252;--txt-ph:#8d8d8d;
+  --blue:#0f62fe;--link:#0043ce;--success:#198038;--warn:#b28600;--error:#da1e28;--teal:#007d79;--purple:#6929c4;
+  --ac:#6929c4;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'IBM Plex Sans',sans-serif;font-size:15px;line-height:1.5;background:var(--bg);color:var(--txt-pri);-webkit-font-smoothing:antialiased;transition:background .25s,color .2s}
+a{text-decoration:none;color:inherit}
+
+/* ── Layout ── */
+.page-grid{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+
+/* ── Sidenav ── */
+.sidenav{background:var(--layer-01);border-right:1px solid var(--bdr-00);position:sticky;top:0;height:100vh;overflow-y:auto;padding-bottom:32px;transition:background .25s,border-color .2s}
+.nav-hdr{padding:16px;border-bottom:1px solid var(--bdr-00);margin-bottom:4px}
+.nav-back{display:flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph);letter-spacing:.06em;margin-bottom:8px;transition:color .15s}
+.nav-back:hover{color:var(--ac)}
+.nav-mod{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;color:var(--ac);text-transform:uppercase;margin-bottom:3px}
+.nav-title{font-size:13px;font-weight:600;color:var(--txt-pri);line-height:1.3}
+.nav-sec{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;color:var(--txt-ph);text-transform:uppercase;padding:12px 16px 4px}
+.nav-item{display:flex;align-items:center;gap:8px;padding:8px 16px;font-size:13px;color:var(--txt-sec);cursor:pointer;border-left:3px solid transparent;transition:background .1s,color .1s,border-color .1s;text-decoration:none}
+.nav-item:hover{background:var(--hover-01);color:var(--txt-pri)}
+.nav-item.active{background:var(--hover-01);color:var(--txt-pri);border-left-color:var(--ac);font-weight:600}
+.nav-item.active .nn{color:var(--ac)}
+.nn{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--txt-ph);min-width:16px;transition:color .15s}
+.tog-area{padding:20px 16px 0}
+.tog-btn{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding:8px 10px;background:var(--layer-02);border:1px solid var(--bdr-01);cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-sec);letter-spacing:.05em;transition:background .15s}
+.tog-btn:hover{background:var(--hover-01);color:var(--txt-pri)}
+.tog-track{width:26px;height:13px;background:var(--bdr-str);border-radius:7px;position:relative;flex-shrink:0;transition:background .25s}
+.tog-thumb{position:absolute;top:2px;left:2px;width:9px;height:9px;border-radius:50%;background:#fff;transition:transform .25s}
+html.light .tog-track{background:var(--ac)}
+html.light .tog-thumb{transform:translateX(13px)}
+
+/* ── Mobile topbar ── */
+.mob-topbar{display:none;position:fixed;top:0;left:0;right:0;z-index:200;height:52px;background:var(--layer-01);border-bottom:1px solid var(--bdr-00);align-items:center;padding:0 16px;gap:8px;transition:background .25s}
+.mob-menu-btn{width:34px;height:34px;background:transparent;border:1px solid var(--bdr-01);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-direction:column;gap:4px}
+.mob-bar{width:14px;height:1.5px;background:var(--txt-pri)}
+.mob-title{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--txt-pri);flex:1;letter-spacing:.04em}
+.mob-tog{width:34px;height:34px;background:transparent;border:1px solid var(--bdr-01);cursor:pointer;font-size:14px;color:var(--txt-sec)}
+
+/* ── Drawer ── */
+.nav-overlay{display:none;position:fixed;inset:0;z-index:150;background:rgba(0,0,0,.6);opacity:0;transition:opacity .25s}
+.nav-overlay.open{opacity:1}
+.nav-drawer{position:fixed;left:0;top:0;bottom:0;z-index:160;width:260px;background:var(--layer-01);border-right:1px solid var(--bdr-00);overflow-y:auto;transform:translateX(-100%);transition:transform .3s cubic-bezier(.4,0,.2,1);padding-bottom:32px}
+.nav-drawer.open{transform:translateX(0)}
+
+/* ── Main ── */
+.main{padding:0 48px 100px;max-width:820px;transition:background .25s}
+.page-hdr{padding:52px 0 40px;border-bottom:1px solid var(--bdr-00);margin-bottom:52px}
+.breadcrumb{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-ph);letter-spacing:.05em;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.breadcrumb a{color:var(--ac);transition:opacity .15s}.breadcrumb a:hover{opacity:.7}
+h1{font-family:'IBM Plex Serif',serif;font-size:clamp(34px,5vw,54px);font-weight:300;line-height:1.15;color:var(--txt-pri);margin-bottom:12px}
+h1 em{font-style:italic;color:var(--ac)}
+.hdr-desc{font-size:15px;font-weight:300;color:var(--txt-sec);max-width:580px;line-height:1.7}
+
+/* ── Sections ── */
+.section{margin-bottom:60px;opacity:0;transform:translateY(14px);animation:fadeUp .4s ease forwards}
+.section:nth-child(1){animation-delay:.05s}.section:nth-child(2){animation-delay:.10s}
+.section:nth-child(3){animation-delay:.15s}.section:nth-child(4){animation-delay:.20s}
+.section:nth-child(5){animation-delay:.25s}.section:nth-child(6){animation-delay:.30s}
+.section:nth-child(7){animation-delay:.35s}.section:nth-child(8){animation-delay:.40s}
+.section:nth-child(9){animation-delay:.45s}.section:nth-child(10){animation-delay:.50s}
+@keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;color:var(--ac);text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.eyebrow::before{content:'';display:inline-block;width:14px;height:1px;background:var(--ac)}
+h2{font-family:'IBM Plex Serif',serif;font-size:24px;font-weight:300;color:var(--txt-pri);margin-bottom:14px;line-height:1.25}
+h3{font-size:15px;font-weight:600;color:var(--txt-pri);margin-bottom:8px}
+p{font-size:14px;font-weight:300;color:var(--txt-sec);margin-bottom:12px;line-height:1.75}
+p strong{color:var(--txt-pri);font-weight:600}
+.hl{color:var(--ac);font-weight:600}
+.hl-g{color:var(--success);font-weight:600}
+.hl-r{color:var(--error);font-weight:600}
+.hl-b{color:var(--link);font-weight:600}
+.hl-t{color:var(--teal);font-weight:600}
+
+/* ── Callout ── */
+.callout{border-left:3px solid var(--ac);background:var(--layer-01);padding:14px 18px;margin:14px 0;font-size:14px;font-weight:300;color:var(--txt-sec);line-height:1.75;transition:background .25s}
+.callout strong{color:var(--txt-pri);font-weight:600}
+.callout-g{border-left-color:var(--success)}
+.callout-r{border-left-color:var(--error)}
+.callout-b{border-left-color:var(--link)}
+.callout-t{border-left-color:var(--teal)}
+
+/* ── Tile ── */
+.tile{background:var(--layer-01);border:1px solid var(--bdr-00);padding:20px 24px;margin-bottom:12px;transition:background .25s,border-color .2s}
+.tile-title{font-size:13px;font-weight:600;color:var(--txt-pri);margin-bottom:12px}
+
+/* ── Grids ── */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--bdr-00);border:1px solid var(--bdr-00);margin:14px 0}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--bdr-00);border:1px solid var(--bdr-00);margin:14px 0}
+.gcell{background:var(--layer-01);padding:20px 22px;transition:background .25s}
+
+/* ── KV ── */
+.kv{display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--bdr-00);font-size:13px;gap:12px;transition:border-color .2s}
+.kv:last-child{border-bottom:none}
+.kk{color:var(--txt-sec);font-weight:300;flex-shrink:0}
+.kv-v{color:var(--txt-pri);font-weight:400;text-align:right}
+
+/* ── Tags ── */
+.tag{display:inline-flex;align-items:center;height:22px;padding:0 10px;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.03em;margin-bottom:10px}
+.t-pu{background:#491d8b;color:#d4bbff}
+.t-gr{background:#044317;color:#a7f0ba}
+.t-re{background:#750e13;color:#ffb3b8}
+.t-bl{background:#0043ce;color:#a6c8ff}
+.t-am{background:#533b00;color:#f1c21b}
+.t-te{background:#005d5d;color:#3ddbd9}
+html.light .t-pu{background:#e8daff;color:#491d8b}
+html.light .t-gr{background:#a7f0ba;color:#044317}
+html.light .t-re{background:#ffd7d9;color:#750e13}
+html.light .t-bl{background:#d0e2ff;color:#0043ce}
+html.light .t-am{background:#ffd6a4;color:#4d3800}
+html.light .t-te{background:#9ef0f0;color:#005d5d}
+
+/* ── Formula ── */
+.formula{font-family:'IBM Plex Mono',monospace;font-size:13px;background:var(--layer-02);border:1px solid var(--bdr-01);border-left:3px solid var(--ac);padding:11px 15px;margin:10px 0;line-height:2;color:var(--txt-pri);transition:background .25s}
+
+/* ── Table ── */
+.dtbl{width:100%;border-collapse:collapse;margin:8px 0;font-size:13px}
+.dtbl thead tr{background:var(--layer-02);border-bottom:1px solid var(--bdr-str)}
+.dtbl th{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--txt-sec);padding:9px 14px;text-align:left}
+.dtbl td{padding:9px 14px;border-bottom:1px solid var(--bdr-00);color:var(--txt-pri);vertical-align:middle;font-size:13px}
+.dtbl tbody tr:hover{background:var(--hover-01)}
+
+/* ── HR ── */
+hr{border:none;border-top:1px solid var(--bdr-00);margin:44px 0;transition:border-color .2s}
+
+/* ── Collapsible ── */
+.comp-card{background:var(--layer-01);border:1px solid var(--bdr-00);margin-bottom:2px;transition:background .15s}
+.comp-card-hdr{display:flex;align-items:center;gap:10px;padding:14px 18px;cursor:pointer}
+.comp-card-icon{width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;flex-shrink:0}
+.comp-card-title{font-size:14px;font-weight:600;color:var(--txt-pri);flex:1}
+.comp-card-arrow{font-size:10px;color:var(--txt-ph);transition:transform .2s}
+.comp-card.open .comp-card-arrow{transform:rotate(90deg)}
+.comp-card-body{display:none;border-top:1px solid var(--bdr-00);margin:0 18px;padding:14px 0 16px;font-size:13px;font-weight:300;color:var(--txt-sec);line-height:1.75}
+.comp-card.open .comp-card-body{display:block}
+
+/* ── Tab switcher ── */
+.lt-tabs{display:flex;gap:0;background:var(--bdr-00);border:1px solid var(--bdr-00);margin-bottom:0}
+.lt-tab{flex:1;padding:10px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;color:var(--txt-sec);background:var(--layer-02);cursor:pointer;text-align:center;border-right:1px solid var(--bdr-00);transition:background .15s,color .15s;border-top:none;border-bottom:none;border-left:none}
+.lt-tab:last-child{border-right:none}
+.lt-tab.active{background:var(--ac);color:#161616}
+html.light .lt-tab.active{color:#fff}
+.lt-content{background:var(--layer-01);border:1px solid var(--bdr-00);border-top:none;padding:20px 24px}
+.lt-panel{display:none}.lt-panel.active{display:block}
+
+/* ── Quiz ── */
+.quiz-wrap{background:var(--layer-01);border:1px solid var(--bdr-00);padding:20px 24px;margin:16px 0}
+.quiz-q{font-size:14px;font-weight:600;color:var(--txt-pri);margin-bottom:14px}
+.quiz-options{display:flex;flex-direction:column;gap:8px}
+.quiz-opt{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--layer-02);border:1px solid var(--bdr-01);cursor:pointer;font-size:13px;color:var(--txt-sec);transition:background .15s,border-color .15s}
+.quiz-opt:hover{background:var(--hover-01);color:var(--txt-pri)}
+.quiz-opt.correct{background:rgba(190,149,255,.1);border-color:var(--ac);color:var(--ac)}
+.quiz-opt.wrong{background:rgba(255,131,137,.1);border-color:var(--error);color:var(--error)}
+.quiz-opt.show-correct{background:rgba(190,149,255,.06);border-color:var(--ac)}
+.quiz-feedback{margin-top:12px;padding:10px 14px;font-size:13px;font-weight:300;line-height:1.6;display:none;border-left:3px solid var(--ac)}
+.quiz-feedback.show{display:block}
+.quiz-reset{margin-top:10px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ac);cursor:pointer;letter-spacing:.05em;background:transparent;border:none;display:none}
+.quiz-reset.show{display:block}
+
+/* ── Slider ── */
+.slider-row{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+.slider-lbl{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-ph);min-width:80px}
+input[type=range]{-webkit-appearance:none;appearance:none;flex:1;height:2px;background:var(--bdr-str);outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;background:var(--ac);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;background:var(--ac);border:none;cursor:pointer}
+.slider-val{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--ac);min-width:48px;text-align:right}
+
+/* ── Canvas chart ── */
+.chart-wrap{background:var(--layer-01);border:1px solid var(--bdr-00);padding:20px;margin:14px 0}
+.chart-label{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px}
+
+/* ── Metric row ── */
+.metric-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--bdr-00);border:1px solid var(--bdr-00);margin-top:14px}
+.metric-cell{background:var(--layer-01);padding:14px 16px;text-align:center}
+.metric-lbl{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--txt-ph);margin-bottom:6px}
+.metric-val{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;line-height:1}
+.metric-note{font-size:10px;color:var(--txt-ph);margin-top:5px;font-weight:300}
+
+/* ── Sigmoid canvas ── */
+.sig-canvas-wrap{position:relative;margin:14px 0}
+.sig-legend{display:flex;gap:20px;margin-top:8px;flex-wrap:wrap}
+.sig-leg-item{display:flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph)}
+.sig-leg-dot{width:18px;height:3px;border-radius:2px}
+
+/* ── Decision boundary demo ── */
+.db-wrap{background:var(--layer-01);border:1px solid var(--bdr-00);padding:20px;margin:14px 0}
+.db-controls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:14px}
+.db-btn{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:6px 14px;background:transparent;border:1px solid var(--bdr-01);color:var(--txt-sec);cursor:pointer;letter-spacing:.04em;transition:background .15s,color .15s}
+.db-btn:hover{background:var(--hover-01);color:var(--txt-pri)}
+.db-btn.active{background:var(--ac);border-color:var(--ac);color:#161616}
+html.light .db-btn.active{color:#fff}
+
+/* ── Probability meter ── */
+.prob-meter{background:var(--layer-02);border:1px solid var(--bdr-00);margin:14px 0}
+.prob-bar-fill{height:6px;background:var(--ac);transition:width .3s}
+.prob-meter-inner{padding:12px 16px}
+.prob-val{font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:600;color:var(--ac)}
+
+/* ── Bottom nav ── */
+.page-nav{display:flex;justify-content:space-between;align-items:center;padding-top:40px;border-top:1px solid var(--bdr-00);margin-top:60px}
+.page-nav-btn{display:flex;align-items:center;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-sec);padding:10px 16px;border:1px solid var(--bdr-01);background:transparent;cursor:pointer;transition:background .15s,color .15s;text-decoration:none}
+.page-nav-btn:hover{background:var(--hover-01);color:var(--txt-pri)}
+.page-nav-btn.primary{background:var(--ac);border-color:var(--ac);color:#161616}
+.page-nav-btn.primary:hover{opacity:.9}
+html.light .page-nav-btn.primary{color:#fff}
+
+/* ── Responsive ── */
+@media(max-width:767px){
+  .mob-topbar{display:flex}
+  .sidenav{display:none}
+  .page-grid{display:block}
+  .main{padding:68px 16px 80px;max-width:100%}
+  .page-hdr{padding:24px 0 20px;margin-bottom:32px}
+  h1{font-size:24px}
+  .grid2,.grid3,.metric-row{grid-template-columns:1fr 1fr}
+  .lt-tabs{flex-wrap:wrap}
+  .lt-tab{flex:none;width:50%}
+  hr{margin:28px 0}
+}
+@media(max-width:480px){
+  .grid2,.grid3,.metric-row{grid-template-columns:1fr}
+}
+@media(min-width:768px) and (max-width:1024px){
+  .page-grid{grid-template-columns:200px 1fr}
+  .main{padding:0 24px 80px}
+  .grid3{grid-template-columns:1fr 1fr}
+}
+
+/* ── Code Protection ── */
+*{-webkit-user-select:none;user-select:none;-moz-user-select:none;-ms-user-select:none}
+input,textarea,select{-webkit-user-select:text;user-select:text}
+@media print{body{display:none!important;visibility:hidden!important}}
+img{-webkit-user-drag:none;user-drag:none;pointer-events:none}
+</style>
+</head>
+<body>
+
+<!-- Mobile topbar -->
+<div class="mob-topbar" id="mob-topbar">
+  <button class="mob-menu-btn" onclick="toggleDrawer()" aria-label="Menu">
+    <div class="mob-bar"></div><div class="mob-bar"></div><div class="mob-bar"></div>
+  </button>
+  <span class="mob-title">Logistic Regression</span>
+  <button class="mob-tog" onclick="toggleTheme()" id="mob-tog">☀</button>
+</div>
+<div class="nav-overlay" id="nav-overlay" onclick="closeDrawer()"></div>
+<nav class="nav-drawer" id="nav-drawer"></nav>
+
+<div class="page-grid">
+
+<!-- ══ SIDENAV ══ -->
+<nav class="sidenav" id="sidenav">
+  <div class="nav-hdr">
+    <a class="nav-back" href="index.html">← Module 2</a>
+    <div class="nav-mod">Topic 05</div>
+    <div class="nav-title">Logistic Regression</div>
+  </div>
+  <div class="nav-sec">Sections</div>
+  <a class="nav-item active" href="#s1"><span class="nn">01</span>Why not linear regression?</a>
+  <a class="nav-item" href="#s2"><span class="nn">02</span>The sigmoid function</a>
+  <a class="nav-item" href="#s3"><span class="nn">03</span>Decision boundary</a>
+  <a class="nav-item" href="#s4"><span class="nn">04</span>Log-loss & cost function</a>
+  <a class="nav-item" href="#s5"><span class="nn">05</span>Gradient descent</a>
+  <a class="nav-item" href="#s6"><span class="nn">06</span>Regularization (L1, L2)</a>
+  <a class="nav-item" href="#s7"><span class="nn">07</span>Interactive classifier</a>
+  <a class="nav-item" href="#s8"><span class="nn">08</span>Multi-class via softmax</a>
+  <a class="nav-item" href="#s9"><span class="nn">09</span>LR vs decision tree</a>
+  <a class="nav-item" href="#s10"><span class="nn">10</span>Quick quiz</a>
+  <div class="tog-area">
+    <button class="tog-btn" onclick="toggleTheme()">
+      <span style="display:flex;align-items:center;gap:6px"><span id="tog-icon">☀</span><span id="tog-txt">Light theme</span></span>
+      <span class="tog-track"><span class="tog-thumb"></span></span>
+    </button>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph);margin-top:10px;line-height:1.6">IBM Carbon · <span id="theme-lbl">Dark</span></div>
+  </div>
+</nav>
+
+<!-- ══ MAIN ══ -->
+<main class="main">
+<div class="page-hdr">
+  <div class="breadcrumb">
+    <a href="../index.html">Home</a><span>/</span>
+    <a href="index.html">Module 2</a><span>/</span>
+    <span style="color:var(--txt-sec)">Logistic Regression</span>
+  </div>
+  <h1>Logistic<br><em>Regression</em></h1>
+  <p class="hdr-desc">Despite its name, it's a <strong>classifier</strong>. Logistic regression squashes any real number into a probability between 0 and 1 using the sigmoid function — then draws a linear decision boundary to separate classes.</p>
+</div>
+
+<!-- ══════════ S1: WHY NOT LINEAR ══════════ -->
+<div class="section" id="s1">
+  <div class="eyebrow">01 · The starting point</div>
+  <h2>Why not just use linear regression?</h2>
+  <p>When the target is a category (spam/not spam, disease/healthy, fraud/legit), linear regression produces <strong>unbounded numbers</strong> that can exceed 1 or go below 0. Those aren't valid probabilities, and the decision threshold becomes arbitrary and unstable.</p>
+
+  <div class="callout callout-r">
+    <strong>The problem:</strong> If we predict "probability of spam" using y = w₀ + w₁x, what stops the model from outputting 2.7 or −0.3? Probabilities must live in [0, 1]. Linear regression has no such constraint — it's the wrong tool for the job.
+  </div>
+
+  <div class="grid2">
+    <div class="gcell">
+      <div class="tag t-re">Linear Regression for Classification</div>
+      <div class="kv"><span class="kk">Output range</span><span class="kv-v">−∞ to +∞</span></div>
+      <div class="kv"><span class="kk">Probability valid?</span><span class="kv-v" style="color:var(--error)">No — can exceed [0,1]</span></div>
+      <div class="kv"><span class="kk">Sensitive to outliers</span><span class="kv-v" style="color:var(--error)">Yes — distorts boundary</span></div>
+      <div class="kv"><span class="kk">Loss function</span><span class="kv-v">MSE — wrong for classes</span></div>
+      <div class="kv"><span class="kk">Verdict</span><span class="kv-v" style="color:var(--error)">Wrong tool ✗</span></div>
+    </div>
+    <div class="gcell">
+      <div class="tag t-pu">Logistic Regression for Classification</div>
+      <div class="kv"><span class="kk">Output range</span><span class="kv-v">0 to 1 always</span></div>
+      <div class="kv"><span class="kk">Probability valid?</span><span class="kv-v" style="color:var(--success)">Yes — guaranteed</span></div>
+      <div class="kv"><span class="kk">Sensitive to outliers</span><span class="kv-v" style="color:var(--success)">Less so — sigmoid flattens</span></div>
+      <div class="kv"><span class="kk">Loss function</span><span class="kv-v">Log-loss — correct</span></div>
+      <div class="kv"><span class="kk">Verdict</span><span class="kv-v" style="color:var(--success)">Right tool ✓</span></div>
+    </div>
+  </div>
+
+  <p>The fix is elegant: take the linear output <strong>z = w₀ + w₁x₁ + w₂x₂ + …</strong> and pass it through the <strong>sigmoid function</strong> σ(z), which squashes any real number into (0, 1). That output becomes the predicted probability.</p>
+</div>
+
+<!-- ══════════ S2: SIGMOID ══════════ -->
+<div class="section" id="s2">
+  <div class="eyebrow">02 · The key function</div>
+  <h2>The sigmoid function</h2>
+  <p>The sigmoid (or logistic) function is the heart of the algorithm. It maps any real number to a value strictly between 0 and 1 — making it perfect for representing probability.</p>
+
+  <div class="formula">
+    σ(z) = 1 / (1 + e<sup style="font-size:10px">−z</sup>)
+    <br>
+    where z = w₀ + w₁x₁ + w₂x₂ + … + wₙxₙ  (the linear combination)
+  </div>
+
+  <div class="callout">
+    <strong>Analogy — The dimmer switch:</strong> Linear regression is like an on/off light switch — it jumps abruptly. The sigmoid is like a <em>dimmer</em>. As z goes from −∞ to +∞, the output smoothly transitions from 0 (definitely off) through 0.5 (uncertain) to 1 (definitely on). There are no sudden jumps — just a graceful S-shaped curve.
+  </div>
+
+  <!-- Interactive sigmoid canvas -->
+  <div class="tile">
+    <div class="tile-title">Interactive — drag the input z to see the sigmoid output</div>
+    <div class="slider-row">
+      <span class="slider-lbl">Input z</span>
+      <input type="range" id="zSlider" min="-6" max="6" step="0.1" value="0" oninput="updateSigmoid()">
+      <span class="slider-val" id="zVal">z = 0.0</span>
+    </div>
+    <canvas id="sigmoidCanvas" width="720" height="200" style="display:block;width:100%;border:1px solid var(--bdr-00);margin:8px 0"></canvas>
+    <div class="sig-legend">
+      <div class="sig-leg-item"><div class="sig-leg-dot" style="background:#be95ff"></div>σ(z) curve</div>
+      <div class="sig-leg-item"><div class="sig-leg-dot" style="background:#42be65"></div>threshold = 0.5</div>
+      <div class="sig-leg-item"><div class="sig-leg-dot" style="background:#ff8389;height:2px;border-top:2px dashed #ff8389"></div>current z</div>
+    </div>
+    <div class="metric-row" style="margin-top:10px">
+      <div class="metric-cell">
+        <div class="metric-lbl">Input z</div>
+        <div class="metric-val" id="mZ" style="color:var(--txt-sec)">0.00</div>
+        <div class="metric-note">linear combination</div>
+      </div>
+      <div class="metric-cell">
+        <div class="metric-lbl">σ(z)</div>
+        <div class="metric-val" id="mSig" style="color:var(--ac)">0.500</div>
+        <div class="metric-note">predicted probability</div>
+      </div>
+      <div class="metric-cell">
+        <div class="metric-lbl">Prediction</div>
+        <div class="metric-val" id="mPred" style="color:var(--txt-sec)">—</div>
+        <div class="metric-note">class at threshold 0.5</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid3" style="margin-top:14px">
+    <div class="gcell">
+      <div class="tag t-re">z ≪ 0</div>
+      <p style="font-size:13px;margin:0">σ(z) → 0<br>Strongly predicts <strong>class 0</strong></p>
+    </div>
+    <div class="gcell">
+      <div class="tag t-am">z = 0</div>
+      <p style="font-size:13px;margin:0">σ(z) = 0.5<br><strong>Maximum uncertainty</strong></p>
+    </div>
+    <div class="gcell">
+      <div class="tag t-gr">z ≫ 0</div>
+      <p style="font-size:13px;margin:0">σ(z) → 1<br>Strongly predicts <strong>class 1</strong></p>
+    </div>
+  </div>
+
+  <div class="tile" style="margin-top:14px">
+    <div class="tile-title">Key properties of σ(z)</div>
+    <div class="kv"><span class="kk">Output range</span><span class="kv-v">Always strictly (0, 1)</span></div>
+    <div class="kv"><span class="kk">σ(0)</span><span class="kv-v">= 0.5 — the midpoint of uncertainty</span></div>
+    <div class="kv"><span class="kk">Shape</span><span class="kv-v">S-curve (sigmoidal) — smooth everywhere</span></div>
+    <div class="kv"><span class="kk">Derivative</span><span class="kv-v">σ'(z) = σ(z) · (1 − σ(z)) — convenient for backprop</span></div>
+    <div class="kv"><span class="kk">Saturation</span><span class="kv-v">Flat near 0 and 1 — gradients vanish at extremes</span></div>
+  </div>
+</div>
+
+<!-- ══════════ S3: DECISION BOUNDARY ══════════ -->
+<div class="section" id="s3">
+  <div class="eyebrow">03 · Where the line is drawn</div>
+  <h2>Decision boundary</h2>
+  <p>We classify a point as <strong>class 1</strong> if σ(z) ≥ 0.5, and <strong>class 0</strong> otherwise. Since σ(z) = 0.5 when z = 0, the decision boundary is exactly the set of points where <strong>w₀ + w₁x₁ + w₂x₂ = 0</strong> — a straight line (or hyperplane in higher dimensions).</p>
+
+  <div class="callout callout-t">
+    <strong>Key insight:</strong> Logistic regression always produces a <em>linear</em> decision boundary in the original feature space. It cannot learn a circular or curved boundary unless you manually add polynomial features (e.g., x², x₁·x₂). This is its fundamental limitation — and why SVMs with kernels or neural networks are needed for complex boundaries.
+  </div>
+
+  <!-- Decision boundary interactive demo -->
+  <div class="db-wrap">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px">Interactive — adjust the decision boundary</div>
+    <div class="db-controls">
+      <div class="slider-row" style="flex:1;min-width:200px;margin:0">
+        <span class="slider-lbl">Weight w₁</span>
+        <input type="range" id="w1Slider" min="-3" max="3" step="0.1" value="1.5" oninput="updateBoundary()">
+        <span class="slider-val" id="w1Val">1.5</span>
+      </div>
+      <div class="slider-row" style="flex:1;min-width:200px;margin:0">
+        <span class="slider-lbl">Weight w₂</span>
+        <input type="range" id="w2Slider" min="-3" max="3" step="0.1" value="-1.0" oninput="updateBoundary()">
+        <span class="slider-val" id="w2Val">−1.0</span>
+      </div>
+      <div class="slider-row" style="flex:1;min-width:200px;margin:0">
+        <span class="slider-lbl">Bias w₀</span>
+        <input type="range" id="w0Slider" min="-3" max="3" step="0.1" value="0" oninput="updateBoundary()">
+        <span class="slider-val" id="w0Val">0.0</span>
+      </div>
+    </div>
+    <canvas id="boundaryCanvas" width="680" height="300" style="display:block;width:100%;border:1px solid var(--bdr-00)"></canvas>
+    <div style="display:flex;gap:20px;margin-top:10px;flex-wrap:wrap">
+      <div class="sig-leg-item"><div class="sig-leg-dot" style="background:#be95ff;height:2px;border-top:2px solid #be95ff"></div>Decision boundary</div>
+      <div class="sig-leg-item"><div class="sig-leg-dot" style="background:#42be65;width:10px;height:10px;border-radius:50%"></div>Class 1</div>
+      <div class="sig-leg-item"><div class="sig-leg-dot" style="background:#ff8389;width:10px;height:10px;border-radius:50%"></div>Class 0</div>
+    </div>
+    <div class="metric-row" style="margin-top:10px">
+      <div class="metric-cell">
+        <div class="metric-lbl">Correctly classified</div>
+        <div class="metric-val" id="dbCorrect" style="color:var(--success)">—</div>
+        <div class="metric-note">out of 40 points</div>
+      </div>
+      <div class="metric-cell">
+        <div class="metric-lbl">Accuracy</div>
+        <div class="metric-val" id="dbAcc" style="color:var(--ac)">—</div>
+        <div class="metric-note">on sample data</div>
+      </div>
+      <div class="metric-cell">
+        <div class="metric-lbl">Boundary equation</div>
+        <div class="metric-val" id="dbEq" style="color:var(--txt-sec);font-size:11px">—</div>
+        <div class="metric-note">w₀ + w₁x₁ + w₂x₂ = 0</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ S4: LOG-LOSS ══════════ -->
+<div class="section" id="s4">
+  <div class="eyebrow">04 · Learning from mistakes</div>
+  <h2>Log-loss & the cost function</h2>
+  <p>Logistic regression doesn't use MSE (mean squared error). Instead it uses <strong>log-loss</strong> (binary cross-entropy), which severely penalises confident wrong predictions and gently rewards uncertain correct ones.</p>
+
+  <div class="formula">
+    J(w) = −(1/m) Σ [ yᵢ · log(ŷᵢ) + (1−yᵢ) · log(1−ŷᵢ) ]
+    <br><br>
+    When y = 1:  Loss = −log(ŷ)       → huge penalty if ŷ → 0
+    <br>
+    When y = 0:  Loss = −log(1 − ŷ)  → huge penalty if ŷ → 1
+  </div>
+
+  <div class="callout callout-b">
+    <strong>Why not MSE?</strong> With sigmoid outputs, MSE creates a non-convex loss landscape full of local minima — gradient descent gets stuck. Log-loss is <em>convex</em> for logistic regression, meaning there's exactly one global minimum and gradient descent is guaranteed to find it.
+  </div>
+
+  <!-- Log-loss tab switcher -->
+  <div class="lt-tabs">
+    <div class="lt-tab active" onclick="switchTab('ll-correct',this)">CORRECT PREDICTION</div>
+    <div class="lt-tab" onclick="switchTab('ll-wrong',this)">WRONG PREDICTION</div>
+    <div class="lt-tab" onclick="switchTab('ll-compare',this)">MSE vs LOG-LOSS</div>
+  </div>
+  <div class="lt-content">
+    <div class="lt-panel active" id="ll-correct">
+      <p style="margin-bottom:8px">If true label y = 1 and model predicts ŷ = 0.9:</p>
+      <div class="formula" style="margin:8px 0">Loss = −log(0.9) = 0.105 &nbsp;&nbsp; ← small, acceptable</div>
+      <p style="margin-bottom:8px">If true label y = 1 and model predicts ŷ = 0.99:</p>
+      <div class="formula" style="margin:8px 0">Loss = −log(0.99) = 0.010 &nbsp;&nbsp; ← tiny, very confident & correct</div>
+      <p style="margin:0;font-size:13px;color:var(--txt-sec)">When the model is confidently correct, log-loss is close to zero. Good predictions are barely penalised.</p>
+    </div>
+    <div class="lt-panel" id="ll-wrong">
+      <p style="margin-bottom:8px">If true label y = 1 but model predicts ŷ = 0.1:</p>
+      <div class="formula" style="margin:8px 0;border-left-color:var(--error)">Loss = −log(0.1) = 2.303 &nbsp;&nbsp; ← large penalty!</div>
+      <p style="margin-bottom:8px">If true label y = 1 but model predicts ŷ = 0.01:</p>
+      <div class="formula" style="margin:8px 0;border-left-color:var(--error)">Loss = −log(0.01) = 4.605 &nbsp;&nbsp; ← very large penalty!</div>
+      <p style="margin:0;font-size:13px;color:var(--txt-sec)">Confident wrong predictions are punished exponentially. The closer ŷ gets to 0 when y=1, the more the loss explodes. This forces the model to be careful about certainty.</p>
+    </div>
+    <div class="lt-panel" id="ll-compare">
+      <canvas id="lossCompCanvas" width="640" height="180" style="display:block;width:100%;margin-bottom:10px;border:1px solid var(--bdr-00)"></canvas>
+      <div style="display:flex;gap:20px;flex-wrap:wrap">
+        <div class="sig-leg-item"><div class="sig-leg-dot" style="background:#be95ff"></div>Log-loss (convex)</div>
+        <div class="sig-leg-item"><div class="sig-leg-dot" style="background:#ff8389"></div>MSE (non-convex)</div>
+      </div>
+      <p style="font-size:13px;margin-top:8px;margin-bottom:0">Log-loss is convex — one clean bowl shape. MSE with sigmoid is bumpy with local minima. Gradient descent on log-loss always finds the global minimum.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ S5: GRADIENT DESCENT ══════════ -->
+<div class="section" id="s5">
+  <div class="eyebrow">05 · The learning algorithm</div>
+  <h2>Gradient descent</h2>
+  <p>Logistic regression is trained by minimising the log-loss using <strong>gradient descent</strong> — repeatedly nudging each weight in the direction that reduces the cost function.</p>
+
+  <div class="formula">
+    Update rule (for each weight wⱼ):
+    <br><br>
+    wⱼ ← wⱼ − α · (∂J/∂wⱼ)
+    <br><br>
+    where α = learning rate,  ∂J/∂wⱼ = (1/m) Σ (ŷᵢ − yᵢ) · xᵢⱼ
+  </div>
+
+  <div class="callout">
+    <strong>Beautiful result:</strong> The gradient formula for logistic regression looks identical to linear regression — (ŷ − y) · x. The difference is that ŷ is now σ(z) instead of z directly. Same update rule, different model output. This is why logistic regression is so elegant.
+  </div>
+
+  <div class="tile">
+    <div class="tile-title">The training loop — step by step</div>
+    <div class="kv"><span class="kk" style="min-width:140px">Step 1 — Forward pass</span><span class="kv-v">Compute z = Xw, then ŷ = σ(z) for all training points</span></div>
+    <div class="kv"><span class="kk" style="min-width:140px">Step 2 — Compute loss</span><span class="kv-v">J = −(1/m) Σ [y·log(ŷ) + (1−y)·log(1−ŷ)]</span></div>
+    <div class="kv"><span class="kk" style="min-width:140px">Step 3 — Backprop</span><span class="kv-v">Gradient ∂J/∂w = (1/m) · Xᵀ · (ŷ − y)</span></div>
+    <div class="kv"><span class="kk" style="min-width:140px">Step 4 — Update</span><span class="kv-v">w ← w − α · gradient</span></div>
+    <div class="kv"><span class="kk" style="min-width:140px">Step 5 — Repeat</span><span class="kv-v">Until convergence or max iterations reached</span></div>
+  </div>
+
+  <!-- Gradient descent visualisation -->
+  <div class="tile" style="margin-top:14px">
+    <div class="tile-title">Visualise gradient descent on log-loss</div>
+    <div class="slider-row">
+      <span class="slider-lbl">Learning rate α</span>
+      <input type="range" id="lrSlider" min="1" max="20" value="5" oninput="updateGD()">
+      <span class="slider-val" id="lrVal">0.05</span>
+    </div>
+    <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+      <button class="db-btn active" id="gdRunBtn" onclick="runGD()">▶ Run</button>
+      <button class="db-btn" onclick="resetGD()">↺ Reset</button>
+    </div>
+    <canvas id="gdCanvas" width="680" height="200" style="display:block;width:100%;border:1px solid var(--bdr-00)"></canvas>
+    <div class="metric-row" style="margin-top:10px">
+      <div class="metric-cell">
+        <div class="metric-lbl">Iteration</div>
+        <div class="metric-val" id="gdIter" style="color:var(--txt-sec)">0</div>
+        <div class="metric-note">steps taken</div>
+      </div>
+      <div class="metric-cell">
+        <div class="metric-lbl">Loss J</div>
+        <div class="metric-val" id="gdLoss" style="color:var(--ac)">0.693</div>
+        <div class="metric-note">log-loss value</div>
+      </div>
+      <div class="metric-cell">
+        <div class="metric-lbl">Status</div>
+        <div class="metric-val" id="gdStatus" style="color:var(--txt-ph);font-size:12px">Waiting</div>
+        <div class="metric-note">convergence check</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ S6: REGULARIZATION ══════════ -->
+<div class="section" id="s6">
+  <div class="eyebrow">06 · Preventing overfitting</div>
+  <h2>Regularization — L1 & L2</h2>
+  <p>When features are many or training data is limited, logistic regression can overfit by learning very large weights that fit noise. Regularization adds a <strong>penalty term</strong> to the cost function to discourage overly large weights.</p>
+
+  <div class="lt-tabs">
+    <div class="lt-tab active" onclick="switchTab('reg-l2',this)">L2 — RIDGE</div>
+    <div class="lt-tab" onclick="switchTab('reg-l1',this)">L1 — LASSO</div>
+    <div class="lt-tab" onclick="switchTab('reg-compare',this)">COMPARISON</div>
+  </div>
+  <div class="lt-content">
+    <div class="lt-panel active" id="reg-l2">
+      <div class="formula" style="margin-bottom:10px">J(w) = log-loss + (λ/2m) Σ wⱼ²</div>
+      <div class="kv"><span class="kk">Penalty term</span><span class="kv-v">Sum of squared weights</span></div>
+      <div class="kv"><span class="kk">Effect on weights</span><span class="kv-v">Shrinks all weights towards zero — but rarely to exactly zero</span></div>
+      <div class="kv"><span class="kk">Feature selection</span><span class="kv-v" style="color:var(--error)">No — keeps all features, just smaller</span></div>
+      <div class="kv"><span class="kk">Best when</span><span class="kv-v">All features are somewhat relevant; multicollinearity present</span></div>
+      <div class="kv"><span class="kk">λ controls</span><span class="kv-v">Regularization strength — larger λ = stronger penalty</span></div>
+      <p style="font-size:13px;margin-top:12px;margin-bottom:0">sklearn uses C = 1/λ — so <em>smaller C</em> means <em>stronger</em> regularization.</p>
+    </div>
+    <div class="lt-panel" id="reg-l1">
+      <div class="formula" style="margin-bottom:10px">J(w) = log-loss + (λ/m) Σ |wⱼ|</div>
+      <div class="kv"><span class="kk">Penalty term</span><span class="kv-v">Sum of absolute weights</span></div>
+      <div class="kv"><span class="kk">Effect on weights</span><span class="kv-v">Drives irrelevant weights to <strong>exactly zero</strong></span></div>
+      <div class="kv"><span class="kk">Feature selection</span><span class="kv-v" style="color:var(--success)">Yes — automatically drops irrelevant features</span></div>
+      <div class="kv"><span class="kk">Best when</span><span class="kv-v">Many features, most are irrelevant; sparse model desired</span></div>
+      <div class="kv"><span class="kk">λ controls</span><span class="kv-v">Sparsity — larger λ = more weights zeroed out</span></div>
+      <p style="font-size:13px;margin-top:12px;margin-bottom:0">L1 effectively does feature selection: features with zero weights are removed from the model entirely.</p>
+    </div>
+    <div class="lt-panel" id="reg-compare">
+      <table class="dtbl">
+        <thead><tr><th>Property</th><th>L1 (Lasso)</th><th>L2 (Ridge)</th></tr></thead>
+        <tbody>
+          <tr><td>Penalty</td><td>Σ|wⱼ|</td><td>Σwⱼ²</td></tr>
+          <tr><td>Solution type</td><td>Sparse (many zeros)</td><td>Dense (all non-zero)</td></tr>
+          <tr><td>Feature selection</td><td style="color:var(--success)">Yes ✓</td><td style="color:var(--error)">No ✗</td></tr>
+          <tr><td>When correlated features</td><td>Picks one, ignores others</td><td>Spreads weight equally</td></tr>
+          <tr><td>Computation</td><td>Non-differentiable at 0</td><td>Smooth everywhere</td></tr>
+          <tr><td>Sklearn default</td><td>penalty='l1'</td><td>penalty='l2' ← default</td></tr>
+        </tbody>
+      </table>
+      <div class="callout callout-t" style="margin-top:12px">
+        <strong>Elastic Net</strong> = L1 + L2 combined. Gets the best of both worlds — sparsity from L1 and stability from L2. Controlled by an α mixing parameter.
+      </div>
+    </div>
+  </div>
+
+  <!-- Regularization effect explorer -->
+  <div class="tile" style="margin-top:14px">
+    <div class="tile-title">Regularization strength explorer</div>
+    <p style="font-size:13px;color:var(--txt-sec);margin-bottom:12px">Drag C (= 1/λ) to see how regularization affects weight magnitudes. Small C = strong regularization.</p>
+    <div class="slider-row">
+      <span class="slider-lbl">C (1/λ)</span>
+      <input type="range" id="regCSlider" min="1" max="100" value="30" oninput="updateRegViz()">
+      <span class="slider-val" id="regCVal">0.30</span>
+    </div>
+    <canvas id="regCanvas" width="680" height="140" style="display:block;width:100%;border:1px solid var(--bdr-00);margin:8px 0"></canvas>
+    <div class="metric-row">
+      <div class="metric-cell">
+        <div class="metric-lbl">Regularization</div>
+        <div class="metric-val" id="regLevel" style="color:var(--ac)">Medium</div>
+        <div class="metric-note">strength</div>
+      </div>
+      <div class="metric-cell">
+        <div class="metric-lbl">Weight norm</div>
+        <div class="metric-val" id="regNorm" style="color:var(--link)">—</div>
+        <div class="metric-note">||w||₂</div>
+      </div>
+      <div class="metric-cell">
+        <div class="metric-lbl">Likely outcome</div>
+        <div class="metric-val" id="regOutcome" style="color:var(--txt-sec);font-size:12px">—</div>
+        <div class="metric-note">bias-variance diagnosis</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ S7: INTERACTIVE CLASSIFIER ══════════ -->
+<div class="section" id="s7">
+  <div class="eyebrow">07 · Hands-on</div>
+  <h2>Interactive classifier — spam vs not spam</h2>
+  <p>Adjust the feature values below to see how a trained logistic regression model classifies an email. Watch the sigmoid output and probability update live.</p>
+
+  <div class="tile">
+    <div class="tile-title">Email features → spam probability</div>
+    <p style="font-size:13px;color:var(--txt-sec);margin-bottom:14px">Weights learned from training: w₀(bias) = −2.1, w₁(word_count_spam) = +1.8, w₂(links) = +2.3, w₃(known_sender) = −3.1, w₄(caps_ratio) = +1.4</p>
+
+    <div class="slider-row">
+      <span class="slider-lbl" style="min-width:160px">Spam word count</span>
+      <input type="range" id="f1" min="0" max="10" step="1" value="2" oninput="updateSpam()">
+      <span class="slider-val" id="f1v">2</span>
+    </div>
+    <div class="slider-row">
+      <span class="slider-lbl" style="min-width:160px">Link count</span>
+      <input type="range" id="f2" min="0" max="10" step="1" value="1" oninput="updateSpam()">
+      <span class="slider-val" id="f2v">1</span>
+    </div>
+    <div class="slider-row">
+      <span class="slider-lbl" style="min-width:160px">Known sender?</span>
+      <input type="range" id="f3" min="0" max="1" step="1" value="0" oninput="updateSpam()">
+      <span class="slider-val" id="f3v">No</span>
+    </div>
+    <div class="slider-row">
+      <span class="slider-lbl" style="min-width:160px">Caps ratio (0–1)</span>
+      <input type="range" id="f4" min="0" max="10" step="1" value="3" oninput="updateSpam()">
+      <span class="slider-val" id="f4v">0.3</span>
+    </div>
+
+    <div style="margin:16px 0 6px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph);letter-spacing:.06em;text-transform:uppercase">Linear combination z</div>
+    <div class="formula" id="spamFormula">z = −2.1 + 1.8(2) + 2.3(1) − 3.1(0) + 1.4(0.3) = 4.32</div>
+
+    <div style="margin:14px 0 8px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph);letter-spacing:.06em;text-transform:uppercase">Spam probability σ(z)</div>
+    <div class="prob-meter">
+      <div class="prob-bar-fill" id="probBar" style="width:50%"></div>
+      <div class="prob-meter-inner">
+        <span class="prob-val" id="probVal">0.987</span>
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--txt-ph);margin-left:12px" id="probVerdict">→ SPAM ✗</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ S8: SOFTMAX ══════════ -->
+<div class="section" id="s8">
+  <div class="eyebrow">08 · Beyond binary</div>
+  <h2>Multi-class via softmax</h2>
+  <p>Binary logistic regression handles two classes. For <strong>K classes</strong>, we replace the sigmoid with the <strong>softmax function</strong> — which converts K raw scores into K probabilities that sum to exactly 1.</p>
+
+  <div class="formula">
+    softmax(zₖ) = e^zₖ / Σⱼ e^zⱼ
+    <br><br>
+    One weight vector wₖ per class → z₁, z₂, …, z_K raw scores
+    <br>
+    Predict: class = argmax_k softmax(zₖ)
+  </div>
+
+  <div class="callout">
+    <strong>Analogy — Voting:</strong> Each class casts a "vote" equal to e^(its score). The final probability of each class is its fraction of the total votes. Exponential ensures all values are positive, and dividing by the sum ensures they add up to 1.
+  </div>
+
+  <!-- Softmax interactive example -->
+  <div class="tile">
+    <div class="tile-title">Softmax in action — 3-class classification</div>
+    <p style="font-size:13px;color:var(--txt-sec);margin-bottom:14px">Adjust the raw scores (logits) for 3 classes and see how softmax converts them to probabilities.</p>
+    <div class="slider-row">
+      <span class="slider-lbl" style="min-width:80px">Class A (z₁)</span>
+      <input type="range" id="sm1" min="-3" max="5" step="0.1" value="2.0" oninput="updateSoftmax()">
+      <span class="slider-val" id="sm1v">2.0</span>
+    </div>
+    <div class="slider-row">
+      <span class="slider-lbl" style="min-width:80px">Class B (z₂)</span>
+      <input type="range" id="sm2" min="-3" max="5" step="0.1" value="1.0" oninput="updateSoftmax()">
+      <span class="slider-val" id="sm2v">1.0</span>
+    </div>
+    <div class="slider-row">
+      <span class="slider-lbl" style="min-width:80px">Class C (z₃)</span>
+      <input type="range" id="sm3" min="-3" max="5" step="0.1" value="0.5" oninput="updateSoftmax()">
+      <span class="slider-val" id="sm3v">0.5</span>
+    </div>
+    <canvas id="softmaxCanvas" width="680" height="130" style="display:block;width:100%;border:1px solid var(--bdr-00);margin:12px 0"></canvas>
+    <div class="metric-row">
+      <div class="metric-cell">
+        <div class="metric-lbl">P(Class A)</div>
+        <div class="metric-val" id="smPA" style="color:var(--ac)">—</div>
+      </div>
+      <div class="metric-cell">
+        <div class="metric-lbl">P(Class B)</div>
+        <div class="metric-val" id="smPB" style="color:var(--link)">—</div>
+      </div>
+      <div class="metric-cell">
+        <div class="metric-lbl">P(Class C)</div>
+        <div class="metric-val" id="smPC" style="color:var(--success)">—</div>
+      </div>
+    </div>
+    <p style="font-size:12px;color:var(--txt-ph);margin-top:8px;margin-bottom:0;font-family:'IBM Plex Mono',monospace">Sum of probabilities: <span id="smSum" style="color:var(--ac)">1.000</span> &nbsp;← always 1.000</p>
+  </div>
+</div>
+
+<!-- ══════════ S9: LR VS DT ══════════ -->
+<div class="section" id="s9">
+  <div class="eyebrow">09 · Context & comparison</div>
+  <h2>Logistic Regression vs Decision Tree</h2>
+  <p>Two popular classifiers with very different mechanics. Choosing between them depends on data size, interpretability needs, and boundary complexity.</p>
+
+  <table class="dtbl">
+    <thead><tr><th>Property</th><th>Logistic Regression</th><th>Decision Tree</th></tr></thead>
+    <tbody>
+      <tr><td>Decision boundary</td><td style="color:var(--ac)">Linear (or poly features)</td><td>Axis-aligned rectangles</td></tr>
+      <tr><td>Interpretability</td><td>Weights show feature importance</td><td>Very visual — tree structure</td></tr>
+      <tr><td>Probability outputs</td><td style="color:var(--success)">Calibrated probabilities ✓</td><td>Less calibrated</td></tr>
+      <tr><td>Overfitting risk</td><td>Low (with regularization)</td><td>High (without pruning)</td></tr>
+      <tr><td>Handles non-linearity</td><td>Needs manual feature engineering</td><td style="color:var(--success)">Yes, naturally ✓</td></tr>
+      <tr><td>Missing values</td><td style="color:var(--error)">Needs imputation ✗</td><td style="color:var(--success)">Can handle natively ✓</td></tr>
+      <tr><td>Feature scaling needed</td><td style="color:var(--error)">Yes (affects gradient descent)</td><td style="color:var(--success)">No — splits are relative</td></tr>
+      <tr><td>Training speed</td><td>Fast (convex optimisation)</td><td>Fast (greedy splits)</td></tr>
+      <tr><td>Best for</td><td>Linearly separable, probabilities needed</td><td>Complex patterns, non-numeric</td></tr>
+    </tbody>
+  </table>
+
+  <div class="comp-card open" id="cc1">
+    <div class="comp-card-hdr" onclick="toggleCard('cc1')">
+      <div class="comp-card-icon" style="background:#491d8b;color:#d4bbff">?</div>
+      <div class="comp-card-title">When should I choose logistic regression?</div>
+      <div class="comp-card-arrow">›</div>
+    </div>
+    <div class="comp-card-body">
+      Choose logistic regression when:<br>
+      → You need well-calibrated probability outputs (medical risk, fraud score)<br>
+      → The relationship between features and outcome is roughly linear<br>
+      → Model interpretability matters — weights have clear meaning<br>
+      → Dataset is large — it scales much better than trees for millions of rows<br>
+      → You want a fast, regularizable baseline before trying complex models
+    </div>
+  </div>
+
+  <div class="comp-card" id="cc2">
+    <div class="comp-card-hdr" onclick="toggleCard('cc2')">
+      <div class="comp-card-icon" style="background:#491d8b;color:#d4bbff">?</div>
+      <div class="comp-card-title">When does logistic regression fail?</div>
+      <div class="comp-card-arrow">›</div>
+    </div>
+    <div class="comp-card-body">
+      Logistic regression struggles when:<br>
+      → The decision boundary is genuinely non-linear (XOR problem, concentric circles)<br>
+      → Features have complex interactions not captured by linear combination<br>
+      → Data has missing values — requires preprocessing<br>
+      → Features are not scaled — gradient descent converges slowly<br><br>
+      <strong>Fix:</strong> Add polynomial features, interaction terms — or switch to SVM, Random Forest, or a neural network.
+    </div>
+  </div>
+
+  <div class="comp-card" id="cc3">
+    <div class="comp-card-hdr" onclick="toggleCard('cc3')">
+      <div class="comp-card-icon" style="background:#491d8b;color:#d4bbff">→</div>
+      <div class="comp-card-title">sklearn quick reference</div>
+      <div class="comp-card-arrow">›</div>
+    </div>
+    <div class="comp-card-body">
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--ac)">from sklearn.linear_model import LogisticRegression</span><br><br>
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--txt-sec)">
+      model = LogisticRegression(<br>
+      &nbsp;&nbsp;C=1.0,          # regularization (smaller = stronger)<br>
+      &nbsp;&nbsp;penalty='l2',   # 'l1', 'l2', 'elasticnet'<br>
+      &nbsp;&nbsp;solver='lbfgs', # 'lbfgs', 'saga', 'liblinear'<br>
+      &nbsp;&nbsp;max_iter=100    # gradient descent iterations<br>
+      )
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ S10: QUIZ ══════════ -->
+<div class="section" id="s10">
+  <div class="eyebrow">10 · Check your understanding</div>
+  <h2>Quick quiz</h2>
+  <p>Four questions — test yourself on logistic regression.</p>
+
+  <!-- Q1 -->
+  <div class="quiz-wrap">
+    <div class="quiz-q">1. The sigmoid function σ(z) outputs 0.5 when z equals:</div>
+    <div class="quiz-options" id="q1-opts">
+      <div class="quiz-opt" onclick="answerQ('q1',0,2,'q1-fb')">A. z = 1</div>
+      <div class="quiz-opt" onclick="answerQ('q1',1,2,'q1-fb')">B. z = −1</div>
+      <div class="quiz-opt" onclick="answerQ('q1',2,2,'q1-fb')">C. z = 0 ✓</div>
+      <div class="quiz-opt" onclick="answerQ('q1',3,2,'q1-fb')">D. z = 0.5</div>
+    </div>
+    <div class="quiz-feedback" id="q1-fb">σ(0) = 1/(1+e⁰) = 1/(1+1) = 0.5. When z = 0, the model is maximally uncertain — 50/50. The decision boundary in logistic regression is exactly where z = 0. ✓</div>
+    <button class="quiz-reset" id="q1-reset" onclick="resetQ('q1','q1-fb','q1-reset')">Try again</button>
+  </div>
+
+  <!-- Q2 -->
+  <div class="quiz-wrap">
+    <div class="quiz-q">2. Why does logistic regression use log-loss instead of mean squared error?</div>
+    <div class="quiz-options" id="q2-opts">
+      <div class="quiz-opt" onclick="answerQ('q2',0,1,'q2-fb')">A. Log-loss is easier to compute than MSE</div>
+      <div class="quiz-opt" onclick="answerQ('q2',1,1,'q2-fb')">B. Log-loss is convex for logistic regression, guaranteeing a global minimum ✓</div>
+      <div class="quiz-opt" onclick="answerQ('q2',2,1,'q2-fb')">C. MSE cannot handle binary labels</div>
+      <div class="quiz-opt" onclick="answerQ('q2',3,1,'q2-fb')">D. Log-loss is always smaller than MSE</div>
+    </div>
+    <div class="quiz-feedback" id="q2-fb">With sigmoid outputs, MSE creates a non-convex loss landscape with local minima where gradient descent can get stuck. Log-loss (binary cross-entropy) is convex when combined with the sigmoid, so gradient descent is guaranteed to find the global minimum. MSE can handle binary labels, but the optimisation landscape is problematic. ✓</div>
+    <button class="quiz-reset" id="q2-reset" onclick="resetQ('q2','q2-fb','q2-reset')">Try again</button>
+  </div>
+
+  <!-- Q3 -->
+  <div class="quiz-wrap">
+    <div class="quiz-q">3. In sklearn's LogisticRegression, setting C = 0.001 (very small) will:</div>
+    <div class="quiz-options" id="q3-opts">
+      <div class="quiz-opt" onclick="answerQ('q3',0,2,'q3-fb')">A. Disable regularization entirely</div>
+      <div class="quiz-opt" onclick="answerQ('q3',1,2,'q3-fb')">B. Apply very weak regularization — allow large weights</div>
+      <div class="quiz-opt" onclick="answerQ('q3',2,2,'q3-fb')">C. Apply very strong regularization — shrink weights heavily ✓</div>
+      <div class="quiz-opt" onclick="answerQ('q3',3,2,'q3-fb')">D. Switch from L2 to L1 automatically</div>
+    </div>
+    <div class="quiz-feedback" id="q3-fb">sklearn uses C = 1/λ, so small C means large λ, which means strong regularization. C = 0.001 heavily penalises large weights, pushing them towards zero. Large C (e.g., C = 1000) means weak regularization — almost no penalty, equivalent to vanilla logistic regression. ✓</div>
+    <button class="quiz-reset" id="q3-reset" onclick="resetQ('q3','q3-fb','q3-reset')">Try again</button>
+  </div>
+
+  <!-- Q4 -->
+  <div class="quiz-wrap">
+    <div class="quiz-q">4. Logistic regression's decision boundary in the original feature space is always:</div>
+    <div class="quiz-options" id="q4-opts">
+      <div class="quiz-opt" onclick="answerQ('q4',0,3,'q4-fb')">A. A curve — the sigmoid is curved</div>
+      <div class="quiz-opt" onclick="answerQ('q4',1,3,'q4-fb')">B. A circle — defined by the probability contour</div>
+      <div class="quiz-opt" onclick="answerQ('q4',2,3,'q4-fb')">C. A rectangle — like a decision tree split</div>
+      <div class="quiz-opt" onclick="answerQ('q4',3,3,'q4-fb')">D. A straight line (or hyperplane in N dimensions) ✓</div>
+    </div>
+    <div class="quiz-feedback" id="q4-fb">The decision boundary is where σ(z) = 0.5, which means z = 0, which means w₀ + w₁x₁ + w₂x₂ = 0 — a linear equation. In 2D this is a line, in 3D a plane, in N dimensions a hyperplane. The sigmoid makes the output curved, but the boundary itself is linear. To get non-linear boundaries, you'd need to add polynomial features manually. ✓</div>
+    <button class="quiz-reset" id="q4-reset" onclick="resetQ('q4','q4-fb','q4-reset')">Try again</button>
+  </div>
+</div>
+
+<!-- Bottom nav -->
+<div class="page-nav">
+  <a class="page-nav-btn" href="bias-variance.html">← Bias–Variance Tradeoff</a>
+  <a class="page-nav-btn primary" href="knn.html">Next: K-Nearest Neighbors →</a>
+</div>
+
+</main>
+</div>
+
+<script>
+/* ── Theme ── */
+let isLight = false;
+function toggleTheme(){
+  isLight = !isLight;
+  document.documentElement.classList.toggle('light', isLight);
+  const i = isLight ? '◑' : '☀', l = isLight ? 'Light' : 'Dark';
+  document.getElementById('tog-icon').textContent = i;
+  document.getElementById('tog-txt').textContent  = l + ' theme';
+  document.getElementById('theme-lbl').textContent = l;
+  const m = document.getElementById('mob-tog'); if(m) m.textContent = i;
+  setTimeout(() => {
+    drawSigmoid();
+    drawBoundary();
+    drawLossCompare();
+    drawGDCanvas();
+    updateRegViz();
+    updateSoftmax();
+  }, 30);
+}
+
+/* ── Colour helper ── */
+function getC(){
+  const lt = document.documentElement.classList.contains('light');
+  return {
+    bg:   lt ? '#f4f4f4' : '#262626',
+    bg2:  lt ? '#e0e0e0' : '#393939',
+    ax:   '#6f6f6f',
+    grid: lt ? '#e0e0e0' : '#393939',
+    ac:   lt ? '#6929c4' : '#be95ff',
+    err:  lt ? '#da1e28' : '#ff8389',
+    lnk:  lt ? '#0043ce' : '#78a9ff',
+    suc:  lt ? '#198038' : '#42be65',
+    tl:   lt ? '#007d79' : '#3ddbd9',
+    txt:  lt ? '#161616' : '#f4f4f4',
+    txs:  lt ? '#525252' : '#c6c6c6'
+  };
+}
+
+/* ── Collapsible ── */
+function toggleCard(id){ document.getElementById(id).classList.toggle('open'); }
+
+/* ── Tabs ── */
+function switchTab(id, btn){
+  document.querySelectorAll('.lt-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.lt-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+  if(id === 'll-compare') setTimeout(drawLossCompare, 50);
+}
+
+/* ── Quiz ── */
+function answerQ(qid, clicked, correct, fbId){
+  const opts = document.getElementById(qid+'-opts').querySelectorAll('.quiz-opt');
+  opts.forEach((o,i) => {
+    o.style.pointerEvents = 'none';
+    if(i === correct) o.classList.add('show-correct');
+    if(i === clicked && clicked !== correct) o.classList.add('wrong');
+    if(i === clicked && clicked === correct) o.classList.add('correct');
+  });
+  const fb = document.getElementById(fbId);
+  fb.classList.add('show');
+  fb.style.background = clicked === correct ? 'rgba(190,149,255,.08)' : 'rgba(255,131,137,.08)';
+  fb.style.borderLeftColor = clicked === correct ? 'var(--ac)' : 'var(--error)';
+  document.getElementById(qid+'-reset').classList.add('show');
+}
+function resetQ(qid, fbId, resetId){
+  document.getElementById(qid+'-opts').querySelectorAll('.quiz-opt').forEach(o => {
+    o.style.pointerEvents = ''; o.classList.remove('correct','wrong','show-correct');
+  });
+  document.getElementById(fbId).classList.remove('show');
+  document.getElementById(resetId).classList.remove('show');
+}
+
+/* ── Scroll nav ── */
+const secs = Array.from(document.querySelectorAll('.section[id]'));
+let lastId = '', rafP = false;
+window.addEventListener('scroll', () => {
+  if(rafP) return; rafP = true;
+  requestAnimationFrame(() => {
+    rafP = false;
+    const trigger = window.scrollY + window.innerHeight * .28;
+    let active = secs[0];
+    for(const s of secs){ if(s.offsetTop <= trigger) active = s; else break; }
+    if(active && active.id !== lastId){
+      lastId = active.id;
+      document.querySelectorAll('.nav-item, .drawer-nav-item').forEach(n => {
+        n.classList.toggle('active', n.getAttribute('href') === '#' + active.id);
+      });
+    }
+  });
+}, { passive: true });
+
+/* ── Drawer ── */
+function buildDrawer(){
+  const dr = document.getElementById('nav-drawer');
+  const sn = document.getElementById('sidenav');
+  const cl = sn.cloneNode(true);
+  cl.removeAttribute('id'); cl.removeAttribute('class');
+  cl.querySelectorAll('.nav-item').forEach(el => { el.classList.add('drawer-nav-item'); el.addEventListener('click', closeDrawer); });
+  const tog = cl.querySelector('.tog-area'); if(tog) tog.remove();
+  const cb = document.createElement('button');
+  cb.textContent = '✕ Close';
+  cb.style.cssText = 'font-family:"IBM Plex Mono",monospace;font-size:11px;background:transparent;border:none;border-bottom:1px solid var(--bdr-00);color:var(--txt-ph);padding:12px 16px;width:100%;text-align:left;cursor:pointer';
+  cb.onclick = closeDrawer;
+  dr.insertBefore(cb, dr.firstChild);
+  dr.appendChild(cl);
+}
+function toggleDrawer(){
+  const ov = document.getElementById('nav-overlay'), dr = document.getElementById('nav-drawer');
+  if(dr.classList.contains('open')){ closeDrawer(); }
+  else{ ov.style.display='block'; setTimeout(()=>ov.classList.add('open'),10); dr.classList.add('open'); document.body.style.overflow='hidden'; }
+}
+function closeDrawer(){
+  const ov = document.getElementById('nav-overlay'), dr = document.getElementById('nav-drawer');
+  ov.classList.remove('open'); dr.classList.remove('open'); document.body.style.overflow='';
+  setTimeout(()=>{ ov.style.display='none'; }, 270);
+}
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeDrawer(); });
+document.fonts.ready.then(() => buildDrawer());
+
+/* ── Sigmoid math ── */
+function sig(z){ return 1 / (1 + Math.exp(-z)); }
+
+/* ── S2: Sigmoid canvas ── */
+function drawSigmoid(){
+  const canvas = document.getElementById('sigmoidCanvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const c = getC();
+  const PAD = { t:16, b:24, l:36, r:20 };
+  const pW = W - PAD.l - PAD.r, pH = H - PAD.t - PAD.b;
+
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = c.bg; ctx.fillRect(0,0,W,H);
+
+  const px = x => PAD.l + ((x+7)/14) * pW;
+  const py = y => PAD.t + (1-y) * pH;
+
+  // Grid lines
+  ctx.strokeStyle = c.grid; ctx.lineWidth = 0.5;
+  [0.25, 0.5, 0.75, 1.0].forEach(v => {
+    ctx.beginPath(); ctx.moveTo(PAD.l, py(v)); ctx.lineTo(PAD.l+pW, py(v)); ctx.stroke();
+  });
+  [-6,-4,-2,0,2,4,6].forEach(v => {
+    ctx.beginPath(); ctx.moveTo(px(v), PAD.t); ctx.lineTo(px(v), PAD.t+pH); ctx.stroke();
+  });
+
+  // Threshold line at 0.5
+  ctx.strokeStyle = c.suc; ctx.lineWidth = 1; ctx.setLineDash([5,4]);
+  ctx.beginPath(); ctx.moveTo(PAD.l, py(0.5)); ctx.lineTo(PAD.l+pW, py(0.5)); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Sigmoid curve
+  ctx.beginPath();
+  for(let i = 0; i <= pW; i++){
+    const z = -7 + (i/pW)*14;
+    const y = sig(z);
+    i === 0 ? ctx.moveTo(PAD.l+i, py(y)) : ctx.lineTo(PAD.l+i, py(y));
+  }
+  ctx.strokeStyle = c.ac; ctx.lineWidth = 2.5; ctx.stroke();
+
+  // Current z vertical
+  const z = parseFloat(document.getElementById('zSlider').value);
+  const xPos = px(z);
+  ctx.strokeStyle = c.err; ctx.lineWidth = 1.5; ctx.setLineDash([4,3]);
+  ctx.beginPath(); ctx.moveTo(xPos, PAD.t); ctx.lineTo(xPos, PAD.t+pH); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Dot at σ(z)
+  const sy = sig(z);
+  ctx.beginPath(); ctx.arc(xPos, py(sy), 6, 0, Math.PI*2);
+  ctx.fillStyle = c.ac; ctx.fill();
+  ctx.strokeStyle = c.bg; ctx.lineWidth = 2; ctx.stroke();
+
+  // Horizontal line from dot to y-axis
+  ctx.strokeStyle = c.ac; ctx.lineWidth = 1; ctx.setLineDash([3,3]);
+  ctx.beginPath(); ctx.moveTo(PAD.l, py(sy)); ctx.lineTo(xPos, py(sy)); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Axes labels
+  ctx.fillStyle = c.ax; ctx.font = '9px IBM Plex Mono,monospace'; ctx.textAlign = 'center';
+  [-6,-4,-2,0,2,4,6].forEach(v => ctx.fillText(v, px(v), PAD.t+pH+14));
+  ctx.textAlign = 'right';
+  [0,0.25,0.5,0.75,1].forEach(v => ctx.fillText(v.toFixed(2), PAD.l-4, py(v)+3));
+
+  // Axes
+  ctx.strokeStyle = c.ax; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(PAD.l, PAD.t); ctx.lineTo(PAD.l, PAD.t+pH); ctx.lineTo(PAD.l+pW, PAD.t+pH); ctx.stroke();
+}
+
+function updateSigmoid(){
+  const z = parseFloat(document.getElementById('zSlider').value);
+  const s = sig(z);
+  document.getElementById('zVal').textContent = 'z = ' + z.toFixed(1);
+  document.getElementById('mZ').textContent = z.toFixed(2);
+  document.getElementById('mSig').textContent = s.toFixed(3);
+  const pred = s >= 0.5 ? '1' : '0';
+  document.getElementById('mPred').textContent = pred;
+  document.getElementById('mPred').style.color = pred === '1' ? 'var(--success)' : 'var(--error)';
+  drawSigmoid();
+}
+updateSigmoid();
+
+/* ── S3: Decision boundary ── */
+// Generate fixed dataset (seeded-ish using deterministic values)
+const dbPoints = [];
+function seedDBPoints(){
+  const seed = [
+    // Class 1 (top-right cluster)
+    [2.5,2.8],[3.1,3.2],[2.0,3.5],[3.5,2.1],[2.8,3.8],[3.9,3.1],[1.8,2.5],[3.2,2.4],
+    [2.2,3.1],[3.6,3.8],[4.1,2.8],[2.7,4.2],[1.5,3.0],[3.8,4.0],[3.0,3.6],[2.4,2.9],[4.2,3.4],[3.3,2.0],[2.1,4.0],[3.7,2.7],
+    // Class 0 (bottom-left cluster)
+    [-2.5,-2.8],[-3.1,-3.2],[-2.0,-3.5],[-3.5,-2.1],[-2.8,-3.8],[-3.9,-3.1],[-1.8,-2.5],[-3.2,-2.4],
+    [-2.2,-3.1],[-3.6,-3.8],[-4.1,-2.8],[-2.7,-4.2],[-1.5,-3.0],[-3.8,-4.0],[-3.0,-3.6],[-2.4,-2.9],[-4.2,-3.4],[-3.3,-2.0],[-2.1,-4.0],[-3.7,-2.7]
+  ];
+  seed.forEach((p,i) => dbPoints.push({ x: p[0], y: p[1], cls: i < 20 ? 1 : 0 }));
+}
+seedDBPoints();
+
+function drawBoundary(){
+  const canvas = document.getElementById('boundaryCanvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const c = getC();
+  const PAD = 30;
+  const pW = W - PAD*2, pH = H - PAD*2;
+  const XMIN = -6, XMAX = 6, YMIN = -6, YMAX = 6;
+
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = c.bg; ctx.fillRect(0,0,W,H);
+
+  const px = x => PAD + ((x - XMIN)/(XMAX - XMIN)) * pW;
+  const py = y => PAD + ((YMAX - y)/(YMAX - YMIN)) * pH;
+
+  const w0 = parseFloat(document.getElementById('w0Slider').value);
+  const w1 = parseFloat(document.getElementById('w1Slider').value);
+  const w2 = parseFloat(document.getElementById('w2Slider').value);
+
+  // Draw probability heatmap (light)
+  const imgData = ctx.createImageData(pW, pH);
+  const col1 = [190,149,255]; // purple = class 1
+  const col0 = [255,131,137]; // red = class 0
+  for(let ix = 0; ix < pW; ix++){
+    for(let iy = 0; iy < pH; iy++){
+      const fx = XMIN + (ix/pW)*(XMAX-XMIN);
+      const fy = YMAX - (iy/pH)*(YMAX-YMIN);
+      const z = w0 + w1*fx + w2*fy;
+      const p = sig(z);
+      const idx = (iy*pW + ix)*4;
+      const isLight = document.documentElement.classList.contains('light');
+      const base = isLight ? 242 : 38;
+      imgData.data[idx]   = base + (p > 0.5 ? (p-0.5)*2*col1[0] : (0.5-p)*2*col0[0]) * 0.18;
+      imgData.data[idx+1] = base + (p > 0.5 ? (p-0.5)*2*col1[1] : (0.5-p)*2*col0[1]) * 0.18;
+      imgData.data[idx+2] = base + (p > 0.5 ? (p-0.5)*2*col1[2] : (0.5-p)*2*col0[2]) * 0.18;
+      imgData.data[idx+3] = 255;
+    }
+  }
+  ctx.putImageData(imgData, PAD, PAD);
+
+  // Grid
+  ctx.strokeStyle = c.grid; ctx.lineWidth = 0.4;
+  [-4,-2,0,2,4].forEach(v => {
+    ctx.beginPath(); ctx.moveTo(px(v),PAD); ctx.lineTo(px(v),PAD+pH); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(PAD,py(v)); ctx.lineTo(PAD+pW,py(v)); ctx.stroke();
+  });
+
+  // Decision boundary line: w0 + w1*x + w2*y = 0  →  y = -(w0 + w1*x)/w2
+  if(Math.abs(w2) > 0.05){
+    const x1 = XMIN, y1 = -(w0 + w1*x1)/w2;
+    const x2 = XMAX, y2 = -(w0 + w1*x2)/w2;
+    ctx.beginPath(); ctx.moveTo(px(x1), py(y1)); ctx.lineTo(px(x2), py(y2));
+    ctx.strokeStyle = c.ac; ctx.lineWidth = 2.5; ctx.stroke();
+  } else {
+    // vertical boundary
+    const xb = -w0/w1;
+    ctx.beginPath(); ctx.moveTo(px(xb), PAD); ctx.lineTo(px(xb), PAD+pH);
+    ctx.strokeStyle = c.ac; ctx.lineWidth = 2.5; ctx.stroke();
+  }
+
+  // Data points
+  let correct = 0;
+  dbPoints.forEach(pt => {
+    const z = w0 + w1*pt.x + w2*pt.y;
+    const pred = sig(z) >= 0.5 ? 1 : 0;
+    if(pred === pt.cls) correct++;
+    ctx.beginPath(); ctx.arc(px(pt.x), py(pt.y), 5, 0, Math.PI*2);
+    ctx.fillStyle = pt.cls === 1 ? c.suc : c.err;
+    ctx.fill();
+    ctx.strokeStyle = c.bg; ctx.lineWidth = 1.5; ctx.stroke();
+    // Mark misclassified
+    if(pred !== pt.cls){
+      ctx.beginPath(); ctx.arc(px(pt.x), py(pt.y), 8, 0, Math.PI*2);
+      ctx.strokeStyle = c.ac; ctx.lineWidth = 1; ctx.stroke();
+    }
+  });
+
+  // Axes
+  ctx.strokeStyle = c.ax; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(PAD,PAD); ctx.lineTo(PAD,PAD+pH); ctx.lineTo(PAD+pW,PAD+pH); ctx.stroke();
+  ctx.fillStyle = c.ax; ctx.font = '9px IBM Plex Mono,monospace'; ctx.textAlign = 'center';
+  [-4,-2,0,2,4].forEach(v => ctx.fillText(v, px(v), PAD+pH+14));
+  ctx.textAlign = 'right';
+  [-4,-2,0,2,4].forEach(v => ctx.fillText(v, PAD-4, py(v)+3));
+
+  // Update metrics
+  document.getElementById('dbCorrect').textContent = correct;
+  document.getElementById('dbAcc').textContent = (correct/40*100).toFixed(0) + '%';
+  const eq = `${w0.toFixed(1)} + ${w1.toFixed(1)}x₁ + ${w2.toFixed(1)}x₂`;
+  document.getElementById('dbEq').textContent = eq;
+}
+
+function updateBoundary(){
+  const w1 = parseFloat(document.getElementById('w1Slider').value);
+  const w2 = parseFloat(document.getElementById('w2Slider').value);
+  const w0 = parseFloat(document.getElementById('w0Slider').value);
+  document.getElementById('w1Val').textContent = w1.toFixed(1);
+  document.getElementById('w2Val').textContent = w2.toFixed(1);
+  document.getElementById('w0Val').textContent = w0.toFixed(1);
+  drawBoundary();
+}
+updateBoundary();
+
+/* ── S4: Loss compare canvas ── */
+function drawLossCompare(){
+  const canvas = document.getElementById('lossCompCanvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const c = getC();
+  const PAD = { t:14, b:24, l:40, r:20 };
+  const pW = W - PAD.l - PAD.r, pH = H - PAD.t - PAD.b;
+
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = c.bg; ctx.fillRect(0,0,W,H);
+
+  const px = x => PAD.l + x * pW;
+  const py = (y, maxY) => PAD.t + (1 - y/maxY) * pH;
+
+  const N = 200;
+  // y = 1 case: log-loss = -log(yhat), MSE = (1-yhat)^2
+  const logL = [], mseL = [];
+  for(let i = 1; i <= N; i++){
+    const yhat = i/N;
+    logL.push(-Math.log(yhat));
+    mseL.push((1-yhat)*(1-yhat));
+  }
+  const maxY = Math.max(Math.max(...logL), Math.max(...mseL));
+
+  // Grid
+  ctx.strokeStyle = c.grid; ctx.lineWidth = 0.5;
+  [0.25, 0.5, 0.75, 1.0].forEach(v => {
+    ctx.beginPath(); ctx.moveTo(PAD.l, py(v*maxY, maxY)); ctx.lineTo(PAD.l+pW, py(v*maxY, maxY)); ctx.stroke();
+  });
+
+  // MSE curve
+  ctx.beginPath();
+  mseL.forEach((v,i) => {
+    const x = i/N;
+    i === 0 ? ctx.moveTo(px(x), py(v, maxY)) : ctx.lineTo(px(x), py(v, maxY));
+  });
+  ctx.strokeStyle = c.err; ctx.lineWidth = 2; ctx.stroke();
+
+  // Log-loss curve
+  ctx.beginPath();
+  logL.forEach((v,i) => {
+    const x = i/N;
+    const clamped = Math.min(v, maxY);
+    i === 0 ? ctx.moveTo(px(x), py(clamped, maxY)) : ctx.lineTo(px(x), py(clamped, maxY));
+  });
+  ctx.strokeStyle = c.ac; ctx.lineWidth = 2.5; ctx.stroke();
+
+  // Labels
+  ctx.fillStyle = c.ax; ctx.font = '9px IBM Plex Mono,monospace'; ctx.textAlign = 'center';
+  [0,0.2,0.4,0.6,0.8,1.0].forEach(v => ctx.fillText(v.toFixed(1), px(v), PAD.t+pH+14));
+  ctx.fillText('ŷ (predicted probability, y=1) →', PAD.l+pW/2, H-2);
+  ctx.textAlign = 'right';
+
+  // Axes
+  ctx.strokeStyle = c.ax; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(PAD.l,PAD.t); ctx.lineTo(PAD.l,PAD.t+pH); ctx.lineTo(PAD.l+pW,PAD.t+pH); ctx.stroke();
+}
+
+/* ── S5: Gradient Descent Visualisation ── */
+let gdHistory = [];
+let gdRunning = false;
+let gdTimer = null;
+let gdW = 5; // starting weight on 1D loss landscape
+
+function gdLoss(w){ return 0.5 * (w - 2)*(w - 2) + 0.05; } // simple parabola centred at w=2
+function gdGrad(w){ return w - 2; }
+
+function resetGD(){
+  clearInterval(gdTimer); gdRunning = false;
+  gdW = 5; gdHistory = [{w: gdW, loss: gdLoss(gdW)}];
+  document.getElementById('gdIter').textContent = '0';
+  document.getElementById('gdLoss').textContent = gdLoss(gdW).toFixed(3);
+  document.getElementById('gdStatus').textContent = 'Waiting';
+  document.getElementById('gdStatus').style.color = 'var(--txt-ph)';
+  document.getElementById('gdRunBtn').textContent = '▶ Run';
+  drawGDCanvas();
+}
+
+function runGD(){
+  if(gdRunning){
+    clearInterval(gdTimer); gdRunning = false;
+    document.getElementById('gdRunBtn').textContent = '▶ Run';
+    return;
+  }
+  gdRunning = true;
+  document.getElementById('gdRunBtn').textContent = '⏸ Pause';
+  document.getElementById('gdStatus').textContent = 'Running…';
+  document.getElementById('gdStatus').style.color = 'var(--ac)';
+
+  const lr = parseInt(document.getElementById('lrSlider').value) * 0.01;
+  gdTimer = setInterval(() => {
+    if(Math.abs(gdGrad(gdW)) < 0.001 || gdHistory.length > 60){
+      clearInterval(gdTimer); gdRunning = false;
+      document.getElementById('gdRunBtn').textContent = '▶ Run';
+      document.getElementById('gdStatus').textContent = 'Converged ✓';
+      document.getElementById('gdStatus').style.color = 'var(--success)';
+      return;
+    }
+    gdW = gdW - lr * gdGrad(gdW);
+    gdHistory.push({w: gdW, loss: gdLoss(gdW)});
+    document.getElementById('gdIter').textContent = gdHistory.length - 1;
+    document.getElementById('gdLoss').textContent = gdLoss(gdW).toFixed(4);
+    drawGDCanvas();
+  }, 120);
+}
+
+function updateGD(){
+  const lr = parseInt(document.getElementById('lrSlider').value) * 0.01;
+  document.getElementById('lrVal').textContent = lr.toFixed(2);
+  resetGD();
+}
+
+function drawGDCanvas(){
+  const canvas = document.getElementById('gdCanvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const c = getC();
+  const PAD = { t:16, b:28, l:44, r:20 };
+  const pW = W - PAD.l - PAD.r, pH = H - PAD.t - PAD.b;
+
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = c.bg; ctx.fillRect(0,0,W,H);
+
+  const WMIN = -1, WMAX = 6;
+  const LMAX = 1.5;
+  const pw = w => PAD.l + ((w - WMIN)/(WMAX - WMIN)) * pW;
+  const pl = l => PAD.t + (1 - l/LMAX) * pH;
+
+  // Grid
+  ctx.strokeStyle = c.grid; ctx.lineWidth = 0.5;
+  [0.25, 0.5, 0.75, 1.0, 1.25].forEach(v => {
+    ctx.beginPath(); ctx.moveTo(PAD.l, pl(v)); ctx.lineTo(PAD.l+pW, pl(v)); ctx.stroke();
+  });
+
+  // Loss curve
+  ctx.beginPath();
+  for(let i = 0; i <= 200; i++){
+    const w = WMIN + (i/200)*(WMAX - WMIN);
+    const l = Math.min(gdLoss(w), LMAX);
+    i === 0 ? ctx.moveTo(pw(w), pl(l)) : ctx.lineTo(pw(w), pl(l));
+  }
+  ctx.strokeStyle = c.lnk; ctx.lineWidth = 2; ctx.stroke();
+
+  // Minimum marker
+  ctx.strokeStyle = c.suc; ctx.lineWidth = 1; ctx.setLineDash([4,3]);
+  ctx.beginPath(); ctx.moveTo(pw(2), PAD.t); ctx.lineTo(pw(2), PAD.t+pH); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = c.suc; ctx.font = '9px IBM Plex Mono,monospace'; ctx.textAlign = 'center';
+  ctx.fillText('global min', pw(2), PAD.t+12);
+
+  // Path taken
+  if(gdHistory.length > 1){
+    ctx.beginPath();
+    gdHistory.forEach((h,i) => {
+      const lv = Math.min(h.loss, LMAX);
+      i === 0 ? ctx.moveTo(pw(h.w), pl(lv)) : ctx.lineTo(pw(h.w), pl(lv));
+    });
+    ctx.strokeStyle = c.ac; ctx.lineWidth = 2; ctx.stroke();
+  }
+
+  // Current point
+  const curLoss = Math.min(gdLoss(gdW), LMAX);
+  ctx.beginPath(); ctx.arc(pw(gdW), pl(curLoss), 6, 0, Math.PI*2);
+  ctx.fillStyle = c.ac; ctx.fill();
+  ctx.strokeStyle = c.bg; ctx.lineWidth = 2; ctx.stroke();
+
+  // Axes
+  ctx.strokeStyle = c.ax; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(PAD.l,PAD.t); ctx.lineTo(PAD.l,PAD.t+pH); ctx.lineTo(PAD.l+pW,PAD.t+pH); ctx.stroke();
+
+  ctx.fillStyle = c.ax; ctx.font = '9px IBM Plex Mono,monospace'; ctx.textAlign = 'center';
+  [-1,0,1,2,3,4,5,6].forEach(v => ctx.fillText(v, pw(v), PAD.t+pH+14));
+  ctx.fillText('weight w →', PAD.l+pW/2, H-2);
+  ctx.textAlign = 'right';
+  [0, 0.5, 1.0, 1.5].forEach(v => ctx.fillText(v.toFixed(1), PAD.l-4, pl(v)+3));
+}
+
+resetGD();
+
+/* ── S6: Regularization viz ── */
+function updateRegViz(){
+  const C = parseInt(document.getElementById('regCSlider').value) / 100;
+  document.getElementById('regCVal').textContent = C.toFixed(2);
+
+  // Simulate weights under different regularization
+  const lambda = 1/C;
+  // Hypothetical weights before reg
+  const rawW = [2.8, -1.9, 3.4, -2.1, 1.5, -3.0, 2.3, -1.2];
+  const regW = rawW.map(w => w / (1 + lambda * 0.5));
+  const norm = Math.sqrt(regW.reduce((s,w) => s + w*w, 0)).toFixed(2);
+
+  document.getElementById('regNorm').textContent = norm;
+
+  let level, outcome;
+  if(C < 0.1){ level = 'Very Strong'; outcome = 'Underfitting'; }
+  else if(C < 0.3){ level = 'Strong'; outcome = 'Low variance'; }
+  else if(C < 0.7){ level = 'Medium'; outcome = 'Balanced ✓'; }
+  else if(C < 0.9){ level = 'Weak'; outcome = 'Watch variance'; }
+  else { level = 'None'; outcome = 'Overfitting risk'; }
+  document.getElementById('regLevel').textContent = level;
+  document.getElementById('regOutcome').textContent = outcome;
+
+  drawRegCanvas(rawW, regW, C);
+}
+
+function drawRegCanvas(rawW, regW, C){
+  const canvas = document.getElementById('regCanvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const c = getC();
+  const PAD = { t:16, b:20, l:16, r:16 };
+  const pW = W - PAD.l - PAD.r, pH = H - PAD.t - PAD.b;
+  const n = rawW.length;
+  const barW = pW / (n * 2.5);
+
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = c.bg; ctx.fillRect(0,0,W,H);
+
+  const maxVal = Math.max(...rawW.map(Math.abs));
+  const midY = PAD.t + pH * 0.5;
+  const scl = (pH * 0.45) / maxVal;
+
+  // Zero line
+  ctx.strokeStyle = c.grid; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(PAD.l, midY); ctx.lineTo(PAD.l+pW, midY); ctx.stroke();
+
+  const slotW = pW / n;
+  rawW.forEach((rw, i) => {
+    const rx = PAD.l + i * slotW + slotW * 0.15;
+    const rx2 = PAD.l + i * slotW + slotW * 0.15 + barW + 4;
+    const rhW = rw * scl;
+    const reH = regW[i] * scl;
+
+    // Raw bar (faded)
+    ctx.fillStyle = c.lnk + '55';
+    ctx.fillRect(rx, rw >= 0 ? midY - rhW : midY, barW, Math.abs(rhW));
+
+    // Regularized bar
+    ctx.fillStyle = c.ac;
+    ctx.fillRect(rx2, regW[i] >= 0 ? midY - reH : midY, barW, Math.abs(reH));
+  });
+
+  // Legend
+  ctx.font = '9px IBM Plex Mono,monospace'; ctx.textAlign = 'left';
+  ctx.fillStyle = c.lnk + '88'; ctx.fillRect(PAD.l, PAD.t, 10, 7);
+  ctx.fillStyle = c.axs || c.ax; ctx.fillText('No reg', PAD.l+14, PAD.t+7);
+  ctx.fillStyle = c.ac; ctx.fillRect(PAD.l+55, PAD.t, 10, 7);
+  ctx.fillStyle = c.ax; ctx.fillText('With reg (C='+C.toFixed(2)+')', PAD.l+69, PAD.t+7);
+}
+updateRegViz();
+
+/* ── S7: Spam classifier ── */
+function updateSpam(){
+  const f1 = parseInt(document.getElementById('f1').value);
+  const f2 = parseInt(document.getElementById('f2').value);
+  const f3 = parseInt(document.getElementById('f3').value);
+  const f4 = parseInt(document.getElementById('f4').value);
+
+  document.getElementById('f1v').textContent = f1;
+  document.getElementById('f2v').textContent = f2;
+  document.getElementById('f3v').textContent = f3 === 1 ? 'Yes' : 'No';
+  document.getElementById('f4v').textContent = (f4/10).toFixed(1);
+
+  const z = -2.1 + 1.8*f1 + 2.3*f2 - 3.1*f3 + 1.4*(f4/10);
+  const prob = sig(z);
+
+  document.getElementById('spamFormula').textContent =
+    `z = −2.1 + 1.8(${f1}) + 2.3(${f2}) − 3.1(${f3}) + 1.4(${(f4/10).toFixed(1)}) = ${z.toFixed(2)}`;
+
+  const pct = (prob * 100).toFixed(1);
+  document.getElementById('probBar').style.width = pct + '%';
+  document.getElementById('probBar').style.background = prob > 0.5 ? 'var(--error)' : 'var(--success)';
+  document.getElementById('probVal').textContent = prob.toFixed(3);
+  document.getElementById('probVal').style.color = prob > 0.5 ? 'var(--error)' : 'var(--success)';
+
+  if(prob > 0.8) document.getElementById('probVerdict').textContent = '→ SPAM (confident)';
+  else if(prob > 0.5) document.getElementById('probVerdict').textContent = '→ SPAM (unsure)';
+  else if(prob > 0.2) document.getElementById('probVerdict').textContent = '→ NOT SPAM (unsure)';
+  else document.getElementById('probVerdict').textContent = '→ NOT SPAM (confident)';
+}
+updateSpam();
+
+/* ── S8: Softmax ── */
+function updateSoftmax(){
+  const z1 = parseFloat(document.getElementById('sm1').value);
+  const z2 = parseFloat(document.getElementById('sm2').value);
+  const z3 = parseFloat(document.getElementById('sm3').value);
+
+  document.getElementById('sm1v').textContent = z1.toFixed(1);
+  document.getElementById('sm2v').textContent = z2.toFixed(1);
+  document.getElementById('sm3v').textContent = z3.toFixed(1);
+
+  const e1 = Math.exp(z1), e2 = Math.exp(z2), e3 = Math.exp(z3);
+  const total = e1 + e2 + e3;
+  const p1 = e1/total, p2 = e2/total, p3 = e3/total;
+
+  document.getElementById('smPA').textContent = p1.toFixed(3);
+  document.getElementById('smPB').textContent = p2.toFixed(3);
+  document.getElementById('smPC').textContent = p3.toFixed(3);
+  document.getElementById('smSum').textContent = (p1+p2+p3).toFixed(3);
+
+  drawSoftmaxCanvas(p1, p2, p3);
+}
+
+function drawSoftmaxCanvas(p1, p2, p3){
+  const canvas = document.getElementById('softmaxCanvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const c = getC();
+  const PAD = { t:20, b:20, l:16, r:16 };
+  const pW = W - PAD.l - PAD.r, pH = H - PAD.t - PAD.b;
+
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = c.bg; ctx.fillRect(0,0,W,H);
+
+  const probs = [p1, p2, p3];
+  const cols = [c.ac, c.lnk, c.suc];
+  const labels = ['Class A', 'Class B', 'Class C'];
+  const barH = pH / 3 - 4;
+
+  probs.forEach((p, i) => {
+    const y = PAD.t + i * (barH + 4);
+    // Background bar
+    ctx.fillStyle = c.bg2;
+    ctx.fillRect(PAD.l + 70, y, pW - 70, barH);
+    // Filled bar
+    ctx.fillStyle = cols[i];
+    ctx.fillRect(PAD.l + 70, y, (pW - 70) * p, barH);
+    // Label
+    ctx.fillStyle = c.txs || c.ax;
+    ctx.font = '10px IBM Plex Mono,monospace'; ctx.textAlign = 'left';
+    ctx.fillText(labels[i], PAD.l, y + barH/2 + 3);
+    // Probability text
+    ctx.textAlign = 'right';
+    ctx.fillStyle = i === probs.indexOf(Math.max(...probs)) ? cols[i] : c.ax;
+    ctx.font = '11px IBM Plex Mono,monospace';
+    ctx.fillText((p*100).toFixed(1)+'%', W - PAD.r, y + barH/2 + 3);
+    // Winner tag
+    if(i === probs.indexOf(Math.max(...probs))){
+      ctx.fillStyle = cols[i];
+      ctx.fillRect(PAD.l + 70 + (pW-70)*p - 2, y, 3, barH);
+    }
+  });
+}
+updateSoftmax();
+
+/* ── Code Protection ── */
+(function(){
+  var _p=function(e){e.preventDefault();return false;};
+  document.addEventListener('contextmenu',_p);
+  document.addEventListener('keydown',function(e){
+    var k=(e.key||'').toUpperCase(),c=e.ctrlKey||e.metaKey,s=e.shiftKey;
+    if(e.key==='F12'||(c&&s&&['I','J','C','K'].includes(k))||(c&&['U','S','P'].includes(k))){
+      e.preventDefault();return false;
+    }
+  },true);
+  document.addEventListener('dragstart',_p);
+  function _dt(){
+    var dw=window.outerWidth-window.innerWidth>200,dh=window.outerHeight-window.innerHeight>200;
+    var el=document.getElementById('_dtWarn');
+    if(dw||dh){
+      document.body.style.filter='blur(18px)';document.body.style.pointerEvents='none';
+      if(!el){var d=document.createElement('div');d.id='_dtWarn';
+        d.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(22,22,22,.97);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;font-family:"IBM Plex Mono",monospace';
+        d.innerHTML='<div style="font-size:11px;letter-spacing:.14em;color:#ff8389;text-transform:uppercase">&#8856; Inspect Disabled</div><div style="font-size:10px;letter-spacing:.08em;color:#6f6f6f">Close developer tools to continue</div>';
+        document.body.appendChild(d);}
+    }else{
+      document.body.style.filter='';document.body.style.pointerEvents='';if(el)el.remove();
+    }
+  }
+  setInterval(_dt,900);
+})();
+</script>
+</body>
+</html>

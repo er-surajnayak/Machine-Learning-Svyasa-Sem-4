@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Model Evaluation Metrics | Module 2</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;1,300&family=IBM+Plex+Serif:ital,wght@0,300;1,300&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#161616;--layer-01:#262626;--layer-02:#393939;--layer-03:#525252;
+  --hover-01:#333333;--bdr-00:#393939;--bdr-01:#474747;--bdr-str:#6f6f6f;
+  --txt-pri:#f4f4f4;--txt-sec:#c6c6c6;--txt-ph:#6f6f6f;
+  --blue:#4589ff;--link:#78a9ff;--success:#42be65;--warn:#f1c21b;--error:#ff8389;--teal:#3ddbd9;--purple:#d4bbff;
+  /* Topic 1 accent = blue */
+  --ac:#4589ff;
+}
+html.light{
+  --bg:#fff;--layer-01:#f4f4f4;--layer-02:#e0e0e0;--layer-03:#c6c6c6;
+  --hover-01:#e8e8e8;--bdr-00:#e0e0e0;--bdr-01:#c6c6c6;--bdr-str:#8d8d8d;
+  --txt-pri:#161616;--txt-sec:#525252;--txt-ph:#8d8d8d;
+  --blue:#0f62fe;--link:#0043ce;--success:#198038;--warn:#b28600;--error:#da1e28;--teal:#007d79;--purple:#6929c4;
+  --ac:#0f62fe;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'IBM Plex Sans',sans-serif;font-size:15px;line-height:1.5;background:var(--bg);color:var(--txt-pri);-webkit-font-smoothing:antialiased;transition:background .25s,color .2s}
+a{text-decoration:none;color:inherit}
+
+/* Layout */
+.page-grid{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+
+/* Sidenav */
+.sidenav{background:var(--layer-01);border-right:1px solid var(--bdr-00);position:sticky;top:0;height:100vh;overflow-y:auto;padding-bottom:32px;transition:background .25s,border-color .2s}
+.nav-hdr{padding:16px;border-bottom:1px solid var(--bdr-00);margin-bottom:4px}
+.nav-back{display:flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph);letter-spacing:.06em;margin-bottom:8px;transition:color .15s}
+.nav-back:hover{color:var(--link)}
+.nav-mod{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;color:var(--ac);text-transform:uppercase;margin-bottom:3px}
+.nav-title{font-size:13px;font-weight:600;color:var(--txt-pri);line-height:1.3}
+.nav-sec{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;color:var(--txt-ph);text-transform:uppercase;padding:12px 16px 4px}
+.nav-item{display:flex;align-items:center;gap:8px;padding:8px 16px;font-size:13px;color:var(--txt-sec);cursor:pointer;border-left:3px solid transparent;transition:background .1s,color .1s,border-color .1s;text-decoration:none}
+.nav-item:hover{background:var(--hover-01);color:var(--txt-pri)}
+.nav-item.active{background:var(--hover-01);color:var(--txt-pri);border-left-color:var(--ac);font-weight:600}
+.nav-item.active .nn{color:var(--ac)}
+.nn{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--txt-ph);min-width:16px;transition:color .15s}
+.tog-area{padding:20px 16px 0}
+.tog-btn{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding:8px 10px;background:var(--layer-02);border:1px solid var(--bdr-01);cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-sec);letter-spacing:.05em;transition:background .15s}
+.tog-btn:hover{background:var(--hover-01);color:var(--txt-pri)}
+.tog-track{width:26px;height:13px;background:var(--bdr-str);border-radius:7px;position:relative;flex-shrink:0;transition:background .25s}
+.tog-thumb{position:absolute;top:2px;left:2px;width:9px;height:9px;border-radius:50%;background:#fff;transition:transform .25s}
+html.light .tog-track{background:var(--ac)}
+html.light .tog-thumb{transform:translateX(13px)}
+
+/* Mobile topbar */
+.mob-topbar{display:none;position:fixed;top:0;left:0;right:0;z-index:200;height:52px;background:var(--layer-01);border-bottom:1px solid var(--bdr-00);align-items:center;padding:0 16px;gap:8px;transition:background .25s}
+.mob-menu-btn{width:34px;height:34px;background:transparent;border:1px solid var(--bdr-01);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-direction:column;gap:4px}
+.mob-bar{width:14px;height:1.5px;background:var(--txt-pri);transition:transform .25s,opacity .25s}
+.mob-title{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--txt-pri);flex:1;letter-spacing:.04em}
+.mob-tog{width:34px;height:34px;background:transparent;border:1px solid var(--bdr-01);cursor:pointer;font-size:14px;color:var(--txt-sec)}
+
+/* Drawer */
+.nav-overlay{display:none;position:fixed;inset:0;z-index:150;background:rgba(0,0,0,.6);opacity:0;transition:opacity .25s}
+.nav-overlay.open{opacity:1}
+.nav-drawer{position:fixed;left:0;top:0;bottom:0;z-index:160;width:260px;background:var(--layer-01);border-right:1px solid var(--bdr-00);overflow-y:auto;transform:translateX(-100%);transition:transform .3s cubic-bezier(.4,0,.2,1);padding-bottom:32px}
+.nav-drawer.open{transform:translateX(0)}
+
+/* Main */
+.main{padding:0 48px 100px;max-width:820px;transition:background .25s}
+.page-hdr{padding:52px 0 40px;border-bottom:1px solid var(--bdr-00);margin-bottom:52px}
+.breadcrumb{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-ph);letter-spacing:.05em;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.breadcrumb a{color:var(--link);transition:opacity .15s}.breadcrumb a:hover{opacity:.7}
+h1{font-family:'IBM Plex Serif',serif;font-size:clamp(34px,5vw,54px);font-weight:300;line-height:1.15;color:var(--txt-pri);margin-bottom:12px}
+h1 em{font-style:italic;color:var(--link)}
+.hdr-desc{font-size:15px;font-weight:300;color:var(--txt-sec);max-width:580px;line-height:1.7}
+
+/* Sections */
+.section{margin-bottom:60px;opacity:0;transform:translateY(14px);animation:fadeUp .4s ease forwards}
+.section:nth-child(1){animation-delay:.05s}.section:nth-child(2){animation-delay:.1s}
+.section:nth-child(3){animation-delay:.15s}.section:nth-child(4){animation-delay:.2s}
+.section:nth-child(5){animation-delay:.25s}.section:nth-child(6){animation-delay:.3s}
+.section:nth-child(7){animation-delay:.35s}.section:nth-child(8){animation-delay:.4s}
+.section:nth-child(9){animation-delay:.45s}
+@keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
+
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;color:var(--ac);text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.eyebrow::before{content:'';display:inline-block;width:14px;height:1px;background:var(--ac)}
+h2{font-family:'IBM Plex Serif',serif;font-size:24px;font-weight:300;color:var(--txt-pri);margin-bottom:14px;line-height:1.25}
+h3{font-size:15px;font-weight:600;color:var(--txt-pri);margin-bottom:8px}
+p{font-size:14px;font-weight:300;color:var(--txt-sec);margin-bottom:12px;line-height:1.75}
+p strong{color:var(--txt-pri);font-weight:600}
+.hl{color:var(--link);font-weight:600}
+.hl-g{color:var(--success);font-weight:600}
+.hl-r{color:var(--error);font-weight:600}
+.hl-y{color:var(--warn);font-weight:600}
+.hl-t{color:var(--teal);font-weight:600}
+.hl-p{color:var(--purple);font-weight:600}
+
+/* Callout */
+.callout{border-left:3px solid var(--ac);background:var(--layer-01);padding:14px 18px;margin:14px 0;font-size:14px;font-weight:300;color:var(--txt-sec);line-height:1.75;transition:background .25s}
+.callout strong{color:var(--txt-pri);font-weight:600}
+.callout-g{border-left-color:var(--success)}.callout-y{border-left-color:var(--warn)}.callout-r{border-left-color:var(--error)}
+
+/* Tile */
+.tile{background:var(--layer-01);border:1px solid var(--bdr-00);padding:20px 24px;margin-bottom:12px;transition:background .25s,border-color .2s}
+.tile-title{font-size:13px;font-weight:600;color:var(--txt-pri);margin-bottom:12px}
+
+/* Grid */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--bdr-00);border:1px solid var(--bdr-00);margin:14px 0}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--bdr-00);border:1px solid var(--bdr-00);margin:14px 0}
+.grid4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:1px;background:var(--bdr-00);border:1px solid var(--bdr-00);margin:14px 0}
+.gcell{background:var(--layer-01);padding:20px 22px;transition:background .25s}
+
+/* KV */
+.kv{display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--bdr-00);font-size:13px;gap:12px;transition:border-color .2s}
+.kv:last-child{border-bottom:none}
+.kk{color:var(--txt-sec);font-weight:300;flex-shrink:0}
+.kv-v{color:var(--txt-pri);font-weight:400;text-align:right}
+
+/* Tag */
+.tag{display:inline-flex;align-items:center;height:22px;padding:0 10px;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.03em;margin-bottom:10px}
+.t-bl{background:#0043ce;color:#a6c8ff}.t-gr{background:#044317;color:#a7f0ba}
+.t-pu{background:#491d8b;color:#d4bbff}.t-am{background:#533b00;color:#f1c21b}
+.t-te{background:#005d5d;color:#3ddbd9}.t-re{background:#750e13;color:#ffb3b8}
+html.light .t-bl{background:#d0e2ff;color:#0043ce}
+html.light .t-gr{background:#a7f0ba;color:#044317}
+html.light .t-pu{background:#e8daff;color:#491d8b}
+html.light .t-am{background:#ffd6a4;color:#4d3800}
+html.light .t-te{background:#9ef0f0;color:#005d5d}
+html.light .t-re{background:#ffd7d9;color:#750e13}
+
+/* Formula */
+.formula{font-family:'IBM Plex Mono',monospace;font-size:13px;background:var(--layer-02);border:1px solid var(--bdr-01);border-left:3px solid var(--ac);padding:11px 15px;margin:10px 0;line-height:2;color:var(--txt-pri);transition:background .25s}
+
+/* Table */
+.dtbl{width:100%;border-collapse:collapse;margin:8px 0;font-size:13px}
+.dtbl thead tr{background:var(--layer-02);border-bottom:1px solid var(--bdr-str)}
+.dtbl th{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--txt-sec);padding:9px 14px;text-align:left}
+.dtbl td{padding:9px 14px;border-bottom:1px solid var(--bdr-00);color:var(--txt-pri);vertical-align:middle}
+.dtbl tbody tr:hover{background:var(--hover-01)}
+
+/* HR */
+hr{border:none;border-top:1px solid var(--bdr-00);margin:44px 0;transition:border-color .2s}
+
+/* Quiz */
+.quiz-wrap{background:var(--layer-01);border:1px solid var(--bdr-00);padding:20px 24px;margin:16px 0}
+.quiz-q{font-size:14px;font-weight:600;color:var(--txt-pri);margin-bottom:14px}
+.quiz-options{display:flex;flex-direction:column;gap:8px}
+.quiz-opt{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--layer-02);border:1px solid var(--bdr-01);cursor:pointer;font-size:13px;color:var(--txt-sec);transition:background .15s,border-color .15s}
+.quiz-opt:hover{background:var(--hover-01);color:var(--txt-pri)}
+.quiz-opt.correct{background:rgba(66,190,101,.12);border-color:var(--success);color:var(--success)}
+.quiz-opt.wrong{background:rgba(255,131,137,.1);border-color:var(--error);color:var(--error)}
+.quiz-opt.show-correct{background:rgba(66,190,101,.06);border-color:var(--success)}
+.quiz-feedback{margin-top:12px;padding:10px 14px;font-size:13px;font-weight:300;line-height:1.6;display:none;border-left:3px solid var(--success)}
+.quiz-feedback.show{display:block}
+.quiz-reset{margin-top:10px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--link);cursor:pointer;letter-spacing:.05em;background:transparent;border:none;display:none}
+.quiz-reset.show{display:block}
+
+/* Confusion matrix */
+.cm-grid{display:grid;grid-template-columns:auto 1fr 1fr;gap:1px;background:var(--bdr-00);border:1px solid var(--bdr-00);margin:14px 0;font-family:'IBM Plex Mono',monospace;font-size:12px}
+.cm-cell{background:var(--layer-01);padding:16px 18px;text-align:center;transition:background .25s}
+.cm-header{background:var(--layer-02);padding:10px 14px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--txt-ph);display:flex;align-items:center;justify-content:center}
+.cm-tp{background:rgba(66,190,101,.15)}
+.cm-tn{background:rgba(66,190,101,.08)}
+.cm-fp{background:rgba(255,131,137,.12)}
+.cm-fn{background:rgba(255,131,137,.12)}
+.cm-big{font-size:18px;font-weight:600;display:block;margin-bottom:4px}
+.cm-sub{font-size:10px;letter-spacing:.06em;color:var(--txt-ph);text-transform:uppercase}
+
+/* Interactive slider */
+.slider-wrap{margin:14px 0}
+.slider-row{display:flex;align-items:center;gap:14px;margin-bottom:10px}
+.slider-lbl{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-ph);min-width:52px}
+input[type=range]{-webkit-appearance:none;appearance:none;flex:1;height:2px;background:var(--bdr-str);outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;background:var(--ac);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;background:var(--ac);border:none;cursor:pointer}
+.slider-val{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--ac);min-width:36px;text-align:right}
+
+/* Metric output row */
+.metric-row{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:1px;background:var(--bdr-00);border:1px solid var(--bdr-00);margin-top:16px}
+.metric-cell{background:var(--layer-01);padding:14px 16px;text-align:center;transition:background .25s}
+.metric-lbl{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--txt-ph);margin-bottom:6px}
+.metric-val{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;line-height:1}
+.metric-note{font-size:10px;color:var(--txt-ph);margin-top:5px;font-weight:300}
+
+/* ROC Canvas */
+.roc-wrap{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;margin:14px 0}
+.roc-box{background:var(--layer-01);border:1px solid var(--bdr-00);padding:14px}
+canvas{display:block;width:100%;height:auto}
+.roc-stat-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--bdr-00);font-size:13px}
+.roc-stat-row:last-child{border-bottom:none}
+.roc-stat-lbl{color:var(--txt-sec);font-weight:300}
+.roc-stat-val{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--ac)}
+
+/* Collapsible comp card */
+.comp-card{background:var(--layer-01);border:1px solid var(--bdr-00);margin-bottom:2px;transition:background .15s}
+.comp-card-hdr{display:flex;align-items:center;gap:10px;padding:14px 18px;cursor:pointer}
+.comp-card-icon{width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;flex-shrink:0}
+.comp-card-title{font-size:14px;font-weight:600;color:var(--txt-pri);flex:1}
+.comp-card-arrow{font-size:10px;color:var(--txt-ph);transition:transform .2s}
+.comp-card.open .comp-card-arrow{transform:rotate(90deg)}
+.comp-card-body{padding:0 18px 16px;font-size:13px;font-weight:300;color:var(--txt-sec);line-height:1.75;display:none;border-top:1px solid var(--bdr-00);margin:0 18px;padding-top:14px}
+.comp-card.open .comp-card-body{display:block}
+
+/* Bottom nav */
+.page-nav{display:flex;justify-content:space-between;align-items:center;padding-top:40px;border-top:1px solid var(--bdr-00);margin-top:60px}
+.page-nav-btn{display:flex;align-items:center;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-sec);padding:10px 16px;border:1px solid var(--bdr-01);background:transparent;cursor:pointer;transition:background .15s,color .15s;text-decoration:none}
+.page-nav-btn:hover{background:var(--hover-01);color:var(--txt-pri)}
+.page-nav-btn.primary{background:var(--ac);border-color:var(--ac);color:#fff}
+.page-nav-btn.primary:hover{opacity:.9}
+
+/* Responsive */
+@media(max-width:767px){
+  .mob-topbar{display:flex}
+  .sidenav{display:none}
+  .page-grid{display:block}
+  .main{padding:68px 16px 80px;max-width:100%}
+  .page-hdr{padding:24px 0 20px;margin-bottom:32px}
+  h1{font-size:24px}
+  .grid2,.grid3,.grid4,.metric-row,.roc-wrap{grid-template-columns:1fr}
+  hr{margin:28px 0}
+}
+@media(min-width:768px) and (max-width:1024px){
+  .page-grid{grid-template-columns:200px 1fr}
+  .main{padding:0 24px 80px}
+  .grid3,.grid4{grid-template-columns:1fr 1fr}
+  .metric-row{grid-template-columns:1fr 1fr}
+}
+
+/* Code protection */
+*{-webkit-user-select:none;user-select:none;-moz-user-select:none;-ms-user-select:none}
+input,textarea,select{-webkit-user-select:text;user-select:text}
+@media print{body{display:none!important;visibility:hidden!important}}
+img{-webkit-user-drag:none;user-drag:none;pointer-events:none}
+</style>
+</head>
+<body>
+
+<!-- Mobile topbar -->
+<div class="mob-topbar" id="mob-topbar">
+  <button class="mob-menu-btn" onclick="toggleDrawer()" aria-label="Menu">
+    <div class="mob-bar"></div><div class="mob-bar"></div><div class="mob-bar"></div>
+  </button>
+  <span class="mob-title">Evaluation Metrics</span>
+  <button class="mob-tog" onclick="toggleTheme()" id="mob-tog">☀</button>
+</div>
+<div class="nav-overlay" id="nav-overlay" onclick="closeDrawer()"></div>
+<nav class="nav-drawer" id="nav-drawer"></nav>
+
+<div class="page-grid">
+
+<!-- ── SIDENAV ── -->
+<nav class="sidenav" id="sidenav">
+  <div class="nav-hdr">
+    <a class="nav-back" href="index.html">← Module 2</a>
+    <div class="nav-mod">Topic 01</div>
+    <div class="nav-title">Model Evaluation Metrics</div>
+  </div>
+  <div class="nav-sec">Sections</div>
+  <a class="nav-item active" href="#s1"><span class="nn">01</span>Why accuracy lies</a>
+  <a class="nav-item" href="#s2"><span class="nn">02</span>Confusion matrix</a>
+  <a class="nav-item" href="#s3"><span class="nn">03</span>Precision & Recall</a>
+  <a class="nav-item" href="#s4"><span class="nn">04</span>F1-Score</a>
+  <a class="nav-item" href="#s5"><span class="nn">05</span>ROC curve & AUC</a>
+  <a class="nav-item" href="#s6"><span class="nn">06</span>Choosing the right metric</a>
+  <a class="nav-item" href="#s7"><span class="nn">07</span>Interactive calculator</a>
+  <a class="nav-item" href="#s8"><span class="nn">08</span>Quick quiz</a>
+  <div class="tog-area">
+    <button class="tog-btn" onclick="toggleTheme()">
+      <span style="display:flex;align-items:center;gap:6px"><span id="tog-icon">☀</span><span id="tog-txt">Light theme</span></span>
+      <span class="tog-track"><span class="tog-thumb"></span></span>
+    </button>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph);margin-top:10px;line-height:1.6">IBM Carbon · <span id="theme-lbl">Dark</span></div>
+  </div>
+</nav>
+
+<!-- ── MAIN ── -->
+<main class="main">
+<div class="page-hdr">
+  <div class="breadcrumb">
+    <a href="../index.html">Home</a> <span>/</span>
+    <a href="index.html">Module 2</a> <span>/</span>
+    <span style="color:var(--txt-sec)">Model Evaluation Metrics</span>
+  </div>
+  <h1>Model Evaluation<br><em>Metrics</em></h1>
+  <p class="hdr-desc">Your model says it's 99% accurate. But does it actually work? This topic breaks down every metric you need to truly measure a classifier — from the confusion matrix to ROC curves.</p>
+</div>
+
+<!-- ══════════ S1: WHY ACCURACY LIES ══════════ -->
+<div class="section" id="s1">
+  <div class="eyebrow">01 · The problem</div>
+  <h2>Why accuracy alone lies</h2>
+  <p>Let's start with a story. A weather app in Bangalore predicts <strong>"No Rain"</strong> every single day of the year. Out of 365 days, 300 are actually dry. So the app gets 300 out of 365 correct — that's <strong>82% accuracy</strong>. Impressive? Not at all. It's completely useless for deciding whether to carry an umbrella.</p>
+
+  <div class="callout callout-r">
+    <strong>The trap:</strong> When data is imbalanced — more of one class than the other — a model that just predicts the majority class every time will score high accuracy while learning absolutely nothing.
+  </div>
+
+  <div class="grid2">
+    <div class="gcell">
+      <div class="tag t-re">Real-world example</div>
+      <div class="kv"><span class="kk">Dataset</span><span class="kv-v">10,000 transactions</span></div>
+      <div class="kv"><span class="kk">Legitimate</span><span class="kv-v" style="color:var(--success)">9,900</span></div>
+      <div class="kv"><span class="kk">Fraudulent</span><span class="kv-v" style="color:var(--error)">100</span></div>
+      <div class="kv"><span class="kk">Lazy model says</span><span class="kv-v" style="color:var(--warn)">"Not Fraud" always</span></div>
+    </div>
+    <div class="gcell">
+      <div class="tag t-bl">The result</div>
+      <div class="kv"><span class="kk">Accuracy</span><span class="kv-v" style="color:var(--success)">99% 🎉</span></div>
+      <div class="kv"><span class="kk">Fraud caught</span><span class="kv-v" style="color:var(--error)">0 of 100</span></div>
+      <div class="kv"><span class="kk">Actually useful?</span><span class="kv-v" style="color:var(--error)">No.</span></div>
+      <div class="kv"><span class="kk">Conclusion</span><span class="kv-v">We need better metrics</span></div>
+    </div>
+  </div>
+
+  <p>We need metrics that measure <strong>what we actually care about</strong>. That's where the confusion matrix comes in.</p>
+</div>
+
+<!-- ══════════ S2: CONFUSION MATRIX ══════════ -->
+<div class="section" id="s2">
+  <div class="eyebrow">02 · The foundation</div>
+  <h2>The Confusion Matrix</h2>
+  <p>Every prediction a classifier makes falls into one of four boxes. The confusion matrix lays them all out. Think of a doctor testing patients for a disease — there are only four possible outcomes.</p>
+
+  <div class="callout callout-g">
+    <strong>Analogy — The Doctor's Test:</strong> Correctly catching a sick patient → <strong>True Positive</strong>. Correctly clearing a healthy one → <strong>True Negative</strong>. Alarming a healthy person → <strong>False Positive</strong> (false alarm). Missing a sick patient → <strong>False Negative</strong> (missed catch). Every single prediction fits one of these four boxes.
+  </div>
+
+  <div class="cm-grid">
+    <!-- Header row -->
+    <div class="cm-header" style="background:transparent;border:none"></div>
+    <div class="cm-header">Predicted Positive</div>
+    <div class="cm-header">Predicted Negative</div>
+    <!-- Row 1 -->
+    <div class="cm-header">Actually Positive</div>
+    <div class="cm-cell cm-tp">
+      <span class="cm-big" style="color:var(--success)">TP</span>
+      <span class="cm-sub">True Positive</span>
+      <p style="font-size:11px;margin:6px 0 0;color:var(--txt-ph)">"Correct catch"</p>
+    </div>
+    <div class="cm-cell cm-fn">
+      <span class="cm-big" style="color:var(--error)">FN</span>
+      <span class="cm-sub">False Negative</span>
+      <p style="font-size:11px;margin:6px 0 0;color:var(--txt-ph)">"Missed catch"<br>Type II Error</p>
+    </div>
+    <!-- Row 2 -->
+    <div class="cm-header">Actually Negative</div>
+    <div class="cm-cell cm-fp">
+      <span class="cm-big" style="color:var(--error)">FP</span>
+      <span class="cm-sub">False Positive</span>
+      <p style="font-size:11px;margin:6px 0 0;color:var(--txt-ph)">"False alarm"<br>Type I Error</p>
+    </div>
+    <div class="cm-cell cm-tn">
+      <span class="cm-big" style="color:var(--success)">TN</span>
+      <span class="cm-sub">True Negative</span>
+      <p style="font-size:11px;margin:6px 0 0;color:var(--txt-ph)">"Correct clear"</p>
+    </div>
+  </div>
+
+  <div class="grid2" style="margin-top:16px">
+    <div class="gcell">
+      <div class="tag t-gr">True Positive (TP)</div>
+      <p style="margin:0;font-size:13px">Model predicted Positive — and it actually is Positive.<br>e.g. Predicted cancer → actually has cancer ✓</p>
+    </div>
+    <div class="gcell">
+      <div class="tag t-gr">True Negative (TN)</div>
+      <p style="margin:0;font-size:13px">Model predicted Negative — and it actually is Negative.<br>e.g. Predicted no cancer → actually healthy ✓</p>
+    </div>
+    <div class="gcell">
+      <div class="tag t-re">False Positive (FP) — Type I</div>
+      <p style="margin:0;font-size:13px">Model predicted Positive — but it's actually Negative.<br>e.g. Predicted cancer → actually healthy ✗</p>
+    </div>
+    <div class="gcell">
+      <div class="tag t-re">False Negative (FN) — Type II</div>
+      <p style="margin:0;font-size:13px">Model predicted Negative — but it's actually Positive.<br>e.g. Predicted healthy → actually has cancer ✗</p>
+    </div>
+  </div>
+
+  <div class="tile">
+    <div class="tile-title">One memory trick</div>
+    <div class="kv"><span class="kk">First word (True/False)</span><span class="kv-v">Was the prediction <strong>correct</strong>?</span></div>
+    <div class="kv"><span class="kk">Second word (Positive/Negative)</span><span class="kv-v">What did the model <strong>predict</strong>?</span></div>
+    <div class="kv"><span class="kk">Example: False Positive</span><span class="kv-v">Wrong prediction of Positive — a false alarm</span></div>
+  </div>
+</div>
+
+<!-- ══════════ S3: PRECISION & RECALL ══════════ -->
+<div class="section" id="s3">
+  <div class="eyebrow">03 · Two opposing forces</div>
+  <h2>Precision & Recall</h2>
+  <p>These two metrics pull in opposite directions. Making one better often makes the other worse. Understanding both is critical.</p>
+
+  <div class="callout callout-g">
+    <strong>Analogy — The Detective vs The Net:</strong> A careful <strong>detective</strong> (high precision) arrests only people they're very sure about — rarely wrong, but may let some criminals escape. A wide <strong>fishing net</strong> (high recall) catches almost every criminal in the city — but also hauls in some innocent people. <strong>You rarely get both at once.</strong>
+  </div>
+
+  <div class="grid2">
+    <div class="gcell">
+      <div class="tag t-bl">Precision</div>
+      <div class="formula" style="margin-bottom:10px">Precision = TP / (TP + FP)</div>
+      <p style="font-size:13px;margin-bottom:8px">Of everything the model called "Positive" — how many actually were?</p>
+      <div class="kv"><span class="kk">Penalizes</span><span class="kv-v" style="color:var(--error)">False Positives (false alarms)</span></div>
+      <div class="kv"><span class="kk">Use when</span><span class="kv-v">FP is costly (spam filter)</span></div>
+      <div class="kv"><span class="kk">Example</span><span class="kv-v">Don't delete legit emails</span></div>
+    </div>
+    <div class="gcell">
+      <div class="tag t-gr">Recall</div>
+      <div class="formula" style="margin-bottom:10px">Recall = TP / (TP + FN)</div>
+      <p style="font-size:13px;margin-bottom:8px">Of all the actual Positives that exist — how many did the model catch?</p>
+      <div class="kv"><span class="kk">Penalizes</span><span class="kv-v" style="color:var(--error)">False Negatives (missed catch)</span></div>
+      <div class="kv"><span class="kk">Use when</span><span class="kv-v">FN is costly (cancer detection)</span></div>
+      <div class="kv"><span class="kk">Example</span><span class="kv-v">Never miss a sick patient</span></div>
+    </div>
+  </div>
+
+  <div class="callout callout-y">
+    <strong>The tradeoff in practice:</strong> Lower your classification threshold → more things predicted Positive → Recall goes up (catch more) but Precision drops (more false alarms). Raise your threshold → fewer Positive predictions → Precision goes up but Recall drops. This is the precision-recall tradeoff.
+  </div>
+
+  <p>Also known as <span class="hl-t">Sensitivity</span> (Recall) and <span class="hl-t">Specificity</span> = TN / (TN + FP) — how well it identifies actual negatives.</p>
+</div>
+
+<!-- ══════════ S4: F1-SCORE ══════════ -->
+<div class="section" id="s4">
+  <div class="eyebrow">04 · The balance</div>
+  <h2>F1-Score</h2>
+  <p>We need one number that captures both precision and recall. The F1-Score does this using the <strong>harmonic mean</strong> — not the regular average.</p>
+
+  <div class="callout">
+    <strong>Analogy — The Strict Judge:</strong> If Precision = 1.0 and Recall = 0.0, the arithmetic mean is 0.5 — that looks okay. But the F1-Score is 0. The harmonic mean <strong>refuses to reward extreme imbalance</strong>. A model that's amazing at one metric but useless at the other scores close to zero on F1. It forces the model to be good at both.
+  </div>
+
+  <div class="formula">F1 = 2 × (Precision × Recall) / (Precision + Recall)</div>
+
+  <div class="grid3">
+    <div class="gcell">
+      <div class="tag t-re">Worst case</div>
+      <div class="kv"><span class="kk">Precision</span><span class="kv-v">1.0</span></div>
+      <div class="kv"><span class="kk">Recall</span><span class="kv-v">0.0</span></div>
+      <div class="kv"><span class="kk">Arithmetic mean</span><span class="kv-v" style="color:var(--warn)">0.50 (misleading)</span></div>
+      <div class="kv"><span class="kk">F1-Score</span><span class="kv-v" style="color:var(--error)">0.00 ← honest</span></div>
+    </div>
+    <div class="gcell">
+      <div class="tag t-am">Mediocre</div>
+      <div class="kv"><span class="kk">Precision</span><span class="kv-v">0.70</span></div>
+      <div class="kv"><span class="kk">Recall</span><span class="kv-v">0.60</span></div>
+      <div class="kv"><span class="kk">Arithmetic mean</span><span class="kv-v">0.65</span></div>
+      <div class="kv"><span class="kk">F1-Score</span><span class="kv-v" style="color:var(--warn)">0.647</span></div>
+    </div>
+    <div class="gcell">
+      <div class="tag t-gr">Good</div>
+      <div class="kv"><span class="kk">Precision</span><span class="kv-v">0.88</span></div>
+      <div class="kv"><span class="kk">Recall</span><span class="kv-v">0.85</span></div>
+      <div class="kv"><span class="kk">Arithmetic mean</span><span class="kv-v">0.865</span></div>
+      <div class="kv"><span class="kk">F1-Score</span><span class="kv-v" style="color:var(--success)">0.865</span></div>
+    </div>
+  </div>
+
+  <p>F1 ranges from <strong>0</strong> (worst) to <strong>1</strong> (perfect). It's the go-to metric whenever class imbalance is present or you need to balance precision and recall.</p>
+</div>
+
+<!-- ══════════ S5: ROC & AUC ══════════ -->
+<div class="section" id="s5">
+  <div class="eyebrow">05 · The full picture</div>
+  <h2>ROC Curve & AUC</h2>
+  <p>Every classifier outputs a <strong>probability</strong> (e.g. 0.73), not just a label. You then pick a threshold: if prob ≥ 0.5 → Positive. But what if you change that threshold?</p>
+
+  <div class="callout callout-g">
+    <strong>Analogy — The Volume Knob:</strong> Lowering the threshold is like turning up the sensitivity dial — you catch more true positives (higher recall) but also flag more false positives. Turning it up catches fewer but with more confidence. The <strong>ROC curve plots this tradeoff at every possible threshold</strong>. AUC (Area Under the Curve) summarizes the whole curve in one score.
+  </div>
+
+  <div class="roc-wrap">
+    <div class="roc-box">
+      <canvas id="rocCanvas" width="280" height="280"></canvas>
+    </div>
+    <div>
+      <div class="slider-wrap">
+        <div class="slider-row">
+          <span class="slider-lbl">Threshold</span>
+          <input type="range" id="rocThresh" min="0" max="100" value="50" oninput="updateROC()">
+          <span class="slider-val" id="rocThreshVal">0.50</span>
+        </div>
+      </div>
+      <div class="tile" style="margin-bottom:0">
+        <div class="roc-stat-row"><span class="roc-stat-lbl">True Positive Rate (Recall)</span><span class="roc-stat-val" id="rTPR">—</span></div>
+        <div class="roc-stat-row"><span class="roc-stat-lbl">False Positive Rate</span><span class="roc-stat-val" id="rFPR">—</span></div>
+        <div class="roc-stat-row"><span class="roc-stat-lbl">AUC score</span><span class="roc-stat-val" style="color:var(--success)">0.87</span></div>
+      </div>
+      <div style="margin-top:12px">
+        <div class="kv"><span class="kk">AUC = 1.0</span><span class="kv-v" style="color:var(--success)">Perfect classifier</span></div>
+        <div class="kv"><span class="kk">AUC = 0.5</span><span class="kv-v" style="color:var(--warn)">Random guessing</span></div>
+        <div class="kv"><span class="kk">AUC &lt; 0.5</span><span class="kv-v" style="color:var(--error)">Worse than random</span></div>
+      </div>
+    </div>
+  </div>
+
+  <p>AUC is <strong>threshold-independent</strong> — it measures overall discrimination power regardless of where you set the cutoff. Perfect for comparing two models head-to-head.</p>
+</div>
+
+<!-- ══════════ S6: WHEN TO USE WHAT ══════════ -->
+<div class="section" id="s6">
+  <div class="eyebrow">06 · Decision guide</div>
+  <h2>Choosing the right metric</h2>
+  <p>There's no universally best metric. The right one depends on <strong>which type of error costs more</strong> in your specific problem.</p>
+
+  <div class="callout callout-y">
+    <strong>The key question to ask:</strong> In my problem, is a <strong>False Positive</strong> (false alarm) or a <strong>False Negative</strong> (missed detection) more dangerous or costly?
+  </div>
+
+  <p>Click each case below to see the reasoning:</p>
+
+  <div class="comp-card open" id="mc1">
+    <div class="comp-card-hdr" onclick="toggleCard('mc1')">
+      <div class="comp-card-icon" style="background:#750e13;color:#ffb3b8">+</div>
+      <div class="comp-card-title">Cancer / Disease Detection</div>
+      <div class="comp-card-arrow">›</div>
+    </div>
+    <div class="comp-card-body">
+      <strong>Worst mistake:</strong> Missing a sick patient (False Negative) → disease goes untreated<br>
+      <strong>Acceptable mistake:</strong> False alarm — patient gets an extra test, not ideal but survivable<br>
+      <strong>Metric to optimize:</strong> <span style="color:var(--success);font-weight:600">Recall (Sensitivity)</span> — catch every possible positive<br>
+      <strong>Logic:</strong> Minimize FN at the cost of more FP
+    </div>
+  </div>
+
+  <div class="comp-card" id="mc2">
+    <div class="comp-card-hdr" onclick="toggleCard('mc2')">
+      <div class="comp-card-icon" style="background:#0043ce;color:#a6c8ff">✉</div>
+      <div class="comp-card-title">Spam Email Filter</div>
+      <div class="comp-card-arrow">›</div>
+    </div>
+    <div class="comp-card-body">
+      <strong>Worst mistake:</strong> Flagging a legitimate email as spam (False Positive) → user misses important mail<br>
+      <strong>Acceptable mistake:</strong> Letting some spam through — annoying, not disastrous<br>
+      <strong>Metric to optimize:</strong> <span style="color:var(--link);font-weight:600">Precision</span> — only flag things you're very sure about<br>
+      <strong>Logic:</strong> Minimize FP at the cost of some FN
+    </div>
+  </div>
+
+  <div class="comp-card" id="mc3">
+    <div class="comp-card-hdr" onclick="toggleCard('mc3')">
+      <div class="comp-card-icon" style="background:#533b00;color:#f1c21b">₹</div>
+      <div class="comp-card-title">Fraud Detection</div>
+      <div class="comp-card-arrow">›</div>
+    </div>
+    <div class="comp-card-body">
+      <strong>Worst mistake:</strong> Both matter — missing fraud costs money; blocking real users destroys trust<br>
+      <strong>Balance needed:</strong> You can't afford to be extreme on either side<br>
+      <strong>Metric to optimize:</strong> <span style="color:var(--warn);font-weight:600">F1-Score</span> — harmonic mean of precision and recall<br>
+      <strong>Logic:</strong> Best single number when both error types matter equally
+    </div>
+  </div>
+
+  <div class="comp-card" id="mc4">
+    <div class="comp-card-hdr" onclick="toggleCard('mc4')">
+      <div class="comp-card-icon" style="background:#005d5d;color:#3ddbd9">≈</div>
+      <div class="comp-card-title">Comparing Two Models</div>
+      <div class="comp-card-arrow">›</div>
+    </div>
+    <div class="comp-card-body">
+      <strong>Goal:</strong> Which model is fundamentally better, independent of threshold choice?<br>
+      <strong>Problem with F1:</strong> Depends on threshold — comparing at different thresholds is unfair<br>
+      <strong>Metric to use:</strong> <span style="color:var(--teal);font-weight:600">AUC-ROC</span> — evaluates across all thresholds<br>
+      <strong>Logic:</strong> Higher AUC = model ranks positives above negatives more consistently
+    </div>
+  </div>
+
+  <div class="tile" style="margin-top:16px">
+    <div class="tile-title">Quick cheat sheet</div>
+    <div class="kv"><span class="kk">FP is very costly</span><span class="kv-v" style="color:var(--link)">Maximize Precision</span></div>
+    <div class="kv"><span class="kk">FN is very costly</span><span class="kv-v" style="color:var(--success)">Maximize Recall</span></div>
+    <div class="kv"><span class="kk">Both matter equally</span><span class="kv-v" style="color:var(--warn)">Maximize F1-Score</span></div>
+    <div class="kv"><span class="kk">Comparing models</span><span class="kv-v" style="color:var(--teal)">Use AUC-ROC</span></div>
+    <div class="kv"><span class="kk">Balanced classes, overall</span><span class="kv-v" style="color:var(--txt-pri)">Accuracy is fine</span></div>
+  </div>
+</div>
+
+<!-- ══════════ S7: INTERACTIVE CALCULATOR ══════════ -->
+<div class="section" id="s7">
+  <div class="eyebrow">07 · Hands-on</div>
+  <h2>Interactive metric calculator</h2>
+  <p>Drag the sliders to change the confusion matrix values. Watch all four metrics update live. Try setting FN = 0 and see what happens to recall.</p>
+
+  <div class="tile">
+    <div class="tile-title">Adjust confusion matrix values</div>
+    <div class="slider-wrap">
+      <div class="slider-row">
+        <span class="slider-lbl" style="color:var(--success)">TP</span>
+        <input type="range" id="sTP" min="0" max="200" value="80" oninput="updateCalc()">
+        <span class="slider-val" id="vTP" style="color:var(--success)">80</span>
+      </div>
+      <div class="slider-row">
+        <span class="slider-lbl" style="color:var(--error)">FP</span>
+        <input type="range" id="sFP" min="0" max="200" value="20" oninput="updateCalc()">
+        <span class="slider-val" id="vFP" style="color:var(--error)">20</span>
+      </div>
+      <div class="slider-row">
+        <span class="slider-lbl" style="color:var(--error)">FN</span>
+        <input type="range" id="sFN" min="0" max="200" value="30" oninput="updateCalc()">
+        <span class="slider-val" id="vFN" style="color:var(--error)">30</span>
+      </div>
+      <div class="slider-row">
+        <span class="slider-lbl" style="color:var(--success)">TN</span>
+        <input type="range" id="sTN" min="0" max="200" value="70" oninput="updateCalc()">
+        <span class="slider-val" id="vTN" style="color:var(--success)">70</span>
+      </div>
+    </div>
+    <div class="metric-row">
+      <div class="metric-cell">
+        <div class="metric-lbl">Accuracy</div>
+        <div class="metric-val" id="mAcc" style="color:var(--txt-pri)">75.0%</div>
+        <div class="metric-note">(TP+TN) / Total</div>
+      </div>
+      <div class="metric-cell">
+        <div class="metric-lbl">Precision</div>
+        <div class="metric-val" id="mPrec" style="color:var(--link)">80.0%</div>
+        <div class="metric-note">TP / (TP+FP)</div>
+      </div>
+      <div class="metric-cell">
+        <div class="metric-lbl">Recall</div>
+        <div class="metric-val" id="mRec" style="color:var(--success)">72.7%</div>
+        <div class="metric-note">TP / (TP+FN)</div>
+      </div>
+      <div class="metric-cell">
+        <div class="metric-lbl">F1-Score</div>
+        <div class="metric-val" id="mF1" style="color:var(--warn)">76.2%</div>
+        <div class="metric-note">2·P·R / (P+R)</div>
+      </div>
+    </div>
+    <div id="calcHint" style="margin-top:12px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-ph);padding:8px 0;border-top:1px solid var(--bdr-00)"></div>
+  </div>
+</div>
+
+<!-- ══════════ S8: QUIZ ══════════ -->
+<div class="section" id="s8">
+  <div class="eyebrow">08 · Check your understanding</div>
+  <h2>Quick quiz</h2>
+  <p>Three questions — test yourself on what you've learned.</p>
+
+  <!-- Q1 -->
+  <div class="quiz-wrap">
+    <div class="quiz-q">1. A fraud detection model predicts "Not Fraud" for all 10,000 transactions (9,900 legit, 100 fraudulent). What is its accuracy?</div>
+    <div class="quiz-options" id="q1-opts">
+      <div class="quiz-opt" onclick="answerQ('q1',0,2,'q1-fb')">A. 50% — misses half the cases</div>
+      <div class="quiz-opt" onclick="answerQ('q1',1,2,'q1-fb')">B. 1% — catastrophic failure</div>
+      <div class="quiz-opt" onclick="answerQ('q1',2,2,'q1-fb')">C. 99% — but catches zero fraud ✓</div>
+      <div class="quiz-opt" onclick="answerQ('q1',3,2,'q1-fb')">D. 90% — good enough for production</div>
+    </div>
+    <div class="quiz-feedback" id="q1-fb">9,900 correct out of 10,000 = 99% accuracy. Looks great on paper. Catches zero fraud. This is why accuracy alone is misleading with imbalanced classes. ✓</div>
+    <button class="quiz-reset" id="q1-reset" onclick="resetQ('q1','q1-fb','q1-reset')">Try again</button>
+  </div>
+
+  <!-- Q2 -->
+  <div class="quiz-wrap">
+    <div class="quiz-q">2. A cancer detection system must never miss a sick patient — it's okay to send some healthy people for extra tests. Which metric should be maximized?</div>
+    <div class="quiz-options" id="q2-opts">
+      <div class="quiz-opt" onclick="answerQ('q2',0,2,'q2-fb')">A. Precision — avoid false alarms</div>
+      <div class="quiz-opt" onclick="answerQ('q2',1,2,'q2-fb')">B. Accuracy — overall correctness</div>
+      <div class="quiz-opt" onclick="answerQ('q2',2,2,'q2-fb')">C. Recall — catch every sick patient ✓</div>
+      <div class="quiz-opt" onclick="answerQ('q2',3,2,'q2-fb')">D. AUC — compare against other models</div>
+    </div>
+    <div class="quiz-feedback" id="q2-fb">Missing a sick patient is a False Negative — the most dangerous error here. Recall = TP / (TP + FN). Maximize Recall to minimize FN, even if FP (false alarms) increases. ✓</div>
+    <button class="quiz-reset" id="q2-reset" onclick="resetQ('q2','q2-fb','q2-reset')">Try again</button>
+  </div>
+
+  <!-- Q3 -->
+  <div class="quiz-wrap">
+    <div class="quiz-q">3. Precision = 1.0, Recall = 0.0. What is the F1-Score?</div>
+    <div class="quiz-options" id="q3-opts">
+      <div class="quiz-opt" onclick="answerQ('q3',0,1,'q3-fb')">A. 0.5 — the arithmetic average</div>
+      <div class="quiz-opt" onclick="answerQ('q3',1,1,'q3-fb')">B. 0.0 — harmonic mean punishes extremes ✓</div>
+      <div class="quiz-opt" onclick="answerQ('q3',2,1,'q3-fb')">C. 1.0 — precision is perfect</div>
+      <div class="quiz-opt" onclick="answerQ('q3',3,1,'q3-fb')">D. Undefined — can't compute with 0</div>
+    </div>
+    <div class="quiz-feedback" id="q3-fb">F1 = 2 × (1.0 × 0.0) / (1.0 + 0.0) = 0. The harmonic mean gives 0 whenever either metric is 0. This is exactly what makes F1 superior to a simple average — it refuses to reward models that are useless at one thing. ✓</div>
+    <button class="quiz-reset" id="q3-reset" onclick="resetQ('q3','q3-fb','q3-reset')">Try again</button>
+  </div>
+</div>
+
+<!-- Bottom nav -->
+<div class="page-nav">
+  <a class="page-nav-btn" href="index.html">← Module 2 overview</a>
+  <a class="page-nav-btn primary" href="decision-tree.html">Next: Decision Tree →</a>
+</div>
+
+</main>
+</div>
+
+<script>
+// ── Theme ──
+let isLight = false;
+function toggleTheme(){
+  isLight = !isLight;
+  document.documentElement.classList.toggle('light', isLight);
+  const i = isLight ? '◑' : '☀', l = isLight ? 'Light' : 'Dark';
+  document.getElementById('tog-icon').textContent = i;
+  document.getElementById('tog-txt').textContent  = l + ' theme';
+  document.getElementById('theme-lbl').textContent = l;
+  const m = document.getElementById('mob-tog'); if(m) m.textContent = i;
+  setTimeout(drawROC, 30);
+}
+
+// ── Collapsible cards ──
+function toggleCard(id){
+  document.getElementById(id).classList.toggle('open');
+}
+
+// ── Quiz ──
+function answerQ(qid, clicked, correct, fbId){
+  const opts = document.getElementById(qid+'-opts').querySelectorAll('.quiz-opt');
+  opts.forEach((o,i)=>{
+    o.style.pointerEvents = 'none';
+    if(i === correct)  o.classList.add('show-correct');
+    if(i === clicked && clicked !== correct) o.classList.add('wrong');
+    if(i === clicked && clicked === correct) o.classList.add('correct');
+  });
+  const fb = document.getElementById(fbId);
+  fb.classList.add('show');
+  fb.style.background = clicked === correct ? 'rgba(66,190,101,.08)' : 'rgba(255,131,137,.08)';
+  fb.style.borderLeftColor = clicked === correct ? 'var(--success)' : 'var(--error)';
+  document.getElementById(qid+'-reset').classList.add('show');
+}
+function resetQ(qid, fbId, resetId){
+  const opts = document.getElementById(qid+'-opts').querySelectorAll('.quiz-opt');
+  opts.forEach(o => { o.style.pointerEvents = ''; o.classList.remove('correct','wrong','show-correct'); });
+  document.getElementById(fbId).classList.remove('show');
+  document.getElementById(resetId).classList.remove('show');
+}
+
+// ── Scroll active nav ──
+const secs = Array.from(document.querySelectorAll('.section[id]'));
+let lastId = '', rafP = false;
+window.addEventListener('scroll', () => {
+  if(rafP) return; rafP = true;
+  requestAnimationFrame(() => {
+    rafP = false;
+    const trigger = window.scrollY + window.innerHeight * .28;
+    let active = secs[0];
+    for(const s of secs){ if(s.offsetTop <= trigger) active = s; else break; }
+    if(active && active.id !== lastId){
+      lastId = active.id;
+      document.querySelectorAll('.nav-item, .drawer-nav-item').forEach(n => {
+        n.classList.toggle('active', n.getAttribute('href') === '#' + active.id);
+      });
+    }
+  });
+}, { passive: true });
+
+// ── Drawer (mobile) ──
+function buildDrawer(){
+  const dr = document.getElementById('nav-drawer');
+  const sn = document.getElementById('sidenav');
+  const cl = sn.cloneNode(true);
+  cl.removeAttribute('id'); cl.removeAttribute('class');
+  cl.querySelectorAll('.nav-item').forEach(el => {
+    el.classList.add('drawer-nav-item');
+    el.addEventListener('click', closeDrawer);
+  });
+  const tog = cl.querySelector('.tog-area'); if(tog) tog.remove();
+  const cb = document.createElement('button');
+  cb.textContent = '✕ Close';
+  cb.style.cssText = 'font-family:"IBM Plex Mono",monospace;font-size:11px;background:transparent;border:none;border-bottom:1px solid var(--bdr-00);color:var(--txt-ph);padding:12px 16px;width:100%;text-align:left;cursor:pointer';
+  cb.onclick = closeDrawer;
+  dr.insertBefore(cb, dr.firstChild);
+  dr.appendChild(cl);
+}
+function toggleDrawer(){
+  const ov = document.getElementById('nav-overlay');
+  const dr = document.getElementById('nav-drawer');
+  if(dr.classList.contains('open')){ closeDrawer(); }
+  else { ov.style.display = 'block'; setTimeout(() => ov.classList.add('open'), 10); dr.classList.add('open'); document.body.style.overflow = 'hidden'; }
+}
+function closeDrawer(){
+  const ov = document.getElementById('nav-overlay');
+  const dr = document.getElementById('nav-drawer');
+  ov.classList.remove('open'); dr.classList.remove('open'); document.body.style.overflow = '';
+  setTimeout(() => { ov.style.display = 'none'; }, 270);
+}
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeDrawer(); });
+document.fonts.ready.then(() => buildDrawer());
+
+// ── Metrics Calculator ──
+function updateCalc(){
+  const TP = +document.getElementById('sTP').value;
+  const FP = +document.getElementById('sFP').value;
+  const FN = +document.getElementById('sFN').value;
+  const TN = +document.getElementById('sTN').value;
+  document.getElementById('vTP').textContent = TP;
+  document.getElementById('vFP').textContent = FP;
+  document.getElementById('vFN').textContent = FN;
+  document.getElementById('vTN').textContent = TN;
+  const total = TP + FP + FN + TN;
+  const acc  = total ? ((TP + TN) / total * 100) : 0;
+  const prec = (TP + FP) ? (TP / (TP + FP) * 100) : 0;
+  const rec  = (TP + FN) ? (TP / (TP + FN) * 100) : 0;
+  const f1   = (prec + rec) ? (2 * prec * rec / (prec + rec)) : 0;
+  document.getElementById('mAcc').textContent  = acc.toFixed(1)  + '%';
+  document.getElementById('mPrec').textContent = prec.toFixed(1) + '%';
+  document.getElementById('mRec').textContent  = rec.toFixed(1)  + '%';
+  document.getElementById('mF1').textContent   = f1.toFixed(1)   + '%';
+  const hint = document.getElementById('calcHint');
+  if(FN === 0)             hint.textContent = '→ FN = 0: perfect recall — catches every positive';
+  else if(FP === 0)        hint.textContent = '→ FP = 0: perfect precision — no false alarms';
+  else if(prec > rec + 20) hint.textContent = '→ High precision, low recall — many missed catches (high FN)';
+  else if(rec > prec + 20) hint.textContent = '→ High recall, low precision — many false alarms (high FP)';
+  else                     hint.textContent = '→ Precision & recall are balanced';
+}
+updateCalc();
+
+// ── ROC Curve ──
+const rocPts = [
+  [0,0],[0.02,0.30],[0.05,0.52],[0.08,0.63],[0.12,0.72],
+  [0.18,0.80],[0.25,0.86],[0.35,0.91],[0.50,0.94],[0.70,0.97],[1,1]
+];
+function lerp(a, b, t){ return a + (b - a) * t; }
+
+function updateROC(){
+  const t = document.getElementById('rocThresh').value / 100;
+  document.getElementById('rocThreshVal').textContent = t.toFixed(2);
+  const idx = (1 - t) * (rocPts.length - 1);
+  const lo = Math.floor(idx), hi = Math.min(lo + 1, rocPts.length - 1);
+  const fpr = lerp(rocPts[lo][0], rocPts[hi][0], idx - lo);
+  const tpr = lerp(rocPts[lo][1], rocPts[hi][1], idx - lo);
+  document.getElementById('rTPR').textContent = (tpr * 100).toFixed(1) + '%';
+  document.getElementById('rFPR').textContent = (fpr * 100).toFixed(1) + '%';
+  drawROC(fpr, tpr);
+}
+
+function drawROC(mFPR, mTPR){
+  const canvas = document.getElementById('rocCanvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const P = 32, pW = W - P * 2, pH = H - P * 2;
+  const lt = document.documentElement.classList.contains('light');
+  const bg   = lt ? '#f4f4f4' : '#262626';
+  const grid = lt ? '#e0e0e0' : '#393939';
+  const diag = lt ? '#c6c6c6' : '#525252';
+  const ax   = '#6f6f6f';
+  const ac   = lt ? '#0f62fe' : '#4589ff';
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+  const px = f => P + f * pW;
+  const py = t => P + (1 - t) * pH;
+  // grid
+  ctx.strokeStyle = grid; ctx.lineWidth = 0.5;
+  [0.25, 0.5, 0.75].forEach(v => {
+    ctx.beginPath(); ctx.moveTo(px(v), P); ctx.lineTo(px(v), P + pH); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(P, py(v)); ctx.lineTo(P + pW, py(v)); ctx.stroke();
+  });
+  // diagonal
+  ctx.strokeStyle = diag; ctx.lineWidth = 1; ctx.setLineDash([5,4]);
+  ctx.beginPath(); ctx.moveTo(px(0), py(0)); ctx.lineTo(px(1), py(1)); ctx.stroke();
+  ctx.setLineDash([]);
+  // fill
+  ctx.beginPath(); ctx.moveTo(px(0), py(0));
+  rocPts.forEach(([f,t]) => ctx.lineTo(px(f), py(t)));
+  ctx.lineTo(px(1), py(0)); ctx.closePath();
+  ctx.fillStyle = lt ? 'rgba(15,98,254,.08)' : 'rgba(69,137,255,.1)'; ctx.fill();
+  // curve
+  ctx.beginPath(); ctx.moveTo(px(rocPts[0][0]), py(rocPts[0][1]));
+  rocPts.forEach(([f,t]) => ctx.lineTo(px(f), py(t)));
+  ctx.strokeStyle = ac; ctx.lineWidth = 2.5; ctx.stroke();
+  // axes
+  ctx.strokeStyle = ax; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(P, P); ctx.lineTo(P, P + pH); ctx.lineTo(P + pW, P + pH); ctx.stroke();
+  // labels
+  ctx.fillStyle = ax; ctx.font = '9px IBM Plex Mono, monospace'; ctx.textAlign = 'center';
+  ctx.fillText('False Positive Rate →', P + pW / 2, H - 4);
+  ctx.save(); ctx.translate(10, P + pH / 2); ctx.rotate(-Math.PI / 2);
+  ctx.fillText('True Positive Rate →', 0, 0); ctx.restore();
+  [0, 0.5, 1].forEach(v => {
+    ctx.textAlign = 'center'; ctx.fillText(v.toFixed(1), px(v), P + pH + 14);
+    ctx.textAlign = 'right';  ctx.fillText(v.toFixed(1), P - 4, py(v) + 3);
+  });
+  // operating point
+  if(mFPR !== undefined){
+    ctx.beginPath(); ctx.arc(px(mFPR), py(mTPR), 5, 0, Math.PI * 2);
+    ctx.fillStyle = '#f1c21b'; ctx.fill();
+    ctx.strokeStyle = bg; ctx.lineWidth = 2; ctx.stroke();
+  }
+}
+updateROC();
+
+// ── Code Protection ──
+(function(){
+  var _p=function(e){e.preventDefault();return false;};
+  document.addEventListener('contextmenu',_p);
+  document.addEventListener('keydown',function(e){
+    var k=(e.key||'').toUpperCase(),c=e.ctrlKey||e.metaKey,s=e.shiftKey;
+    if(e.key==='F12'||(c&&s&&['I','J','C','K'].includes(k))||(c&&['U','S','P'].includes(k))){
+      e.preventDefault();return false;
+    }
+  },true);
+  document.addEventListener('dragstart',_p);
+  function _dt(){
+    var dw=window.outerWidth-window.innerWidth>200,dh=window.outerHeight-window.innerHeight>200;
+    var el=document.getElementById('_dtWarn');
+    if(dw||dh){
+      document.body.style.filter='blur(18px)';document.body.style.pointerEvents='none';
+      if(!el){var d=document.createElement('div');d.id='_dtWarn';
+        d.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(22,22,22,.97);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;font-family:"IBM Plex Mono",monospace';
+        d.innerHTML='<div style="font-size:11px;letter-spacing:.14em;color:#ff8389;text-transform:uppercase">&#8856; Inspect Disabled</div><div style="font-size:10px;letter-spacing:.08em;color:#6f6f6f">Close developer tools to continue</div>';
+        document.body.appendChild(d);}
+    } else {
+      document.body.style.filter='';document.body.style.pointerEvents='';if(el)el.remove();
+    }
+  }
+  setInterval(_dt,900);
+})();
+</script>
+</body>
+</html>

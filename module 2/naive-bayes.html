@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Naive Bayes Classifier | Module 2</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;1,300&family=IBM+Plex+Serif:ital,wght@0,300;1,300&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#161616;--layer-01:#262626;--layer-02:#393939;--layer-03:#525252;
+  --hover-01:#333333;--bdr-00:#393939;--bdr-01:#474747;--bdr-str:#6f6f6f;
+  --txt-pri:#f4f4f4;--txt-sec:#c6c6c6;--txt-ph:#6f6f6f;
+  --blue:#4589ff;--link:#78a9ff;--success:#42be65;--warn:#f1c21b;--error:#ff8389;--teal:#3ddbd9;--purple:#d4bbff;
+  /* Topic 7 accent = pink */
+  --ac:#ff7eb6;
+}
+html.light{
+  --bg:#fff;--layer-01:#f4f4f4;--layer-02:#e0e0e0;--layer-03:#c6c6c6;
+  --hover-01:#e8e8e8;--bdr-00:#e0e0e0;--bdr-01:#c6c6c6;--bdr-str:#8d8d8d;
+  --txt-pri:#161616;--txt-sec:#525252;--txt-ph:#8d8d8d;
+  --blue:#0f62fe;--link:#0043ce;--success:#198038;--warn:#b28600;--error:#da1e28;--teal:#007d79;--purple:#6929c4;
+  --ac:#9f1853;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'IBM Plex Sans',sans-serif;font-size:15px;line-height:1.5;background:var(--bg);color:var(--txt-pri);-webkit-font-smoothing:antialiased;transition:background .25s,color .2s}
+a{text-decoration:none;color:inherit}
+
+/* ── Layout ── */
+.page-grid{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+
+/* ── Sidenav ── */
+.sidenav{background:var(--layer-01);border-right:1px solid var(--bdr-00);position:sticky;top:0;height:100vh;overflow-y:auto;padding-bottom:32px;transition:background .25s,border-color .2s}
+.nav-hdr{padding:16px;border-bottom:1px solid var(--bdr-00);margin-bottom:4px}
+.nav-back{display:flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph);letter-spacing:.06em;margin-bottom:8px;transition:color .15s}
+.nav-back:hover{color:var(--ac)}
+.nav-mod{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;color:var(--ac);text-transform:uppercase;margin-bottom:3px}
+.nav-title{font-size:13px;font-weight:600;color:var(--txt-pri);line-height:1.3}
+.nav-sec{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;color:var(--txt-ph);text-transform:uppercase;padding:12px 16px 4px}
+.nav-item{display:flex;align-items:center;gap:8px;padding:8px 16px;font-size:13px;color:var(--txt-sec);cursor:pointer;border-left:3px solid transparent;transition:background .1s,color .1s,border-color .1s;text-decoration:none}
+.nav-item:hover{background:var(--hover-01);color:var(--txt-pri)}
+.nav-item.active{background:var(--hover-01);color:var(--txt-pri);border-left-color:var(--ac);font-weight:600}
+.nav-item.active .nn{color:var(--ac)}
+.nn{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--txt-ph);min-width:16px;transition:color .15s}
+.tog-area{padding:20px 16px 0}
+.tog-btn{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding:8px 10px;background:var(--layer-02);border:1px solid var(--bdr-01);cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-sec);letter-spacing:.05em;transition:background .15s}
+.tog-btn:hover{background:var(--hover-01);color:var(--txt-pri)}
+.tog-track{width:26px;height:13px;background:var(--bdr-str);border-radius:7px;position:relative;flex-shrink:0;transition:background .25s}
+.tog-thumb{position:absolute;top:2px;left:2px;width:9px;height:9px;border-radius:50%;background:#fff;transition:transform .25s}
+html.light .tog-track{background:var(--ac)}
+html.light .tog-thumb{transform:translateX(13px)}
+
+/* ── Mobile topbar ── */
+.mob-topbar{display:none;position:fixed;top:0;left:0;right:0;z-index:200;height:52px;background:var(--layer-01);border-bottom:1px solid var(--bdr-00);align-items:center;padding:0 16px;gap:8px;transition:background .25s}
+.mob-menu-btn{width:34px;height:34px;background:transparent;border:1px solid var(--bdr-01);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-direction:column;gap:4px}
+.mob-bar{width:14px;height:1.5px;background:var(--txt-pri)}
+.mob-title{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--txt-pri);flex:1;letter-spacing:.04em}
+.mob-tog{width:34px;height:34px;background:transparent;border:1px solid var(--bdr-01);cursor:pointer;font-size:14px;color:var(--txt-sec)}
+
+/* ── Drawer ── */
+.nav-overlay{display:none;position:fixed;inset:0;z-index:150;background:rgba(0,0,0,.6);opacity:0;transition:opacity .25s}
+.nav-overlay.open{opacity:1}
+.nav-drawer{position:fixed;left:0;top:0;bottom:0;z-index:160;width:260px;background:var(--layer-01);border-right:1px solid var(--bdr-00);overflow-y:auto;transform:translateX(-100%);transition:transform .3s cubic-bezier(.4,0,.2,1);padding-bottom:32px}
+.nav-drawer.open{transform:translateX(0)}
+
+/* ── Main ── */
+.main{padding:0 48px 100px;max-width:820px;transition:background .25s}
+.page-hdr{padding:52px 0 40px;border-bottom:1px solid var(--bdr-00);margin-bottom:52px}
+.breadcrumb{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-ph);letter-spacing:.05em;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.breadcrumb a{color:var(--ac);transition:opacity .15s}.breadcrumb a:hover{opacity:.7}
+h1{font-family:'IBM Plex Serif',serif;font-size:clamp(34px,5vw,54px);font-weight:300;line-height:1.15;color:var(--txt-pri);margin-bottom:12px}
+h1 em{font-style:italic;color:var(--ac)}
+.hdr-desc{font-size:15px;font-weight:300;color:var(--txt-sec);max-width:580px;line-height:1.7}
+
+/* ── Sections ── */
+.section{margin-bottom:60px;opacity:0;transform:translateY(14px);animation:fadeUp .4s ease forwards}
+.section:nth-child(1){animation-delay:.05s}.section:nth-child(2){animation-delay:.10s}
+.section:nth-child(3){animation-delay:.15s}.section:nth-child(4){animation-delay:.20s}
+.section:nth-child(5){animation-delay:.25s}.section:nth-child(6){animation-delay:.30s}
+.section:nth-child(7){animation-delay:.35s}.section:nth-child(8){animation-delay:.40s}
+.section:nth-child(9){animation-delay:.45s}.section:nth-child(10){animation-delay:.50s}
+@keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;color:var(--ac);text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.eyebrow::before{content:'';display:inline-block;width:14px;height:1px;background:var(--ac)}
+h2{font-family:'IBM Plex Serif',serif;font-size:24px;font-weight:300;color:var(--txt-pri);margin-bottom:14px;line-height:1.25}
+h3{font-size:15px;font-weight:600;color:var(--txt-pri);margin-bottom:8px}
+p{font-size:14px;font-weight:300;color:var(--txt-sec);margin-bottom:12px;line-height:1.75}
+p strong{color:var(--txt-pri);font-weight:600}
+.hl{color:var(--ac);font-weight:600}
+.hl-g{color:var(--success);font-weight:600}
+.hl-r{color:var(--error);font-weight:600}
+.hl-y{color:var(--warn);font-weight:600}
+.hl-b{color:var(--link);font-weight:600}
+.hl-t{color:var(--teal);font-weight:600}
+
+/* ── Callout ── */
+.callout{border-left:3px solid var(--ac);background:var(--layer-01);padding:14px 18px;margin:14px 0;font-size:14px;font-weight:300;color:var(--txt-sec);line-height:1.75;transition:background .25s}
+.callout strong{color:var(--txt-pri);font-weight:600}
+.callout-g{border-left-color:var(--success)}
+.callout-y{border-left-color:var(--warn)}
+.callout-r{border-left-color:var(--error)}
+.callout-b{border-left-color:var(--link)}
+.callout-t{border-left-color:var(--teal)}
+
+/* ── Tile ── */
+.tile{background:var(--layer-01);border:1px solid var(--bdr-00);padding:20px 24px;margin-bottom:12px;transition:background .25s,border-color .2s}
+.tile-title{font-size:13px;font-weight:600;color:var(--txt-pri);margin-bottom:12px}
+
+/* ── Grids ── */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--bdr-00);border:1px solid var(--bdr-00);margin:14px 0}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--bdr-00);border:1px solid var(--bdr-00);margin:14px 0}
+.gcell{background:var(--layer-01);padding:20px 22px;transition:background .25s}
+
+/* ── KV ── */
+.kv{display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--bdr-00);font-size:13px;gap:12px;transition:border-color .2s}
+.kv:last-child{border-bottom:none}
+.kk{color:var(--txt-sec);font-weight:300;flex-shrink:0}
+.kv-v{color:var(--txt-pri);font-weight:400;text-align:right}
+
+/* ── Tags ── */
+.tag{display:inline-flex;align-items:center;height:22px;padding:0 10px;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.03em;margin-bottom:10px}
+.t-pk{background:#510224;color:#ff7eb6}
+.t-gr{background:#044317;color:#a7f0ba}
+.t-re{background:#750e13;color:#ffb3b8}
+.t-am{background:#533b00;color:#f1c21b}
+.t-bl{background:#0043ce;color:#a6c8ff}
+.t-te{background:#005d5d;color:#3ddbd9}
+.t-pu{background:#491d8b;color:#d4bbff}
+html.light .t-pk{background:#ffd6e8;color:#9f1853}
+html.light .t-gr{background:#a7f0ba;color:#044317}
+html.light .t-re{background:#ffd7d9;color:#750e13}
+html.light .t-am{background:#ffd6a4;color:#4d3800}
+html.light .t-bl{background:#d0e2ff;color:#0043ce}
+html.light .t-te{background:#9ef0f0;color:#005d5d}
+html.light .t-pu{background:#e8daff;color:#491d8b}
+
+/* ── Formula ── */
+.formula{font-family:'IBM Plex Mono',monospace;font-size:13px;background:var(--layer-02);border:1px solid var(--bdr-01);border-left:3px solid var(--ac);padding:11px 15px;margin:10px 0;line-height:2;color:var(--txt-pri);transition:background .25s}
+
+/* ── Table ── */
+.dtbl{width:100%;border-collapse:collapse;margin:8px 0;font-size:13px}
+.dtbl thead tr{background:var(--layer-02);border-bottom:1px solid var(--bdr-str)}
+.dtbl th{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--txt-sec);padding:9px 14px;text-align:left}
+.dtbl td{padding:9px 14px;border-bottom:1px solid var(--bdr-00);color:var(--txt-pri);vertical-align:middle;font-size:13px}
+.dtbl tbody tr:hover{background:var(--hover-01)}
+
+/* ── HR ── */
+hr{border:none;border-top:1px solid var(--bdr-00);margin:44px 0;transition:border-color .2s}
+
+/* ── Collapsible ── */
+.comp-card{background:var(--layer-01);border:1px solid var(--bdr-00);margin-bottom:2px;transition:background .15s}
+.comp-card-hdr{display:flex;align-items:center;gap:10px;padding:14px 18px;cursor:pointer}
+.comp-card-icon{width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;flex-shrink:0}
+.comp-card-title{font-size:14px;font-weight:600;color:var(--txt-pri);flex:1}
+.comp-card-arrow{font-size:10px;color:var(--txt-ph);transition:transform .2s}
+.comp-card.open .comp-card-arrow{transform:rotate(90deg)}
+.comp-card-body{display:none;border-top:1px solid var(--bdr-00);margin:0 18px;padding:14px 0 16px;font-size:13px;font-weight:300;color:var(--txt-sec);line-height:1.75}
+.comp-card.open .comp-card-body{display:block}
+
+/* ── Tab switcher ── */
+.lt-tabs{display:flex;gap:0;background:var(--bdr-00);border:1px solid var(--bdr-00);margin-bottom:0}
+.lt-tab{flex:1;padding:10px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;color:var(--txt-sec);background:var(--layer-02);cursor:pointer;text-align:center;border-right:1px solid var(--bdr-00);transition:background .15s,color .15s;border-top:none;border-bottom:none;border-left:none}
+.lt-tab:last-child{border-right:none}
+.lt-tab.active{background:var(--ac);color:#fff}
+html.light .lt-tab.active{color:#fff}
+.lt-content{background:var(--layer-01);border:1px solid var(--bdr-00);border-top:none;padding:20px 24px}
+.lt-panel{display:none}.lt-panel.active{display:block}
+
+/* ── Quiz ── */
+.quiz-wrap{background:var(--layer-01);border:1px solid var(--bdr-00);padding:20px 24px;margin:16px 0}
+.quiz-q{font-size:14px;font-weight:600;color:var(--txt-pri);margin-bottom:14px}
+.quiz-options{display:flex;flex-direction:column;gap:8px}
+.quiz-opt{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--layer-02);border:1px solid var(--bdr-01);cursor:pointer;font-size:13px;color:var(--txt-sec);transition:background .15s,border-color .15s}
+.quiz-opt:hover{background:var(--hover-01);color:var(--txt-pri)}
+.quiz-opt.correct{background:rgba(255,126,182,.12);border-color:var(--ac);color:var(--ac)}
+.quiz-opt.wrong{background:rgba(255,131,137,.1);border-color:var(--error);color:var(--error)}
+.quiz-opt.show-correct{background:rgba(255,126,182,.06);border-color:var(--ac)}
+.quiz-feedback{margin-top:12px;padding:10px 14px;font-size:13px;font-weight:300;line-height:1.6;display:none;border-left:3px solid var(--ac)}
+.quiz-feedback.show{display:block}
+.quiz-reset{margin-top:10px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ac);cursor:pointer;letter-spacing:.05em;background:transparent;border:none;display:none}
+.quiz-reset.show{display:block}
+
+/* ── Slider ── */
+.slider-row{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+.slider-lbl{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-ph);min-width:100px}
+input[type=range]{-webkit-appearance:none;appearance:none;flex:1;height:2px;background:var(--bdr-str);outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;background:var(--ac);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;background:var(--ac);border:none;cursor:pointer}
+.slider-val{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--ac);min-width:36px;text-align:right}
+
+/* ── Metric row ── */
+.metric-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--bdr-00);border:1px solid var(--bdr-00);margin-top:14px}
+.metric-cell{background:var(--layer-01);padding:14px 16px;text-align:center}
+.metric-lbl{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--txt-ph);margin-bottom:6px}
+.metric-val{font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:600;line-height:1}
+.metric-note{font-size:10px;color:var(--txt-ph);margin-top:5px;font-weight:300}
+
+/* ── Spam demo ── */
+.spam-input{width:100%;background:var(--layer-02);border:1px solid var(--bdr-01);color:var(--txt-pri);font-family:'IBM Plex Mono',monospace;font-size:12px;padding:10px 14px;resize:vertical;min-height:80px;outline:none;transition:border-color .15s;-webkit-user-select:text;user-select:text}
+.spam-input:focus{border-color:var(--ac)}
+.spam-btn{margin-top:10px;padding:9px 20px;background:var(--ac);border:none;color:#fff;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.06em;cursor:pointer;transition:opacity .15s}
+.spam-btn:hover{opacity:.85}
+.word-pill{display:inline-flex;align-items:center;height:24px;padding:0 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;margin:3px;border:1px solid var(--bdr-00)}
+
+/* ── Bottom nav ── */
+.page-nav{display:flex;justify-content:space-between;align-items:center;padding-top:40px;border-top:1px solid var(--bdr-00);margin-top:60px}
+.page-nav-btn{display:flex;align-items:center;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-sec);padding:10px 16px;border:1px solid var(--bdr-01);background:transparent;cursor:pointer;transition:background .15s,color .15s;text-decoration:none}
+.page-nav-btn:hover{background:var(--hover-01);color:var(--txt-pri)}
+.page-nav-btn.primary{background:var(--ac);border-color:var(--ac);color:#fff}
+.page-nav-btn.primary:hover{opacity:.9}
+
+/* ── Responsive ── */
+@media(max-width:767px){
+  .mob-topbar{display:flex}
+  .sidenav{display:none}
+  .page-grid{display:block}
+  .main{padding:68px 16px 80px;max-width:100%}
+  .page-hdr{padding:24px 0 20px;margin-bottom:32px}
+  h1{font-size:24px}
+  .grid2,.grid3,.metric-row{grid-template-columns:1fr}
+  .lt-tabs{flex-wrap:wrap}
+  .lt-tab{flex:none;width:50%}
+  hr{margin:28px 0}
+}
+@media(min-width:768px) and (max-width:1024px){
+  .page-grid{grid-template-columns:200px 1fr}
+  .main{padding:0 24px 80px}
+  .grid3{grid-template-columns:1fr 1fr}
+}
+
+/* ── Code Protection ── */
+*{-webkit-user-select:none;user-select:none;-moz-user-select:none;-ms-user-select:none}
+input,textarea,select{-webkit-user-select:text;user-select:text}
+@media print{body{display:none!important;visibility:hidden!important}}
+img{-webkit-user-drag:none;user-drag:none;pointer-events:none}
+</style>
+</head>
+<body>
+
+<!-- Mobile topbar -->
+<div class="mob-topbar" id="mob-topbar">
+  <button class="mob-menu-btn" onclick="toggleDrawer()" aria-label="Menu">
+    <div class="mob-bar"></div><div class="mob-bar"></div><div class="mob-bar"></div>
+  </button>
+  <span class="mob-title">Naive Bayes</span>
+  <button class="mob-tog" onclick="toggleTheme()" id="mob-tog">☀</button>
+</div>
+<div class="nav-overlay" id="nav-overlay" onclick="closeDrawer()"></div>
+<nav class="nav-drawer" id="nav-drawer"></nav>
+
+<div class="page-grid">
+
+<!-- ══ SIDENAV ══ -->
+<nav class="sidenav" id="sidenav">
+  <div class="nav-hdr">
+    <a class="nav-back" href="index.html">← Module 2</a>
+    <div class="nav-mod">Topic 07</div>
+    <div class="nav-title">Naive Bayes Classifier</div>
+  </div>
+  <div class="nav-sec">Sections</div>
+  <a class="nav-item active" href="#s1"><span class="nn">01</span>Intuition & analogy</a>
+  <a class="nav-item" href="#s2"><span class="nn">02</span>Bayes' theorem</a>
+  <a class="nav-item" href="#s3"><span class="nn">03</span>The naive assumption</a>
+  <a class="nav-item" href="#s4"><span class="nn">04</span>Worked example — spam</a>
+  <a class="nav-item" href="#s5"><span class="nn">05</span>Types of Naive Bayes</a>
+  <a class="nav-item" href="#s6"><span class="nn">06</span>Laplace smoothing</a>
+  <a class="nav-item" href="#s7"><span class="nn">07</span>Interactive spam filter</a>
+  <a class="nav-item" href="#s8"><span class="nn">08</span>Pros, cons & when to use</a>
+  <a class="nav-item" href="#s9"><span class="nn">09</span>Quick quiz</a>
+  <div class="tog-area">
+    <button class="tog-btn" onclick="toggleTheme()">
+      <span style="display:flex;align-items:center;gap:6px"><span id="tog-icon">☀</span><span id="tog-txt">Light theme</span></span>
+      <span class="tog-track"><span class="tog-thumb"></span></span>
+    </button>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph);margin-top:10px;line-height:1.6">IBM Carbon · <span id="theme-lbl">Dark</span></div>
+  </div>
+</nav>
+
+<!-- ══ MAIN ══ -->
+<main class="main">
+<div class="page-hdr">
+  <div class="breadcrumb">
+    <a href="../index.html">Home</a><span>/</span>
+    <a href="index.html">Module 2</a><span>/</span>
+    <span style="color:var(--txt-sec)">Naive Bayes</span>
+  </div>
+  <h1>Naive Bayes<br><em>Classifier</em></h1>
+  <p class="hdr-desc">A classifier so simple it feels like cheating — and yet it powers most spam filters in the world. Naive Bayes applies Bayes' theorem with one bold simplification and somehow works brilliantly despite it.</p>
+</div>
+
+<!-- ══════════ S1: INTUITION ══════════ -->
+<div class="section" id="s1">
+  <div class="eyebrow">01 · The concept</div>
+  <h2>Intuition & analogy</h2>
+  <p>Naive Bayes answers a very direct question: <span class="hl">given everything I can see about this data point, which class is most probable?</span> It does this by combining what it knows about how likely each feature is for each class — multiplying probabilities together and picking the winner.</p>
+
+  <div class="callout callout-g">
+    <strong>Analogy — The detective's notebook:</strong> Detective Bayes has seen thousands of spam emails. She keeps a notebook: "FREE appears in 95% of spam, 5% of legit. WIN appears in 88% of spam, 3% of legit. OFFER appears in 76% of spam, 12% of legit." A new email arrives with all three words. She multiplies the probabilities together and concludes: overwhelmingly spam. She didn't need to read the whole email — she just looked up her notes and multiplied. That's Naive Bayes.
+  </div>
+
+  <div class="callout">
+    <strong>Analogy — The doctor using symptom tables:</strong> A patient has fever, cough, and fatigue. The doctor doesn't need a complex decision tree — she checks: "What % of flu patients have fever? Cough? Fatigue? What about cold patients?" She multiplies each probability per disease and picks the most likely diagnosis. Same idea — multiply likelihoods, pick the winner.
+  </div>
+
+  <div class="grid3">
+    <div class="gcell">
+      <div class="tag t-pk">Probabilistic</div>
+      <p style="font-size:13px;margin:0">Outputs a <strong>probability</strong> for each class, not just a label. You know how confident the prediction is.</p>
+    </div>
+    <div class="gcell">
+      <div class="tag t-gr">Fast & Scalable</div>
+      <p style="font-size:13px;margin:0">Training is just counting. Prediction is multiplying. Works on massive datasets with thousands of features — like text.</p>
+    </div>
+    <div class="gcell">
+      <div class="tag t-bl">Surprisingly good</div>
+      <p style="font-size:13px;margin:0">Despite a simplification that's almost never true in practice, it outperforms far more complex models on text classification tasks.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ S2: BAYES' THEOREM ══════════ -->
+<div class="section" id="s2">
+  <div class="eyebrow">02 · The foundation</div>
+  <h2>Bayes' theorem</h2>
+  <p>Naive Bayes is built entirely on Bayes' theorem — one of the most important equations in probability theory. It lets us <strong>update our beliefs based on evidence</strong>.</p>
+
+  <div class="callout callout-b">
+    <strong>Analogy — Updating suspicion:</strong> You suspect your flatmate ate your lunch. Prior probability: 50% (you have two flatmates). Then you find hot sauce on the table — your flatmate loves hot sauce, the other doesn't. Posterior probability: now 80%. You <em>updated</em> your belief using new evidence. Bayes' theorem is the formal way to do this updating.
+  </div>
+
+  <div class="formula">P(class | features) = P(features | class) × P(class) / P(features)
+<br><br>
+Posterior  =  Likelihood × Prior / Evidence
+<br><br>
+where:
+  P(class | features)  — probability of class GIVEN the features (what we want)
+  P(features | class)  — how likely are these features if class is true? (likelihood)
+  P(class)             — how common is this class overall? (prior)
+  P(features)          — how common are these features? (evidence — same for all classes, ignored)</div>
+
+  <div class="grid2">
+    <div class="gcell">
+      <div class="tag t-pk">Prior — P(class)</div>
+      <p style="font-size:13px;margin-bottom:8px">Your <strong>initial belief</strong> before seeing any features. Estimated from training data — what fraction of training emails are spam?</p>
+      <div class="kv"><span class="kk">Example</span><span class="kv-v">60% of training emails are spam → P(spam) = 0.6</span></div>
+      <div class="kv"><span class="kk">Intuition</span><span class="kv-v">Base rate — how common is each class?</span></div>
+    </div>
+    <div class="gcell">
+      <div class="tag t-bl">Likelihood — P(features | class)</div>
+      <p style="font-size:13px;margin-bottom:8px">How probable are these <strong>specific features</strong> given each class? Estimated by counting occurrences in training data.</p>
+      <div class="kv"><span class="kk">Example</span><span class="kv-v">P("FREE" | spam) = 0.95</span></div>
+      <div class="kv"><span class="kk">Intuition</span><span class="kv-v">How strongly does this feature point to the class?</span></div>
+    </div>
+  </div>
+
+  <div class="tile">
+    <div class="tile-title">Classification rule — ignore P(features)</div>
+    <p style="font-size:13px;margin-bottom:10px">Since we're <em>comparing</em> classes (spam vs not spam), P(features) is the same for both and cancels out. We just pick the class with the highest numerator:</p>
+    <div class="kv"><span class="kk">Predict</span><span class="kv-v">argmax_class [ P(class) × P(features | class) ]</span></div>
+    <div class="kv"><span class="kk">Winner</span><span class="kv-v" style="color:var(--ac)">Whichever class gives the biggest product</span></div>
+  </div>
+</div>
+
+<!-- ══════════ S3: NAIVE ASSUMPTION ══════════ -->
+<div class="section" id="s3">
+  <div class="eyebrow">03 · The bold simplification</div>
+  <h2>The "naive" assumption</h2>
+  <p>Here's the trick — and the reason it's called <em>naive</em>. Computing P(features | class) for all combinations of features is computationally impossible. So Naive Bayes makes one massive simplification:</p>
+
+  <div class="callout callout-r">
+    <strong>The naive assumption: all features are conditionally independent given the class.</strong><br><br>
+    In other words: knowing that "FREE" appears in an email tells you nothing about whether "WIN" also appears — given that the email is spam. Of course this is almost never true in reality — words in a sentence are highly correlated. But making this assumption lets us multiply individual probabilities instead of computing massive joint probabilities.
+  </div>
+
+  <div class="formula">P(features | class) = P(f₁ | class) × P(f₂ | class) × P(f₃ | class) × ...
+<br><br>
+Full formula becomes:
+P(class | f₁,f₂,...,fₙ)  ∝  P(class) × Π P(fᵢ | class)</div>
+
+  <div class="grid2">
+    <div class="gcell">
+      <div class="tag t-re">Without naive assumption</div>
+      <div class="kv"><span class="kk">Need to compute</span><span class="kv-v">P("FREE","WIN","OFFER" | spam)</span></div>
+      <div class="kv"><span class="kk">Combinations</span><span class="kv-v" style="color:var(--error)">Exponential — 2ⁿ possibilities</span></div>
+      <div class="kv"><span class="kk">Training data needed</span><span class="kv-v" style="color:var(--error)">Astronomically large</span></div>
+      <div class="kv"><span class="kk">Feasibility</span><span class="kv-v" style="color:var(--error)">Practically impossible</span></div>
+    </div>
+    <div class="gcell">
+      <div class="tag t-gr">With naive assumption</div>
+      <div class="kv"><span class="kk">Compute separately</span><span class="kv-v">P("FREE"|spam) × P("WIN"|spam)...</span></div>
+      <div class="kv"><span class="kk">Combinations</span><span class="kv-v" style="color:var(--success)">Linear — n probabilities</span></div>
+      <div class="kv"><span class="kk">Training data needed</span><span class="kv-v" style="color:var(--success)">Very small — just count</span></div>
+      <div class="kv"><span class="kk">Feasibility</span><span class="kv-v" style="color:var(--success)">Trivially fast ✓</span></div>
+    </div>
+  </div>
+
+  <div class="callout callout-y">
+    <strong>Why does it work despite the wrong assumption?</strong> Even though features are correlated, Naive Bayes often still ranks classes in the correct order — which is all you need for classification. The absolute probabilities are wrong, but the <em>relative ordering</em> is often correct. This is why Naive Bayes is surprisingly competitive despite its fundamental flaw.
+  </div>
+</div>
+
+<!-- ══════════ S4: WORKED EXAMPLE ══════════ -->
+<div class="section" id="s4">
+  <div class="eyebrow">04 · Step by step</div>
+  <h2>Worked example — spam detection</h2>
+  <p>Let's build a Naive Bayes spam classifier from scratch. Small training set, two classes, four features (words).</p>
+
+  <div class="tile">
+    <div class="tile-title">Training data — 10 emails</div>
+    <table class="dtbl">
+      <thead><tr><th>Email</th><th>FREE</th><th>WIN</th><th>MEETING</th><th>REPORT</th><th>Label</th></tr></thead>
+      <tbody>
+        <tr><td>Email 1</td><td style="color:var(--ac)">Yes</td><td style="color:var(--ac)">Yes</td><td style="color:var(--txt-ph)">No</td><td style="color:var(--txt-ph)">No</td><td style="color:var(--error)">Spam</td></tr>
+        <tr><td>Email 2</td><td style="color:var(--ac)">Yes</td><td style="color:var(--txt-ph)">No</td><td style="color:var(--txt-ph)">No</td><td style="color:var(--txt-ph)">No</td><td style="color:var(--error)">Spam</td></tr>
+        <tr><td>Email 3</td><td style="color:var(--ac)">Yes</td><td style="color:var(--ac)">Yes</td><td style="color:var(--txt-ph)">No</td><td style="color:var(--txt-ph)">No</td><td style="color:var(--error)">Spam</td></tr>
+        <tr><td>Email 4</td><td style="color:var(--txt-ph)">No</td><td style="color:var(--ac)">Yes</td><td style="color:var(--txt-ph)">No</td><td style="color:var(--txt-ph)">No</td><td style="color:var(--error)">Spam</td></tr>
+        <tr><td>Email 5</td><td style="color:var(--ac)">Yes</td><td style="color:var(--txt-ph)">No</td><td style="color:var(--txt-ph)">No</td><td style="color:var(--txt-ph)">No</td><td style="color:var(--error)">Spam</td></tr>
+        <tr><td>Email 6</td><td style="color:var(--txt-ph)">No</td><td style="color:var(--txt-ph)">No</td><td style="color:var(--ac)">Yes</td><td style="color:var(--ac)">Yes</td><td style="color:var(--success)">Legit</td></tr>
+        <tr><td>Email 7</td><td style="color:var(--txt-ph)">No</td><td style="color:var(--txt-ph)">No</td><td style="color:var(--ac)">Yes</td><td style="color:var(--txt-ph)">No</td><td style="color:var(--success)">Legit</td></tr>
+        <tr><td>Email 8</td><td style="color:var(--txt-ph)">No</td><td style="color:var(--txt-ph)">No</td><td style="color:var(--txt-ph)">No</td><td style="color:var(--ac)">Yes</td><td style="color:var(--success)">Legit</td></tr>
+        <tr><td>Email 9</td><td style="color:var(--ac)">Yes</td><td style="color:var(--txt-ph)">No</td><td style="color:var(--ac)">Yes</td><td style="color:var(--txt-ph)">No</td><td style="color:var(--success)">Legit</td></tr>
+        <tr><td>Email 10</td><td style="color:var(--txt-ph)">No</td><td style="color:var(--txt-ph)">No</td><td style="color:var(--ac)">Yes</td><td style="color:var(--ac)">Yes</td><td style="color:var(--success)">Legit</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="lt-tabs">
+    <button class="lt-tab active" onclick="switchTab('e1',this)">Step 1 · Priors</button>
+    <button class="lt-tab" onclick="switchTab('e2',this)">Step 2 · Likelihoods</button>
+    <button class="lt-tab" onclick="switchTab('e3',this)">Step 3 · New email</button>
+    <button class="lt-tab" onclick="switchTab('e4',this)">Step 4 · Decision</button>
+  </div>
+  <div class="lt-content">
+    <div class="lt-panel active" id="e1">
+      <p style="margin-bottom:10px">Count how many emails belong to each class. This is the <strong>prior probability</strong>.</p>
+      <div class="kv"><span class="kk">Total emails</span><span class="kv-v">10</span></div>
+      <div class="kv"><span class="kk">Spam emails</span><span class="kv-v">5</span></div>
+      <div class="kv"><span class="kk">Legit emails</span><span class="kv-v">5</span></div>
+      <div class="kv"><span class="kk">P(Spam)</span><span class="kv-v" style="color:var(--error)">5/10 = 0.50</span></div>
+      <div class="kv"><span class="kk">P(Legit)</span><span class="kv-v" style="color:var(--success)">5/10 = 0.50</span></div>
+    </div>
+    <div class="lt-panel" id="e2">
+      <p style="margin-bottom:10px">For each word and each class, count how often that word appears. These are the <strong>likelihoods</strong>.</p>
+      <table class="dtbl">
+        <thead><tr><th>Word</th><th>P(word | Spam)</th><th>P(word | Legit)</th></tr></thead>
+        <tbody>
+          <tr><td>FREE</td><td style="color:var(--error)">4/5 = 0.80</td><td style="color:var(--success)">1/5 = 0.20</td></tr>
+          <tr><td>WIN</td><td style="color:var(--error)">3/5 = 0.60</td><td style="color:var(--success)">0/5 = 0.00 ⚠</td></tr>
+          <tr><td>MEETING</td><td style="color:var(--error)">0/5 = 0.00 ⚠</td><td style="color:var(--success)">4/5 = 0.80</td></tr>
+          <tr><td>REPORT</td><td style="color:var(--error)">0/5 = 0.00 ⚠</td><td style="color:var(--success)">3/5 = 0.60</td></tr>
+        </tbody>
+      </table>
+      <p style="font-size:12px;color:var(--warn);margin-top:8px">⚠ Zero probabilities are a problem — they kill the entire product! Laplace smoothing fixes this (Section 06).</p>
+    </div>
+    <div class="lt-panel" id="e3">
+      <p style="margin-bottom:10px">New email contains: <strong>"FREE"</strong> and <strong>"WIN"</strong>. Apply Bayes' theorem:</p>
+      <div class="kv"><span class="kk">Score(Spam)</span><span class="kv-v">P(Spam) × P(FREE|Spam) × P(WIN|Spam)</span></div>
+      <div class="kv"><span class="kk">Score(Spam)</span><span class="kv-v" style="color:var(--error)">0.50 × 0.80 × 0.60 = 0.240</span></div>
+      <div class="kv"><span class="kk">Score(Legit)</span><span class="kv-v">P(Legit) × P(FREE|Legit) × P(WIN|Legit)</span></div>
+      <div class="kv"><span class="kk">Score(Legit)</span><span class="kv-v" style="color:var(--success)">0.50 × 0.20 × 0.00 = 0.000</span></div>
+    </div>
+    <div class="lt-panel" id="e4">
+      <p style="margin-bottom:10px">Compare scores and predict the class with the highest score.</p>
+      <div class="kv"><span class="kk">Score(Spam)</span><span class="kv-v" style="color:var(--error)">0.240</span></div>
+      <div class="kv"><span class="kk">Score(Legit)</span><span class="kv-v" style="color:var(--success)">0.000</span></div>
+      <div class="kv"><span class="kk">Prediction</span><span class="kv-v" style="color:var(--ac)">SPAM — 0.240 > 0.000</span></div>
+      <div class="kv"><span class="kk">Normalised P(Spam)</span><span class="kv-v">0.240 / (0.240 + 0.000) = 100%</span></div>
+      <p style="margin-top:10px;font-size:13px;color:var(--txt-ph)">Note: The 0% legit probability is inflated here because WIN never appeared in legit emails in training — Laplace smoothing would give a small non-zero value instead.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ S5: TYPES ══════════ -->
+<div class="section" id="s5">
+  <div class="eyebrow">05 · Variants</div>
+  <h2>Types of Naive Bayes</h2>
+  <p>The difference between Naive Bayes variants is <strong>how they model P(feature | class)</strong> — the likelihood. Different data types need different probability distributions.</p>
+
+  <div class="comp-card open" id="cc1">
+    <div class="comp-card-hdr" onclick="toggleCard('cc1')">
+      <div class="comp-card-icon" style="background:#510224;color:#ff7eb6">M</div>
+      <div class="comp-card-title">Multinomial Naive Bayes</div>
+      <div class="comp-card-arrow">›</div>
+    </div>
+    <div class="comp-card-body">
+      <strong>Best for:</strong> Text classification — word counts or term frequencies<br><br>
+      <strong>Models:</strong> P(word | class) = (count of word in class docs + 1) / (total words in class + vocab size)<br><br>
+      <strong>Input:</strong> Count vectors or TF-IDF vectors — how many times each word appears<br><br>
+      <strong>Classic use:</strong> Spam detection, sentiment analysis, topic classification<br><br>
+      <strong>sklearn:</strong> <code style="font-family:'IBM Plex Mono',monospace;background:var(--layer-02);padding:2px 6px;font-size:11px">MultinomialNB(alpha=1.0)</code>
+    </div>
+  </div>
+
+  <div class="comp-card" id="cc2">
+    <div class="comp-card-hdr" onclick="toggleCard('cc2')">
+      <div class="comp-card-icon" style="background:#510224;color:#ff7eb6">G</div>
+      <div class="comp-card-title">Gaussian Naive Bayes</div>
+      <div class="comp-card-arrow">›</div>
+    </div>
+    <div class="comp-card-body">
+      <strong>Best for:</strong> Continuous numerical features — measurements, sensor data<br><br>
+      <strong>Models:</strong> Assumes features follow a Gaussian (normal) distribution per class. Estimates mean μ and variance σ² for each feature in each class from training data.<br><br>
+      <strong>Input:</strong> Real-valued feature vectors<br><br>
+      <strong>Classic use:</strong> Medical diagnosis (blood pressure, glucose levels), iris flower classification<br><br>
+      <strong>sklearn:</strong> <code style="font-family:'IBM Plex Mono',monospace;background:var(--layer-02);padding:2px 6px;font-size:11px">GaussianNB()</code>
+    </div>
+  </div>
+
+  <div class="comp-card" id="cc3">
+    <div class="comp-card-hdr" onclick="toggleCard('cc3')">
+      <div class="comp-card-icon" style="background:#510224;color:#ff7eb6">B</div>
+      <div class="comp-card-title">Bernoulli Naive Bayes</div>
+      <div class="comp-card-arrow">›</div>
+    </div>
+    <div class="comp-card-body">
+      <strong>Best for:</strong> Binary features — word present/absent (not count)<br><br>
+      <strong>Models:</strong> P(feature | class) as a Bernoulli distribution — each feature is either 1 (present) or 0 (absent). Explicitly penalises absent features too.<br><br>
+      <strong>Input:</strong> Binary vectors — does this word appear in the document? (yes/no)<br><br>
+      <strong>Difference from Multinomial:</strong> Multinomial uses word count; Bernoulli uses only presence/absence and also factors in words that are <em>missing</em><br><br>
+      <strong>sklearn:</strong> <code style="font-family:'IBM Plex Mono',monospace;background:var(--layer-02);padding:2px 6px;font-size:11px">BernoulliNB(alpha=1.0)</code>
+    </div>
+  </div>
+
+  <div class="tile" style="margin-top:12px">
+    <div class="tile-title">Quick selection guide</div>
+    <div class="kv"><span class="kk">Text with word counts / TF-IDF</span><span class="kv-v" style="color:var(--ac)">Multinomial NB</span></div>
+    <div class="kv"><span class="kk">Continuous measurements</span><span class="kv-v" style="color:var(--ac)">Gaussian NB</span></div>
+    <div class="kv"><span class="kk">Binary presence/absence features</span><span class="kv-v" style="color:var(--ac)">Bernoulli NB</span></div>
+    <div class="kv"><span class="kk">Don't know which to pick</span><span class="kv-v">Try Multinomial first — most versatile</span></div>
+  </div>
+</div>
+
+<!-- ══════════ S6: LAPLACE SMOOTHING ══════════ -->
+<div class="section" id="s6">
+  <div class="eyebrow">06 · Fixing the zero problem</div>
+  <h2>Laplace smoothing</h2>
+  <p>There's a critical bug in basic Naive Bayes: if a word never appeared in spam emails during training, P(word | spam) = 0. Multiplying by zero destroys the entire probability product — a single unseen word makes that class score exactly zero, no matter how spam-like everything else looks.</p>
+
+  <div class="callout callout-r">
+    <strong>The zero frequency problem:</strong> The word "cryptocurrency" never appeared in your training spam. A new email says "FREE cryptocurrency WIN." Because P("cryptocurrency" | spam) = 0, the entire spam score → 0, no matter how strong FREE and WIN are. The model incorrectly classifies it as legit. One zero kills everything.
+  </div>
+
+  <div class="callout callout-g">
+    <strong>Laplace smoothing (add-one smoothing):</strong> Add 1 to every word count before computing probabilities. This ensures no probability is ever exactly zero — even words never seen in training get a small nonzero probability. Alpha (α) controls the smoothing strength — α=1 is the classic Laplace, smaller α means less smoothing.
+  </div>
+
+  <div class="formula">Without smoothing:  P(word | class) = count(word, class) / count(all words, class)
+<br><br>
+With Laplace (α=1): P(word | class) = (count(word, class) + α) / (count(all words, class) + α × |V|)
+<br><br>
+where |V| = vocabulary size (number of unique words)</div>
+
+  <div class="grid2">
+    <div class="gcell">
+      <div class="tag t-re">Without smoothing</div>
+      <div class="kv"><span class="kk">P("crypto" | spam)</span><span class="kv-v" style="color:var(--error)">0/500 = 0.000</span></div>
+      <div class="kv"><span class="kk">Spam score</span><span class="kv-v" style="color:var(--error)">... × 0.000 = 0</span></div>
+      <div class="kv"><span class="kk">Effect</span><span class="kv-v" style="color:var(--error)">Spam score zeroed out</span></div>
+      <div class="kv"><span class="kk">Result</span><span class="kv-v" style="color:var(--error)">Wrong prediction</span></div>
+    </div>
+    <div class="gcell">
+      <div class="tag t-gr">With Laplace (α=1, |V|=1000)</div>
+      <div class="kv"><span class="kk">P("crypto" | spam)</span><span class="kv-v" style="color:var(--success)">(0+1)/(500+1000) = 0.00067</span></div>
+      <div class="kv"><span class="kk">Spam score</span><span class="kv-v" style="color:var(--success)">... × 0.00067 = tiny but nonzero</span></div>
+      <div class="kv"><span class="kk">Effect</span><span class="kv-v" style="color:var(--success)">All other spam words still count</span></div>
+      <div class="kv"><span class="kk">Result</span><span class="kv-v" style="color:var(--success)">Correct prediction ✓</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ S7: INTERACTIVE SPAM FILTER ══════════ -->
+<div class="section" id="s7">
+  <div class="eyebrow">07 · Hands-on</div>
+  <h2>Interactive spam filter</h2>
+  <p>Type an email message below. The classifier will analyse each word, show its spam / legit probability, and give a final verdict using Naive Bayes. Try words like <em>FREE, WIN, OFFER, PRIZE, MEETING, REPORT, URGENT, INVOICE</em>.</p>
+
+  <div class="tile">
+    <div class="tile-title">Naive Bayes spam classifier</div>
+    <textarea class="spam-input" id="emailInput" placeholder="Type your email text here... try: FREE prize WIN money offer urgent">FREE prize WIN money offer urgent</textarea>
+    <button class="spam-btn" onclick="classifyEmail()">Classify →</button>
+
+    <div id="spamResult" style="margin-top:16px;display:none">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph);letter-spacing:.08em;margin-bottom:10px;text-transform:uppercase">Word analysis</div>
+      <div id="wordPills" style="margin-bottom:16px;line-height:2"></div>
+      <div class="metric-row">
+        <div class="metric-cell">
+          <div class="metric-lbl">Spam score</div>
+          <div class="metric-val" id="spamScore" style="color:var(--error)">—</div>
+          <div class="metric-note">log probability</div>
+        </div>
+        <div class="metric-cell">
+          <div class="metric-lbl">Legit score</div>
+          <div class="metric-val" id="legitScore" style="color:var(--success)">—</div>
+          <div class="metric-note">log probability</div>
+        </div>
+        <div class="metric-cell">
+          <div class="metric-lbl">Verdict</div>
+          <div class="metric-val" id="verdict" style="font-size:14px;padding-top:4px">—</div>
+          <div class="metric-note" id="confidence">—</div>
+        </div>
+      </div>
+      <div id="spamBar" style="margin-top:14px;height:8px;background:var(--bdr-00);border:1px solid var(--bdr-00);position:relative;overflow:hidden">
+        <div id="spamFill" style="height:100%;background:var(--error);transition:width .4s ease;width:50%"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--txt-ph);margin-top:4px">
+        <span>SPAM</span><span>LEGIT</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ S8: PROS CONS ══════════ -->
+<div class="section" id="s8">
+  <div class="eyebrow">08 · Trade-offs</div>
+  <h2>Pros, cons & when to use</h2>
+  <p>Naive Bayes punches well above its weight class for text. Knowing its limits helps you choose it wisely.</p>
+
+  <div class="grid2">
+    <div class="gcell">
+      <div class="tag t-gr">Pros</div>
+      <div class="kv"><span class="kk">Extremely fast</span><span class="kv-v">Training = counting. Prediction = multiplying.</span></div>
+      <div class="kv"><span class="kk">Very little data needed</span><span class="kv-v">Works well even with small datasets</span></div>
+      <div class="kv"><span class="kk">Scales to huge vocabulary</span><span class="kv-v">10,000+ word features — no problem</span></div>
+      <div class="kv"><span class="kk">Handles missing features</span><span class="kv-v">Missing feature just doesn't multiply in</span></div>
+      <div class="kv"><span class="kk">Probabilistic output</span><span class="kv-v">Gives confidence, not just a label</span></div>
+      <div class="kv"><span class="kk">Online learning</span><span class="kv-v">Easy to update with new examples</span></div>
+    </div>
+    <div class="gcell">
+      <div class="tag t-re">Cons</div>
+      <div class="kv"><span class="kk">Independence assumption</span><span class="kv-v">Never truly holds — correlations exist</span></div>
+      <div class="kv"><span class="kk">Zero frequency</span><span class="kv-v">Needs Laplace smoothing to be robust</span></div>
+      <div class="kv"><span class="kk">Poor probability calibration</span><span class="kv-v">Probabilities are often extreme (near 0 or 1)</span></div>
+      <div class="kv"><span class="kk">Feature ordering ignored</span><span class="kv-v">"Dog bites man" = "Man bites dog" (bag of words)</span></div>
+      <div class="kv"><span class="kk">Continuous features</span><span class="kv-v">Gaussian assumption may not hold</span></div>
+    </div>
+  </div>
+
+  <div class="tile">
+    <div class="tile-title">When Naive Bayes shines</div>
+    <div class="kv"><span class="kk">Text classification</span><span class="kv-v" style="color:var(--ac)">Spam, sentiment, topic — this is its home turf</span></div>
+    <div class="kv"><span class="kk">Real-time classification</span><span class="kv-v" style="color:var(--ac)">Millisecond predictions — nothing is faster</span></div>
+    <div class="kv"><span class="kk">Small training set</span><span class="kv-v" style="color:var(--ac)">Works with far less data than deep models</span></div>
+    <div class="kv"><span class="kk">Multi-class problems</span><span class="kv-v" style="color:var(--ac)">Naturally handles 10, 100, 1000 classes</span></div>
+    <div class="kv"><span class="kk">Strong baseline</span><span class="kv-v" style="color:var(--ac)">Always try NB first — surprisingly hard to beat on text</span></div>
+  </div>
+
+  <div class="formula" style="font-size:12px">
+from sklearn.naive_bayes import MultinomialNB, GaussianNB, BernoulliNB
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.pipeline import Pipeline
+
+<span style="color:var(--txt-ph)"># Text classification pipeline</span>
+spam_clf = Pipeline([
+    ('tfidf', TfidfVectorizer(stop_words='english')),
+    ('nb',    MultinomialNB(alpha=1.0))   <span style="color:var(--txt-ph)"># alpha = Laplace smoothing</span>
+])
+spam_clf.fit(X_train_text, y_train)
+
+<span style="color:var(--txt-ph)"># Get probability scores</span>
+probs = spam_clf.predict_proba(["FREE WIN prize now!"])
+<span style="color:var(--txt-ph)"># → [[P(legit), P(spam)]]</span>
+  </div>
+</div>
+
+<!-- ══════════ S9: QUIZ ══════════ -->
+<div class="section" id="s9">
+  <div class="eyebrow">09 · Check your understanding</div>
+  <h2>Quick quiz</h2>
+  <p>Four questions — test yourself on Naive Bayes.</p>
+
+  <!-- Q1 -->
+  <div class="quiz-wrap">
+    <div class="quiz-q">1. Why is Naive Bayes called "naive"?</div>
+    <div class="quiz-options" id="q1-opts">
+      <div class="quiz-opt" onclick="answerQ('q1',0,2,'q1-fb')">A. It uses a very simple algorithm that any beginner can understand</div>
+      <div class="quiz-opt" onclick="answerQ('q1',1,2,'q1-fb')">B. It performs poorly compared to other classifiers</div>
+      <div class="quiz-opt" onclick="answerQ('q1',2,2,'q1-fb')">C. It makes the naive assumption that all features are independent given the class ✓</div>
+      <div class="quiz-opt" onclick="answerQ('q1',3,2,'q1-fb')">D. It was invented by a researcher named Naive</div>
+    </div>
+    <div class="quiz-feedback" id="q1-fb">The "naive" refers to the conditional independence assumption — that P(f₁,f₂,...|class) = P(f₁|class) × P(f₂|class) × ... This is almost never true (words are correlated), but the simplification makes computation tractable and the results surprisingly good. ✓</div>
+    <button class="quiz-reset" id="q1-reset" onclick="resetQ('q1','q1-fb','q1-reset')">Try again</button>
+  </div>
+
+  <!-- Q2 -->
+  <div class="quiz-wrap">
+    <div class="quiz-q">2. A word appears 0 times in spam emails during training. Without Laplace smoothing, what happens to the spam score for any email containing that word?</div>
+    <div class="quiz-options" id="q2-opts">
+      <div class="quiz-opt" onclick="answerQ('q2',0,2,'q2-fb')">A. It slightly reduces the spam score</div>
+      <div class="quiz-opt" onclick="answerQ('q2',1,2,'q2-fb')">B. It is ignored — the word is skipped</div>
+      <div class="quiz-opt" onclick="answerQ('q2',2,2,'q2-fb')">C. The entire spam score becomes zero — multiplying by 0 ✓</div>
+      <div class="quiz-opt" onclick="answerQ('q2',3,2,'q2-fb')">D. The model falls back to the prior probability</div>
+    </div>
+    <div class="quiz-feedback" id="q2-fb">P(unseen word | spam) = 0/n = 0. When you multiply the entire score by 0, the total spam score becomes exactly 0 — regardless of how strongly all other words indicate spam. One unseen word destroys the whole calculation. Laplace smoothing adds α=1 to all counts to prevent this. ✓</div>
+    <button class="quiz-reset" id="q2-reset" onclick="resetQ('q2','q2-fb','q2-reset')">Try again</button>
+  </div>
+
+  <!-- Q3 -->
+  <div class="quiz-wrap">
+    <div class="quiz-q">3. Which type of Naive Bayes is best suited for classifying emails using word count features?</div>
+    <div class="quiz-options" id="q3-opts">
+      <div class="quiz-opt" onclick="answerQ('q3',0,1,'q3-fb')">A. Gaussian Naive Bayes — for continuous distributions</div>
+      <div class="quiz-opt" onclick="answerQ('q3',1,1,'q3-fb')">B. Multinomial Naive Bayes — for count data ✓</div>
+      <div class="quiz-opt" onclick="answerQ('q3',2,1,'q3-fb')">C. Bernoulli Naive Bayes — for binary presence/absence</div>
+      <div class="quiz-opt" onclick="answerQ('q3',3,1,'q3-fb')">D. Any type works equally well for text</div>
+    </div>
+    <div class="quiz-feedback" id="q3-fb">Multinomial NB models the distribution of word counts — how many times each word appears. Bernoulli NB uses only presence/absence (0 or 1). Gaussian NB is for continuous features like measurements. For word count or TF-IDF vectors, Multinomial NB is the standard choice. ✓</div>
+    <button class="quiz-reset" id="q3-reset" onclick="resetQ('q3','q3-fb','q3-reset')">Try again</button>
+  </div>
+
+  <!-- Q4 -->
+  <div class="quiz-wrap">
+    <div class="quiz-q">4. In the formula P(class | features) ∝ P(class) × Π P(fᵢ | class), what does the prior P(class) represent?</div>
+    <div class="quiz-options" id="q4-opts">
+      <div class="quiz-opt" onclick="answerQ('q4',0,1,'q4-fb')">A. The probability of the features given this class</div>
+      <div class="quiz-opt" onclick="answerQ('q4',1,1,'q4-fb')">B. The base rate — how common this class is in training data ✓</div>
+      <div class="quiz-opt" onclick="answerQ('q4',2,1,'q4-fb')">C. The number of training samples in this class</div>
+      <div class="quiz-opt" onclick="answerQ('q4',3,1,'q4-fb')">D. The probability that the features appear in the data</div>
+    </div>
+    <div class="quiz-feedback" id="q4-fb">The prior P(class) is the base rate — how often this class appears in training data. If 70% of training emails are spam, P(spam)=0.7. It encodes our prior belief before seeing any features. If spam is rare (1%), the prior pulls scores down even for spam-looking words. ✓</div>
+    <button class="quiz-reset" id="q4-reset" onclick="resetQ('q4','q4-fb','q4-reset')">Try again</button>
+  </div>
+</div>
+
+<!-- Bottom nav -->
+<div class="page-nav">
+  <a class="page-nav-btn" href="knn.html">← K-Nearest Neighbors</a>
+  <a class="page-nav-btn primary" href="svm.html">Next: Support Vector Machine →</a>
+</div>
+
+</main>
+</div>
+
+<script>
+/* ── Theme ── */
+let isLight = false;
+function toggleTheme(){
+  isLight = !isLight;
+  document.documentElement.classList.toggle('light', isLight);
+  const i=isLight?'◑':'☀', l=isLight?'Light':'Dark';
+  document.getElementById('tog-icon').textContent = i;
+  document.getElementById('tog-txt').textContent  = l+' theme';
+  document.getElementById('theme-lbl').textContent = l;
+  const m=document.getElementById('mob-tog'); if(m) m.textContent=i;
+}
+
+/* ── Collapsible ── */
+function toggleCard(id){ document.getElementById(id).classList.toggle('open'); }
+
+/* ── Tabs ── */
+function switchTab(id, btn){
+  document.querySelectorAll('.lt-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.lt-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+
+/* ── Quiz ── */
+function answerQ(qid, clicked, correct, fbId){
+  const opts=document.getElementById(qid+'-opts').querySelectorAll('.quiz-opt');
+  opts.forEach((o,i)=>{
+    o.style.pointerEvents='none';
+    if(i===correct) o.classList.add('show-correct');
+    if(i===clicked && clicked!==correct) o.classList.add('wrong');
+    if(i===clicked && clicked===correct) o.classList.add('correct');
+  });
+  const fb=document.getElementById(fbId);
+  fb.classList.add('show');
+  fb.style.background=clicked===correct?'rgba(255,126,182,.08)':'rgba(255,131,137,.08)';
+  fb.style.borderLeftColor=clicked===correct?'var(--ac)':'var(--error)';
+  document.getElementById(qid+'-reset').classList.add('show');
+}
+function resetQ(qid, fbId, resetId){
+  document.getElementById(qid+'-opts').querySelectorAll('.quiz-opt').forEach(o=>{
+    o.style.pointerEvents=''; o.classList.remove('correct','wrong','show-correct');
+  });
+  document.getElementById(fbId).classList.remove('show');
+  document.getElementById(resetId).classList.remove('show');
+}
+
+/* ── Scroll nav ── */
+const secs=Array.from(document.querySelectorAll('.section[id]'));
+let lastId='', rafP=false;
+window.addEventListener('scroll',()=>{
+  if(rafP)return; rafP=true;
+  requestAnimationFrame(()=>{
+    rafP=false;
+    const trigger=window.scrollY+window.innerHeight*.28;
+    let active=secs[0];
+    for(const s of secs){if(s.offsetTop<=trigger)active=s;else break;}
+    if(active&&active.id!==lastId){
+      lastId=active.id;
+      document.querySelectorAll('.nav-item,.drawer-nav-item').forEach(n=>{
+        n.classList.toggle('active',n.getAttribute('href')==='#'+active.id);
+      });
+    }
+  });
+},{passive:true});
+
+/* ── Drawer ── */
+function buildDrawer(){
+  const dr=document.getElementById('nav-drawer');
+  const sn=document.getElementById('sidenav');
+  const cl=sn.cloneNode(true);
+  cl.removeAttribute('id');cl.removeAttribute('class');
+  cl.querySelectorAll('.nav-item').forEach(el=>{el.classList.add('drawer-nav-item');el.addEventListener('click',closeDrawer);});
+  const tog=cl.querySelector('.tog-area');if(tog)tog.remove();
+  const cb=document.createElement('button');
+  cb.textContent='✕ Close';
+  cb.style.cssText='font-family:"IBM Plex Mono",monospace;font-size:11px;background:transparent;border:none;border-bottom:1px solid var(--bdr-00);color:var(--txt-ph);padding:12px 16px;width:100%;text-align:left;cursor:pointer';
+  cb.onclick=closeDrawer;
+  dr.insertBefore(cb,dr.firstChild);
+  dr.appendChild(cl);
+}
+function toggleDrawer(){
+  const ov=document.getElementById('nav-overlay'),dr=document.getElementById('nav-drawer');
+  if(dr.classList.contains('open')){closeDrawer();}
+  else{ov.style.display='block';setTimeout(()=>ov.classList.add('open'),10);dr.classList.add('open');document.body.style.overflow='hidden';}
+}
+function closeDrawer(){
+  const ov=document.getElementById('nav-overlay'),dr=document.getElementById('nav-drawer');
+  ov.classList.remove('open');dr.classList.remove('open');document.body.style.overflow='';
+  setTimeout(()=>{ov.style.display='none';},270);
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer();});
+document.fonts.ready.then(()=>buildDrawer());
+
+/* ══ SPAM CLASSIFIER ══
+   Vocabulary with pre-computed P(word|spam) and P(word|legit)
+   Based on a realistic spam/legit distribution */
+const vocab = {
+  'free':     {spam:0.92, legit:0.08},
+  'win':      {spam:0.88, legit:0.04},
+  'winner':   {spam:0.85, legit:0.05},
+  'prize':    {spam:0.90, legit:0.06},
+  'offer':    {spam:0.80, legit:0.15},
+  'urgent':   {spam:0.82, legit:0.20},
+  'click':    {spam:0.75, legit:0.18},
+  'limited':  {spam:0.72, legit:0.22},
+  'cash':     {spam:0.88, legit:0.10},
+  'money':    {spam:0.78, legit:0.18},
+  'million':  {spam:0.85, legit:0.08},
+  'credit':   {spam:0.65, legit:0.25},
+  'loan':     {spam:0.70, legit:0.20},
+  'discount': {spam:0.68, legit:0.28},
+  'cheap':    {spam:0.74, legit:0.18},
+  'buy':      {spam:0.60, legit:0.30},
+  'now':      {spam:0.58, legit:0.35},
+  'guaranteed':{spam:0.82, legit:0.10},
+  'exclusive':{spam:0.72, legit:0.20},
+  'today':    {spam:0.55, legit:0.38},
+  // legit words
+  'meeting':  {spam:0.08, legit:0.88},
+  'report':   {spam:0.10, legit:0.85},
+  'agenda':   {spam:0.05, legit:0.90},
+  'schedule': {spam:0.08, legit:0.86},
+  'invoice':  {spam:0.35, legit:0.70},
+  'project':  {spam:0.12, legit:0.82},
+  'team':     {spam:0.10, legit:0.84},
+  'review':   {spam:0.15, legit:0.78},
+  'update':   {spam:0.20, legit:0.72},
+  'thanks':   {spam:0.12, legit:0.80},
+  'please':   {spam:0.18, legit:0.74},
+  'dear':     {spam:0.40, legit:0.55},
+  'hi':       {spam:0.22, legit:0.70},
+  'hello':    {spam:0.20, legit:0.72},
+  'regards':  {spam:0.10, legit:0.82},
+};
+
+const PRIOR_SPAM = 0.55;
+const PRIOR_LEGIT = 0.45;
+const ALPHA = 1.0;
+const DEFAULT_SPAM = 0.40;   // unseen word likelihood for spam
+const DEFAULT_LEGIT = 0.50;  // unseen word likelihood for legit
+
+function classifyEmail(){
+  const text = document.getElementById('emailInput').value;
+  const words = text.toLowerCase().replace(/[^a-z\s]/g,'').split(/\s+/).filter(w=>w.length>1);
+
+  if(!words.length){
+    document.getElementById('spamResult').style.display='none';
+    return;
+  }
+
+  // Log probabilities to avoid underflow
+  let logSpam = Math.log(PRIOR_SPAM);
+  let logLegit = Math.log(PRIOR_LEGIT);
+
+  const pillsHtml = words.map(w=>{
+    const info = vocab[w];
+    const ps   = info ? info.spam  : DEFAULT_SPAM;
+    const pl   = info ? info.legit : DEFAULT_LEGIT;
+    logSpam  += Math.log(ps);
+    logLegit += Math.log(pl);
+    const isSpam = ps > pl;
+    const lt = document.documentElement.classList.contains('light');
+    const bg   = isSpam ? (lt?'#ffd6e8':'#510224') : (lt?'#a7f0ba':'#044317');
+    const col  = isSpam ? (lt?'#9f1853':'#ff7eb6') : (lt?'#044317':'#a7f0ba');
+    const ratio = (ps/pl).toFixed(1);
+    return `<span class="word-pill" style="background:${bg};color:${col};border-color:${col}33" title="P(spam)=${ps} | P(legit)=${pl}">${w} <span style="opacity:.6;font-size:9px">${isSpam?'↑spam':'↑legit'}</span></span>`;
+  }).join('');
+
+  // Convert log scores to display
+  const spamDisplay = logSpam.toFixed(2);
+  const legitDisplay = logLegit.toFixed(2);
+
+  // Softmax for display probability
+  const maxL = Math.max(logSpam, logLegit);
+  const expS = Math.exp(logSpam - maxL);
+  const expL = Math.exp(logLegit - maxL);
+  const pSpam = expS / (expS + expL);
+
+  const isSpam = logSpam > logLegit;
+  const lt = document.documentElement.classList.contains('light');
+  const acColor = isSpam ? '#ff8389' : '#42be65';
+
+  document.getElementById('spamResult').style.display = 'block';
+  document.getElementById('wordPills').innerHTML = pillsHtml;
+  document.getElementById('spamScore').textContent = spamDisplay;
+  document.getElementById('legitScore').textContent = legitDisplay;
+
+  const verdictEl = document.getElementById('verdict');
+  verdictEl.textContent = isSpam ? '🚫 SPAM' : '✓ LEGIT';
+  verdictEl.style.color = isSpam ? 'var(--error)' : 'var(--success)';
+
+  document.getElementById('confidence').textContent =
+    (pSpam * 100).toFixed(1) + '% spam probability';
+
+  // Bar
+  document.getElementById('spamFill').style.width = (pSpam * 100) + '%';
+  document.getElementById('spamFill').style.background = isSpam ? 'var(--error)' : 'var(--success)';
+}
+
+// Run on load with default text
+document.addEventListener('DOMContentLoaded', ()=>{
+  setTimeout(classifyEmail, 300);
+});
+
+/* ── Code Protection ── */
+(function(){
+  var _p=function(e){e.preventDefault();return false;};
+  document.addEventListener('contextmenu',_p);
+  document.addEventListener('keydown',function(e){
+    var k=(e.key||'').toUpperCase(),c=e.ctrlKey||e.metaKey,s=e.shiftKey;
+    if(e.key==='F12'||(c&&s&&['I','J','C','K'].includes(k))||(c&&['U','S','P'].includes(k))){
+      e.preventDefault();return false;
+    }
+  },true);
+  document.addEventListener('dragstart',_p);
+  function _dt(){
+    var dw=window.outerWidth-window.innerWidth>200,dh=window.outerHeight-window.innerHeight>200;
+    var el=document.getElementById('_dtWarn');
+    if(dw||dh){
+      document.body.style.filter='blur(18px)';document.body.style.pointerEvents='none';
+      if(!el){var d=document.createElement('div');d.id='_dtWarn';
+        d.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(22,22,22,.97);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;font-family:"IBM Plex Mono",monospace';
+        d.innerHTML='<div style="font-size:11px;letter-spacing:.14em;color:#ff8389;text-transform:uppercase">&#8856; Inspect Disabled</div><div style="font-size:10px;letter-spacing:.08em;color:#6f6f6f">Close developer tools to continue</div>';
+        document.body.appendChild(d);}
+    }else{
+      document.body.style.filter='';document.body.style.pointerEvents='';if(el)el.remove();
+    }
+  }
+  setInterval(_dt,900);
+})();
+</script>
+</body>
+</html>

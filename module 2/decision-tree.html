@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Decision Tree — Entropy & Gini Index | Module 2</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;1,300&family=IBM+Plex+Serif:ital,wght@0,300;1,300&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#161616;--layer-01:#262626;--layer-02:#393939;--layer-03:#525252;
+  --hover-01:#333333;--bdr-00:#393939;--bdr-01:#474747;--bdr-str:#6f6f6f;
+  --txt-pri:#f4f4f4;--txt-sec:#c6c6c6;--txt-ph:#6f6f6f;
+  --blue:#4589ff;--link:#78a9ff;--success:#42be65;--warn:#f1c21b;--error:#ff8389;--teal:#3ddbd9;--purple:#d4bbff;
+  /* Topic 2 accent = green */
+  --ac:#42be65;
+}
+html.light{
+  --bg:#fff;--layer-01:#f4f4f4;--layer-02:#e0e0e0;--layer-03:#c6c6c6;
+  --hover-01:#e8e8e8;--bdr-00:#e0e0e0;--bdr-01:#c6c6c6;--bdr-str:#8d8d8d;
+  --txt-pri:#161616;--txt-sec:#525252;--txt-ph:#8d8d8d;
+  --blue:#0f62fe;--link:#0043ce;--success:#198038;--warn:#b28600;--error:#da1e28;--teal:#007d79;--purple:#6929c4;
+  /* Topic 2 light accent = green */
+  --ac:#198038;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'IBM Plex Sans',sans-serif;font-size:15px;line-height:1.5;background:var(--bg);color:var(--txt-pri);-webkit-font-smoothing:antialiased;transition:background .25s,color .2s}
+a{text-decoration:none;color:inherit}
+
+/* ── Layout ── */
+.page-grid{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+
+/* ── Sidenav ── */
+.sidenav{background:var(--layer-01);border-right:1px solid var(--bdr-00);position:sticky;top:0;height:100vh;overflow-y:auto;padding-bottom:32px;transition:background .25s,border-color .2s}
+.nav-hdr{padding:16px;border-bottom:1px solid var(--bdr-00);margin-bottom:4px}
+.nav-back{display:flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph);letter-spacing:.06em;margin-bottom:8px;transition:color .15s}
+.nav-back:hover{color:var(--ac)}
+.nav-mod{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;color:var(--ac);text-transform:uppercase;margin-bottom:3px}
+.nav-title{font-size:13px;font-weight:600;color:var(--txt-pri);line-height:1.3}
+.nav-sec{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;color:var(--txt-ph);text-transform:uppercase;padding:12px 16px 4px}
+.nav-item{display:flex;align-items:center;gap:8px;padding:8px 16px;font-size:13px;color:var(--txt-sec);cursor:pointer;border-left:3px solid transparent;transition:background .1s,color .1s,border-color .1s;text-decoration:none}
+.nav-item:hover{background:var(--hover-01);color:var(--txt-pri)}
+.nav-item.active{background:var(--hover-01);color:var(--txt-pri);border-left-color:var(--ac);font-weight:600}
+.nav-item.active .nn{color:var(--ac)}
+.nn{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--txt-ph);min-width:16px;transition:color .15s}
+.tog-area{padding:20px 16px 0}
+.tog-btn{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding:8px 10px;background:var(--layer-02);border:1px solid var(--bdr-01);cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-sec);letter-spacing:.05em;transition:background .15s}
+.tog-btn:hover{background:var(--hover-01);color:var(--txt-pri)}
+.tog-track{width:26px;height:13px;background:var(--bdr-str);border-radius:7px;position:relative;flex-shrink:0;transition:background .25s}
+.tog-thumb{position:absolute;top:2px;left:2px;width:9px;height:9px;border-radius:50%;background:#fff;transition:transform .25s}
+html.light .tog-track{background:var(--ac)}
+html.light .tog-thumb{transform:translateX(13px)}
+
+/* ── Mobile topbar ── */
+.mob-topbar{display:none;position:fixed;top:0;left:0;right:0;z-index:200;height:52px;background:var(--layer-01);border-bottom:1px solid var(--bdr-00);align-items:center;padding:0 16px;gap:8px;transition:background .25s}
+.mob-menu-btn{width:34px;height:34px;background:transparent;border:1px solid var(--bdr-01);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-direction:column;gap:4px}
+.mob-bar{width:14px;height:1.5px;background:var(--txt-pri)}
+.mob-title{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--txt-pri);flex:1;letter-spacing:.04em}
+.mob-tog{width:34px;height:34px;background:transparent;border:1px solid var(--bdr-01);cursor:pointer;font-size:14px;color:var(--txt-sec)}
+
+/* ── Drawer ── */
+.nav-overlay{display:none;position:fixed;inset:0;z-index:150;background:rgba(0,0,0,.6);opacity:0;transition:opacity .25s}
+.nav-overlay.open{opacity:1}
+.nav-drawer{position:fixed;left:0;top:0;bottom:0;z-index:160;width:260px;background:var(--layer-01);border-right:1px solid var(--bdr-00);overflow-y:auto;transform:translateX(-100%);transition:transform .3s cubic-bezier(.4,0,.2,1);padding-bottom:32px}
+.nav-drawer.open{transform:translateX(0)}
+
+/* ── Main ── */
+.main{padding:0 48px 100px;max-width:820px;transition:background .25s}
+.page-hdr{padding:52px 0 40px;border-bottom:1px solid var(--bdr-00);margin-bottom:52px}
+.breadcrumb{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-ph);letter-spacing:.05em;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.breadcrumb a{color:var(--ac);transition:opacity .15s}.breadcrumb a:hover{opacity:.7}
+h1{font-family:'IBM Plex Serif',serif;font-size:clamp(34px,5vw,54px);font-weight:300;line-height:1.15;color:var(--txt-pri);margin-bottom:12px}
+h1 em{font-style:italic;color:var(--ac)}
+.hdr-desc{font-size:15px;font-weight:300;color:var(--txt-sec);max-width:580px;line-height:1.7}
+
+/* ── Sections ── */
+.section{margin-bottom:60px;opacity:0;transform:translateY(14px);animation:fadeUp .4s ease forwards}
+.section:nth-child(1){animation-delay:.05s}.section:nth-child(2){animation-delay:.10s}
+.section:nth-child(3){animation-delay:.15s}.section:nth-child(4){animation-delay:.20s}
+.section:nth-child(5){animation-delay:.25s}.section:nth-child(6){animation-delay:.30s}
+.section:nth-child(7){animation-delay:.35s}.section:nth-child(8){animation-delay:.40s}
+.section:nth-child(9){animation-delay:.45s}.section:nth-child(10){animation-delay:.50s}
+@keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
+
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;color:var(--ac);text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.eyebrow::before{content:'';display:inline-block;width:14px;height:1px;background:var(--ac)}
+h2{font-family:'IBM Plex Serif',serif;font-size:24px;font-weight:300;color:var(--txt-pri);margin-bottom:14px;line-height:1.25}
+h3{font-size:15px;font-weight:600;color:var(--txt-pri);margin-bottom:8px}
+p{font-size:14px;font-weight:300;color:var(--txt-sec);margin-bottom:12px;line-height:1.75}
+p strong{color:var(--txt-pri);font-weight:600}
+.hl{color:var(--ac);font-weight:600}
+.hl-y{color:var(--warn);font-weight:600}
+.hl-r{color:var(--error);font-weight:600}
+.hl-t{color:var(--teal);font-weight:600}
+.hl-p{color:var(--purple);font-weight:600}
+.hl-b{color:var(--link);font-weight:600}
+
+/* ── Callout ── */
+.callout{border-left:3px solid var(--ac);background:var(--layer-01);padding:14px 18px;margin:14px 0;font-size:14px;font-weight:300;color:var(--txt-sec);line-height:1.75;transition:background .25s}
+.callout strong{color:var(--txt-pri);font-weight:600}
+.callout-g{border-left-color:var(--ac)}
+.callout-y{border-left-color:var(--warn)}
+.callout-r{border-left-color:var(--error)}
+.callout-b{border-left-color:var(--link)}
+
+/* ── Tile ── */
+.tile{background:var(--layer-01);border:1px solid var(--bdr-00);padding:20px 24px;margin-bottom:12px;transition:background .25s,border-color .2s}
+.tile-title{font-size:13px;font-weight:600;color:var(--txt-pri);margin-bottom:12px}
+
+/* ── Grids ── */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--bdr-00);border:1px solid var(--bdr-00);margin:14px 0}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--bdr-00);border:1px solid var(--bdr-00);margin:14px 0}
+.grid4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:1px;background:var(--bdr-00);border:1px solid var(--bdr-00);margin:14px 0}
+.gcell{background:var(--layer-01);padding:20px 22px;transition:background .25s}
+
+/* ── KV ── */
+.kv{display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--bdr-00);font-size:13px;gap:12px;transition:border-color .2s}
+.kv:last-child{border-bottom:none}
+.kk{color:var(--txt-sec);font-weight:300;flex-shrink:0}
+.kv-v{color:var(--txt-pri);font-weight:400;text-align:right}
+
+/* ── Tags ── */
+.tag{display:inline-flex;align-items:center;height:22px;padding:0 10px;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.03em;margin-bottom:10px}
+.t-gr{background:#044317;color:#a7f0ba}
+.t-bl{background:#0043ce;color:#a6c8ff}
+.t-pu{background:#491d8b;color:#d4bbff}
+.t-am{background:#533b00;color:#f1c21b}
+.t-te{background:#005d5d;color:#3ddbd9}
+.t-re{background:#750e13;color:#ffb3b8}
+html.light .t-gr{background:#a7f0ba;color:#044317}
+html.light .t-bl{background:#d0e2ff;color:#0043ce}
+html.light .t-pu{background:#e8daff;color:#491d8b}
+html.light .t-am{background:#ffd6a4;color:#4d3800}
+html.light .t-te{background:#9ef0f0;color:#005d5d}
+html.light .t-re{background:#ffd7d9;color:#750e13}
+
+/* ── Formula ── */
+.formula{font-family:'IBM Plex Mono',monospace;font-size:13px;background:var(--layer-02);border:1px solid var(--bdr-01);border-left:3px solid var(--ac);padding:11px 15px;margin:10px 0;line-height:2;color:var(--txt-pri);transition:background .25s}
+
+/* ── Table ── */
+.dtbl{width:100%;border-collapse:collapse;margin:8px 0;font-size:13px}
+.dtbl thead tr{background:var(--layer-02);border-bottom:1px solid var(--bdr-str)}
+.dtbl th{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--txt-sec);padding:9px 14px;text-align:left}
+.dtbl td{padding:9px 14px;border-bottom:1px solid var(--bdr-00);color:var(--txt-pri);vertical-align:middle;font-size:13px}
+.dtbl tbody tr:hover{background:var(--hover-01)}
+
+/* ── HR ── */
+hr{border:none;border-top:1px solid var(--bdr-00);margin:44px 0;transition:border-color .2s}
+
+/* ── Collapsible cards ── */
+.comp-card{background:var(--layer-01);border:1px solid var(--bdr-00);margin-bottom:2px;transition:background .15s}
+.comp-card-hdr{display:flex;align-items:center;gap:10px;padding:14px 18px;cursor:pointer}
+.comp-card-icon{width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;flex-shrink:0}
+.comp-card-title{font-size:14px;font-weight:600;color:var(--txt-pri);flex:1}
+.comp-card-arrow{font-size:10px;color:var(--txt-ph);transition:transform .2s}
+.comp-card.open .comp-card-arrow{transform:rotate(90deg)}
+.comp-card-body{display:none;border-top:1px solid var(--bdr-00);margin:0 18px;padding:14px 0 16px;font-size:13px;font-weight:300;color:var(--txt-sec);line-height:1.75}
+.comp-card.open .comp-card-body{display:block}
+
+/* ── Quiz ── */
+.quiz-wrap{background:var(--layer-01);border:1px solid var(--bdr-00);padding:20px 24px;margin:16px 0}
+.quiz-q{font-size:14px;font-weight:600;color:var(--txt-pri);margin-bottom:14px}
+.quiz-options{display:flex;flex-direction:column;gap:8px}
+.quiz-opt{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--layer-02);border:1px solid var(--bdr-01);cursor:pointer;font-size:13px;color:var(--txt-sec);transition:background .15s,border-color .15s}
+.quiz-opt:hover{background:var(--hover-01);color:var(--txt-pri)}
+.quiz-opt.correct{background:rgba(66,190,101,.12);border-color:var(--ac);color:var(--ac)}
+.quiz-opt.wrong{background:rgba(255,131,137,.1);border-color:var(--error);color:var(--error)}
+.quiz-opt.show-correct{background:rgba(66,190,101,.06);border-color:var(--ac)}
+.quiz-feedback{margin-top:12px;padding:10px 14px;font-size:13px;font-weight:300;line-height:1.6;display:none;border-left:3px solid var(--ac)}
+.quiz-feedback.show{display:block}
+.quiz-reset{margin-top:10px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ac);cursor:pointer;letter-spacing:.05em;background:transparent;border:none;display:none}
+.quiz-reset.show{display:block}
+
+/* ── Slider / Interactive ── */
+.slider-wrap{margin:14px 0}
+.slider-row{display:flex;align-items:center;gap:14px;margin-bottom:10px}
+.slider-lbl{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-ph);min-width:64px}
+input[type=range]{-webkit-appearance:none;appearance:none;flex:1;height:2px;background:var(--bdr-str);outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;background:var(--ac);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;background:var(--ac);border:none;cursor:pointer}
+.slider-val{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--ac);min-width:40px;text-align:right}
+
+/* ── Entropy bar visualizer ── */
+.entropy-bars{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--bdr-00);border:1px solid var(--bdr-00);margin:14px 0}
+.ebar-cell{background:var(--layer-01);padding:16px;text-align:center}
+.ebar-label{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph);letter-spacing:.08em;margin-bottom:10px;text-transform:uppercase}
+.ebar-track{height:80px;background:var(--layer-02);border:1px solid var(--bdr-00);position:relative;overflow:hidden}
+.ebar-fill{position:absolute;bottom:0;left:0;right:0;transition:height .4s ease,background .4s}
+.ebar-val{font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:600;margin-top:8px}
+.ebar-desc{font-size:11px;color:var(--txt-ph);margin-top:3px;font-weight:300}
+
+/* ── Tree SVG ── */
+.tree-wrap{overflow-x:auto;margin:14px 0;background:var(--layer-01);border:1px solid var(--bdr-00);padding:20px}
+svg text{font-family:'IBM Plex Mono',monospace}
+
+/* ── Metric output row ── */
+.metric-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--bdr-00);border:1px solid var(--bdr-00);margin-top:16px}
+.metric-cell{background:var(--layer-01);padding:14px 16px;text-align:center;transition:background .25s}
+.metric-lbl{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--txt-ph);margin-bottom:6px}
+.metric-val{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;line-height:1;color:var(--ac)}
+.metric-note{font-size:10px;color:var(--txt-ph);margin-top:5px;font-weight:300}
+
+/* ── Tab switcher ── */
+.lt-tabs{display:flex;gap:0;background:var(--bdr-00);border:1px solid var(--bdr-00);margin-bottom:0}
+.lt-tab{flex:1;padding:10px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.06em;color:var(--txt-sec);background:var(--layer-02);cursor:pointer;text-align:center;border-right:1px solid var(--bdr-00);transition:background .15s,color .15s;border-top:none;border-bottom:none;border-left:none}
+.lt-tab:last-child{border-right:none}
+.lt-tab.active{background:var(--ac);color:#fff}
+html.light .lt-tab.active{color:#fff}
+.lt-content{background:var(--layer-01);border:1px solid var(--bdr-00);border-top:none;padding:20px 24px}
+.lt-panel{display:none}.lt-panel.active{display:block}
+
+/* ── Bottom nav ── */
+.page-nav{display:flex;justify-content:space-between;align-items:center;padding-top:40px;border-top:1px solid var(--bdr-00);margin-top:60px}
+.page-nav-btn{display:flex;align-items:center;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-sec);padding:10px 16px;border:1px solid var(--bdr-01);background:transparent;cursor:pointer;transition:background .15s,color .15s;text-decoration:none}
+.page-nav-btn:hover{background:var(--hover-01);color:var(--txt-pri)}
+.page-nav-btn.primary{background:var(--ac);border-color:var(--ac);color:#fff}
+.page-nav-btn.primary:hover{opacity:.9}
+
+/* ── Responsive ── */
+@media(max-width:767px){
+  .mob-topbar{display:flex}
+  .sidenav{display:none}
+  .page-grid{display:block}
+  .main{padding:68px 16px 80px;max-width:100%}
+  .page-hdr{padding:24px 0 20px;margin-bottom:32px}
+  h1{font-size:24px}
+  .grid2,.grid3,.grid4,.metric-row,.entropy-bars{grid-template-columns:1fr}
+  .lt-tabs{flex-wrap:wrap}
+  .lt-tab{flex:none;width:50%}
+  hr{margin:28px 0}
+}
+@media(min-width:768px) and (max-width:1024px){
+  .page-grid{grid-template-columns:200px 1fr}
+  .main{padding:0 24px 80px}
+  .grid3,.grid4{grid-template-columns:1fr 1fr}
+}
+
+/* ── Code Protection ── */
+*{-webkit-user-select:none;user-select:none;-moz-user-select:none;-ms-user-select:none}
+input,textarea,select{-webkit-user-select:text;user-select:text}
+@media print{body{display:none!important;visibility:hidden!important}}
+img{-webkit-user-drag:none;user-drag:none;pointer-events:none}
+</style>
+</head>
+<body>
+
+<!-- Mobile topbar -->
+<div class="mob-topbar" id="mob-topbar">
+  <button class="mob-menu-btn" onclick="toggleDrawer()" aria-label="Menu">
+    <div class="mob-bar"></div><div class="mob-bar"></div><div class="mob-bar"></div>
+  </button>
+  <span class="mob-title">Decision Tree</span>
+  <button class="mob-tog" onclick="toggleTheme()" id="mob-tog">☀</button>
+</div>
+<div class="nav-overlay" id="nav-overlay" onclick="closeDrawer()"></div>
+<nav class="nav-drawer" id="nav-drawer"></nav>
+
+<div class="page-grid">
+
+<!-- ══ SIDENAV ══ -->
+<nav class="sidenav" id="sidenav">
+  <div class="nav-hdr">
+    <a class="nav-back" href="index.html">← Module 2</a>
+    <div class="nav-mod">Topic 02</div>
+    <div class="nav-title">Decision Tree — Entropy & Gini</div>
+  </div>
+  <div class="nav-sec">Sections</div>
+  <a class="nav-item active" href="#s1"><span class="nn">01</span>What is a decision tree?</a>
+  <a class="nav-item" href="#s2"><span class="nn">02</span>How the tree splits</a>
+  <a class="nav-item" href="#s3"><span class="nn">03</span>Entropy explained</a>
+  <a class="nav-item" href="#s4"><span class="nn">04</span>Information gain</a>
+  <a class="nav-item" href="#s5"><span class="nn">05</span>Worked example</a>
+  <a class="nav-item" href="#s6"><span class="nn">06</span>Gini impurity</a>
+  <a class="nav-item" href="#s7"><span class="nn">07</span>Entropy vs Gini</a>
+  <a class="nav-item" href="#s8"><span class="nn">08</span>Overfitting & pruning</a>
+  <a class="nav-item" href="#s9"><span class="nn">09</span>Interactive explorer</a>
+  <a class="nav-item" href="#s10"><span class="nn">10</span>Quick quiz</a>
+  <div class="tog-area">
+    <button class="tog-btn" onclick="toggleTheme()">
+      <span style="display:flex;align-items:center;gap:6px"><span id="tog-icon">☀</span><span id="tog-txt">Light theme</span></span>
+      <span class="tog-track"><span class="tog-thumb"></span></span>
+    </button>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph);margin-top:10px;line-height:1.6">IBM Carbon · <span id="theme-lbl">Dark</span></div>
+  </div>
+</nav>
+
+<!-- ══ MAIN ══ -->
+<main class="main">
+<div class="page-hdr">
+  <div class="breadcrumb">
+    <a href="../index.html">Home</a><span>/</span>
+    <a href="index.html">Module 2</a><span>/</span>
+    <span style="color:var(--txt-sec)">Decision Tree</span>
+  </div>
+  <h1>Decision Tree —<br><em>Entropy & Gini</em></h1>
+  <p class="hdr-desc">How a machine plays 20 questions to classify data — and the mathematics behind choosing the right question every time. From Akinator to cancer diagnosis.</p>
+</div>
+
+<!-- ══════════ S1: WHAT IS A DECISION TREE ══════════ -->
+<div class="section" id="s1">
+  <div class="eyebrow">01 · The concept</div>
+  <h2>What is a Decision Tree?</h2>
+  <p>You've probably played <strong>Akinator</strong> — the genie who guesses your character by asking yes/no questions. "Is it a real person?" → "Is she a woman?" → "Is she a singer?" It narrows things down with each question until it arrives at an answer. <span class="hl">That's exactly what a decision tree does.</span></p>
+
+  <div class="callout callout-g">
+    <strong>Analogy — The Akinator Game:</strong> A decision tree learns which questions to ask (which features to split on) and in what order — so it can classify any new data point by walking it down the tree from root to leaf, answering one question at a time.
+  </div>
+
+  <div class="grid2">
+    <div class="gcell">
+      <div class="tag t-gr">Structure</div>
+      <div class="kv"><span class="kk">Root node</span><span class="kv-v">First question — the best split</span></div>
+      <div class="kv"><span class="kk">Internal nodes</span><span class="kv-v">Subsequent questions</span></div>
+      <div class="kv"><span class="kk">Branches</span><span class="kv-v">Answers to each question</span></div>
+      <div class="kv"><span class="kk">Leaf nodes</span><span class="kv-v">Final class predictions</span></div>
+    </div>
+    <div class="gcell">
+      <div class="tag t-bl">Properties</div>
+      <div class="kv"><span class="kk">Learning type</span><span class="kv-v">Supervised</span></div>
+      <div class="kv"><span class="kk">Task</span><span class="kv-v">Classification & Regression</span></div>
+      <div class="kv"><span class="kk">Interpretability</span><span class="kv-v" style="color:var(--ac)">Very high — see every decision</span></div>
+      <div class="kv"><span class="kk">Algorithm</span><span class="kv-v">ID3, C4.5, CART</span></div>
+    </div>
+  </div>
+
+  <!-- Simple movie tree -->
+  <div class="tree-wrap">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph);margin-bottom:14px;letter-spacing:.08em">EXAMPLE — SHOULD I WATCH THIS MOVIE?</div>
+    <svg viewBox="0 0 640 260" width="100%" style="display:block">
+      <!-- Lines -->
+      <line x1="320" y1="52" x2="180" y2="108" stroke="#6f6f6f" stroke-width="1"/>
+      <line x1="320" y1="52" x2="460" y2="108" stroke="#6f6f6f" stroke-width="1"/>
+      <line x1="180" y1="140" x2="100" y2="196" stroke="#6f6f6f" stroke-width="1"/>
+      <line x1="180" y1="140" x2="260" y2="196" stroke="#6f6f6f" stroke-width="1"/>
+      <line x1="260" y1="228" x2="220" y2="252" stroke="#6f6f6f" stroke-width="1"/>
+      <line x1="260" y1="228" x2="300" y2="252" stroke="#6f6f6f" stroke-width="1"/>
+      <!-- Edge labels -->
+      <text x="232" y="86" font-size="9" fill="#6f6f6f" text-anchor="middle">Superhero?</text>
+      <text x="410" y="86" font-size="9" fill="#6f6f6f" text-anchor="middle">Not superhero</text>
+      <text x="126" y="174" font-size="9" fill="#6f6f6f" text-anchor="middle">Yes</text>
+      <text x="228" y="174" font-size="9" fill="#6f6f6f" text-anchor="middle">No</text>
+      <text x="238" y="244" font-size="9" fill="#6f6f6f" text-anchor="middle">&lt;2.5hr</text>
+      <text x="292" y="244" font-size="9" fill="#6f6f6f" text-anchor="middle">&gt;2.5hr</text>
+      <!-- Root -->
+      <rect x="220" y="20" width="200" height="32" rx="2" fill="#393939" stroke="#42be65" stroke-width="1.5"/>
+      <text x="320" y="41" font-size="11" fill="#42be65" text-anchor="middle">Is it a superhero movie?</text>
+      <!-- L1 Left — friend recommended -->
+      <rect x="110" y="108" width="140" height="32" rx="2" fill="#393939" stroke="#6f6f6f" stroke-width="1"/>
+      <text x="180" y="129" font-size="11" fill="#c6c6c6" text-anchor="middle">Friend recommended?</text>
+      <!-- L1 Right — leaf SKIP -->
+      <rect x="390" y="108" width="140" height="32" rx="2" fill="#2e1212" stroke="#ff8389" stroke-width="1"/>
+      <text x="460" y="129" font-size="11" fill="#ff8389" text-anchor="middle">⬛ SKIP IT</text>
+      <!-- L2a — WATCH -->
+      <rect x="52" y="196" width="96" height="28" rx="2" fill="#044317" stroke="#42be65" stroke-width="1"/>
+      <text x="100" y="215" font-size="11" fill="#42be65" text-anchor="middle">✓ WATCH</text>
+      <!-- L2b — runtime -->
+      <rect x="200" y="196" width="120" height="32" rx="2" fill="#393939" stroke="#6f6f6f" stroke-width="1"/>
+      <text x="260" y="217" font-size="11" fill="#c6c6c6" text-anchor="middle">Runtime &lt; 2.5 hrs?</text>
+      <!-- L3a watch -->
+      <rect x="176" y="248" width="80" height="24" rx="2" fill="#044317" stroke="#42be65" stroke-width="1"/>
+      <text x="216" y="264" font-size="10" fill="#42be65" text-anchor="middle">✓ WATCH</text>
+      <!-- L3b skip -->
+      <rect x="260" y="248" width="80" height="24" rx="2" fill="#2e1212" stroke="#ff8389" stroke-width="1"/>
+      <text x="300" y="264" font-size="10" fill="#ff8389" text-anchor="middle">⬛ SKIP</text>
+    </svg>
+  </div>
+
+  <p>The tree walks every movie through the same questions and arrives at a prediction. Now the real question is — <strong>how does it decide which question to ask first?</strong> That's where entropy comes in.</p>
+</div>
+
+<!-- ══════════ S2: HOW IT SPLITS ══════════ -->
+<div class="section" id="s2">
+  <div class="eyebrow">02 · The core idea</div>
+  <h2>How the tree chooses splits</h2>
+  <p>The tree tries every possible feature and every possible split point. For each one, it asks: <em>"Does splitting here make my data more organised?"</em> The split that creates the <strong>purest child nodes</strong> — where each side contains mostly one class — is chosen.</p>
+
+  <div class="callout callout-y">
+    <strong>Analogy — Sorting a messy sock drawer:</strong> Imagine sorting a pile of mixed red and blue socks. You could sort by size — but maybe big socks are still mixed. Or you could sort by colour — and suddenly each pile is pure (all red or all blue). The tree picks the sorting rule that creates the least-mixed piles. Purity = low entropy.
+  </div>
+
+  <div class="grid3">
+    <div class="gcell">
+      <div class="tag t-re">Before split</div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px">
+        <span style="width:14px;height:14px;border-radius:50%;background:#42be65;display:inline-block"></span>
+        <span style="width:14px;height:14px;border-radius:50%;background:#ff8389;display:inline-block"></span>
+        <span style="width:14px;height:14px;border-radius:50%;background:#42be65;display:inline-block"></span>
+        <span style="width:14px;height:14px;border-radius:50%;background:#ff8389;display:inline-block"></span>
+        <span style="width:14px;height:14px;border-radius:50%;background:#42be65;display:inline-block"></span>
+        <span style="width:14px;height:14px;border-radius:50%;background:#ff8389;display:inline-block"></span>
+        <span style="width:14px;height:14px;border-radius:50%;background:#42be65;display:inline-block"></span>
+        <span style="width:14px;height:14px;border-radius:50%;background:#ff8389;display:inline-block"></span>
+      </div>
+      <div class="kv"><span class="kk">Composition</span><span class="kv-v">4 Yes, 4 No</span></div>
+      <div class="kv"><span class="kk">Purity</span><span class="kv-v" style="color:var(--error)">Very impure</span></div>
+    </div>
+    <div class="gcell">
+      <div class="tag t-am">Bad split</div>
+      <div style="font-size:12px;color:var(--txt-ph);margin-bottom:8px">Left: 3Y 2N &nbsp; Right: 1Y 2N</div>
+      <div class="kv"><span class="kk">Still mixed?</span><span class="kv-v" style="color:var(--warn)">Yes, both sides</span></div>
+      <div class="kv"><span class="kk">Information gain</span><span class="kv-v" style="color:var(--warn)">Low</span></div>
+      <div class="kv"><span class="kk">Verdict</span><span class="kv-v">Skip this split</span></div>
+    </div>
+    <div class="gcell">
+      <div class="tag t-gr">Good split</div>
+      <div style="font-size:12px;color:var(--txt-ph);margin-bottom:8px">Left: 4Y 0N &nbsp; Right: 0Y 4N</div>
+      <div class="kv"><span class="kk">Still mixed?</span><span class="kv-v" style="color:var(--ac)">No — pure leaves</span></div>
+      <div class="kv"><span class="kk">Information gain</span><span class="kv-v" style="color:var(--ac)">Maximum</span></div>
+      <div class="kv"><span class="kk">Verdict</span><span class="kv-v" style="color:var(--ac)">Choose this!</span></div>
+    </div>
+  </div>
+
+  <p>Two mathematical measures quantify this purity: <strong>Entropy</strong> (used by ID3 algorithm) and <strong>Gini Impurity</strong> (used by CART). Both measure the same thing — how mixed a node is — just with slightly different maths.</p>
+</div>
+
+<!-- ══════════ S3: ENTROPY ══════════ -->
+<div class="section" id="s3">
+  <div class="eyebrow">03 · Measuring disorder</div>
+  <h2>Entropy explained</h2>
+  <p>Entropy comes from information theory. It measures the <strong>amount of uncertainty or disorder</strong> in a set. A perfectly pure set has entropy 0. An evenly mixed set has maximum entropy.</p>
+
+  <div class="callout callout-g">
+    <strong>Analogy — Three jars of marbles:</strong> <strong>Jar A</strong> has 10 green marbles — reach in blindfolded, you always know what you'll get. Zero surprise. Entropy = 0. <strong>Jar B</strong> has 5 green and 5 red — total uncertainty. Maximum surprise. Entropy = 1. <strong>Jar C</strong> has 8 green, 2 red — mostly predictable with some uncertainty. Entropy = 0.72. Entropy measures that surprise.
+  </div>
+
+  <!-- Entropy jar visualizer -->
+  <div class="entropy-bars">
+    <div class="ebar-cell">
+      <div class="ebar-label">Jar A — Pure</div>
+      <div class="ebar-track">
+        <div class="ebar-fill" style="height:0%;background:var(--error)"></div>
+        <div style="position:absolute;bottom:0;left:0;right:0;height:100%;background:var(--ac);opacity:.25"></div>
+      </div>
+      <div class="ebar-val" style="color:var(--ac)">H = 0.00</div>
+      <div class="ebar-desc">10 Yes, 0 No<br>Zero confusion</div>
+    </div>
+    <div class="ebar-cell">
+      <div class="ebar-label">Jar B — Mixed</div>
+      <div class="ebar-track">
+        <div class="ebar-fill" style="height:50%;background:var(--error);opacity:.4"></div>
+        <div style="position:absolute;bottom:50%;left:0;right:0;height:50%;background:var(--ac);opacity:.25"></div>
+      </div>
+      <div class="ebar-val" style="color:var(--error)">H = 1.00</div>
+      <div class="ebar-desc">5 Yes, 5 No<br>Maximum confusion</div>
+    </div>
+    <div class="ebar-cell">
+      <div class="ebar-label">Jar C — Mostly Yes</div>
+      <div class="ebar-track">
+        <div class="ebar-fill" style="height:20%;background:var(--error);opacity:.4"></div>
+        <div style="position:absolute;bottom:20%;left:0;right:0;height:80%;background:var(--ac);opacity:.25"></div>
+      </div>
+      <div class="ebar-val" style="color:var(--warn)">H = 0.72</div>
+      <div class="ebar-desc">8 Yes, 2 No<br>Some confusion</div>
+    </div>
+  </div>
+
+  <div class="formula">H(S) = − Σ p(i) × log₂(p(i))
+<br>
+Binary case: H = −p(Yes)·log₂(p(Yes)) − p(No)·log₂(p(No))</div>
+
+  <div class="callout">
+    <strong>Why log base 2?</strong> Entropy comes from information theory where information is measured in <strong>bits</strong>. Log₂ tells us "how many binary yes/no questions are needed to remove this uncertainty?" Entropy = 1 means one binary question resolves everything. Entropy = 0 means no question needed.
+  </div>
+
+  <div class="tile">
+    <div class="tile-title">Quick calculation — Jar B (5 Yes, 5 No, Total = 10)</div>
+    <div class="kv"><span class="kk">p(Yes) = 5/10</span><span class="kv-v">= 0.5</span></div>
+    <div class="kv"><span class="kk">p(No) = 5/10</span><span class="kv-v">= 0.5</span></div>
+    <div class="kv"><span class="kk">H = −(0.5 × log₂0.5) − (0.5 × log₂0.5)</span><span class="kv-v" style="color:var(--ac)">= 1.00</span></div>
+    <div class="kv"><span class="kk">Meaning</span><span class="kv-v">Maximum uncertainty — must split</span></div>
+  </div>
+</div>
+
+<!-- ══════════ S4: INFORMATION GAIN ══════════ -->
+<div class="section" id="s4">
+  <div class="eyebrow">04 · Measuring improvement</div>
+  <h2>Information Gain</h2>
+  <p>Entropy alone tells us how mixed a node is. <strong>Information Gain</strong> tells us how much a split improves things — how much entropy is reduced after splitting on a feature.</p>
+
+  <div class="callout callout-g">
+    <strong>Analogy — The best question in 20 Questions:</strong> You're playing 20 Questions. You could ask "Is it alive?" — which might immediately split the options into two roughly equal groups. Or you could ask "Is it a species of beetle?" — which narrows almost nothing for most answers. <strong>Information Gain measures which question reduces your confusion the most.</strong> The tree always picks the highest-gain question.
+  </div>
+
+  <div class="formula">Information Gain (IG) = H(parent) − Σ [ (|Sᵥ| / |S|) × H(Sᵥ) ]
+<br>
+= Entropy before split − Weighted entropy after split</div>
+
+  <div class="grid2">
+    <div class="gcell">
+      <div class="tag t-gr">High IG → Good split</div>
+      <div class="kv"><span class="kk">Parent entropy</span><span class="kv-v">1.00 (very mixed)</span></div>
+      <div class="kv"><span class="kk">After split</span><span class="kv-v">0.20 (nearly pure)</span></div>
+      <div class="kv"><span class="kk">Information Gain</span><span class="kv-v" style="color:var(--ac)">0.80 — excellent</span></div>
+      <div class="kv"><span class="kk">Decision</span><span class="kv-v">Use this feature first</span></div>
+    </div>
+    <div class="gcell">
+      <div class="tag t-re">Low IG → Bad split</div>
+      <div class="kv"><span class="kk">Parent entropy</span><span class="kv-v">1.00 (very mixed)</span></div>
+      <div class="kv"><span class="kk">After split</span><span class="kv-v">0.95 (still mixed)</span></div>
+      <div class="kv"><span class="kk">Information Gain</span><span class="kv-v" style="color:var(--error)">0.05 — useless</span></div>
+      <div class="kv"><span class="kk">Decision</span><span class="kv-v">Try another feature</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ S5: WORKED EXAMPLE ══════════ -->
+<div class="section" id="s5">
+  <div class="eyebrow">05 · Step by step</div>
+  <h2>Worked example — Cricket dataset</h2>
+  <p>Let's build a tree from scratch. 8 records, one feature (Weather), one label (Play Cricket). We'll calculate IG for Weather and see why it becomes the root.</p>
+
+  <div class="tile">
+    <div class="tile-title">Training dataset</div>
+    <table class="dtbl">
+      <thead><tr><th>Weather</th><th>Play Cricket</th></tr></thead>
+      <tbody>
+        <tr><td style="color:var(--warn);font-family:'IBM Plex Mono',monospace">Sunny</td><td style="color:var(--error)">No</td></tr>
+        <tr><td style="color:var(--warn);font-family:'IBM Plex Mono',monospace">Sunny</td><td style="color:var(--error)">No</td></tr>
+        <tr><td style="color:var(--txt-ph);font-family:'IBM Plex Mono',monospace">Overcast</td><td style="color:var(--ac)">Yes</td></tr>
+        <tr><td style="color:var(--link);font-family:'IBM Plex Mono',monospace">Rainy</td><td style="color:var(--ac)">Yes</td></tr>
+        <tr><td style="color:var(--link);font-family:'IBM Plex Mono',monospace">Rainy</td><td style="color:var(--ac)">Yes</td></tr>
+        <tr><td style="color:var(--link);font-family:'IBM Plex Mono',monospace">Rainy</td><td style="color:var(--error)">No</td></tr>
+        <tr><td style="color:var(--txt-ph);font-family:'IBM Plex Mono',monospace">Overcast</td><td style="color:var(--ac)">Yes</td></tr>
+        <tr><td style="color:var(--warn);font-family:'IBM Plex Mono',monospace">Sunny</td><td style="color:var(--error)">No</td></tr>
+      </tbody>
+    </table>
+    <div style="margin-top:10px">
+      <div class="kv"><span class="kk">Total samples</span><span class="kv-v">8</span></div>
+      <div class="kv"><span class="kk">Yes (play)</span><span class="kv-v" style="color:var(--ac)">4</span></div>
+      <div class="kv"><span class="kk">No (don't play)</span><span class="kv-v" style="color:var(--error)">4</span></div>
+    </div>
+  </div>
+
+  <div class="lt-tabs">
+    <button class="lt-tab active" onclick="switchTab('step1',this)">Step 1 · Root entropy</button>
+    <button class="lt-tab" onclick="switchTab('step2',this)">Step 2 · Branch entropy</button>
+    <button class="lt-tab" onclick="switchTab('step3',this)">Step 3 · Info gain</button>
+    <button class="lt-tab" onclick="switchTab('step4',this)">Step 4 · Final tree</button>
+  </div>
+  <div class="lt-content">
+    <div class="lt-panel active" id="step1">
+      <p style="margin-bottom:10px">Calculate entropy at the root — before any split.</p>
+      <div class="kv"><span class="kk">p(Yes) = 4/8</span><span class="kv-v">= 0.5</span></div>
+      <div class="kv"><span class="kk">p(No) = 4/8</span><span class="kv-v">= 0.5</span></div>
+      <div class="kv"><span class="kk">H(root) = −(0.5 × log₂0.5) − (0.5 × log₂0.5)</span><span class="kv-v" style="color:var(--ac)">= 1.00</span></div>
+      <p style="margin-top:10px;margin-bottom:0">Maximum confusion — 50/50 split. We must split to improve things.</p>
+    </div>
+    <div class="lt-panel" id="step2">
+      <p style="margin-bottom:10px">Calculate entropy for each branch after splitting on Weather.</p>
+      <div class="kv"><span class="kk">Sunny (3 samples: 0Y, 3N)</span><span class="kv-v" style="color:var(--ac)">H = 0.00 — pure!</span></div>
+      <div class="kv"><span class="kk">Overcast (2 samples: 2Y, 0N)</span><span class="kv-v" style="color:var(--ac)">H = 0.00 — pure!</span></div>
+      <div class="kv"><span class="kk">Rainy (3 samples: 2Y, 1N)</span><span class="kv-v" style="color:var(--warn)">H ≈ 0.918 — slightly mixed</span></div>
+      <p style="margin-top:10px;margin-bottom:0">Weighted entropy = (3/8 × 0) + (2/8 × 0) + (3/8 × 0.918) = <strong>0.344</strong></p>
+    </div>
+    <div class="lt-panel" id="step3">
+      <p style="margin-bottom:10px">Calculate Information Gain for splitting on Weather.</p>
+      <div class="kv"><span class="kk">H(parent)</span><span class="kv-v">1.000</span></div>
+      <div class="kv"><span class="kk">Weighted H(children)</span><span class="kv-v">0.344</span></div>
+      <div class="kv"><span class="kk">IG(Weather) = 1.000 − 0.344</span><span class="kv-v" style="color:var(--ac)">= 0.656 ✓ highest!</span></div>
+      <p style="margin-top:10px;margin-bottom:0">Weather becomes the <strong>root node</strong> — it reduces confusion the most out of all available features.</p>
+    </div>
+    <div class="lt-panel" id="step4">
+      <p style="margin-bottom:10px">Weather splits into three branches. Sunny and Overcast are already pure leaves. Rainy is still mixed — split further on Wind.</p>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--txt-sec);line-height:2;background:var(--layer-02);padding:14px;border:1px solid var(--bdr-00)">
+        <span style="color:var(--ac)">Weather</span><br>
+        ├── Sunny &nbsp;&nbsp;&nbsp;→ <span style="color:var(--error)">NO</span> &nbsp;(pure: 0Y, 3N)<br>
+        ├── Overcast → <span style="color:var(--ac)">YES</span> (pure: 2Y, 0N)<br>
+        └── Rainy &nbsp;&nbsp;&nbsp;→ <span style="color:var(--ac)">Wind?</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── Weak &nbsp;&nbsp;→ <span style="color:var(--ac)">YES</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── Strong → <span style="color:var(--error)">NO</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ S6: GINI IMPURITY ══════════ -->
+<div class="section" id="s6">
+  <div class="eyebrow">06 · Alternative measure</div>
+  <h2>Gini Impurity</h2>
+  <p>Gini impurity is the measure used by the <strong>CART algorithm</strong> (Classification and Regression Trees). It asks: <em>"If I randomly pick two samples from this node, what's the probability they belong to different classes?"</em></p>
+
+  <div class="callout callout-b">
+    <strong>Analogy — The Random Draw Test:</strong> Reach into a jar and pull out two marbles at random. If they're always the same colour → Gini = 0 (pure). If they're often different colours → high Gini (impure). Gini measures the <strong>chance of a wrong classification if you randomly assigned labels</strong>.
+  </div>
+
+  <div class="formula">Gini(S) = 1 − Σ p(i)²
+<br>
+Binary case: Gini = 1 − p(Yes)² − p(No)²</div>
+
+  <div class="grid3">
+    <div class="gcell">
+      <div class="tag t-gr">Pure node</div>
+      <div class="kv"><span class="kk">p(Yes) = 1.0</span><span class="kv-v">p(No) = 0.0</span></div>
+      <div class="kv"><span class="kk">Gini = 1 − 1² − 0²</span><span class="kv-v" style="color:var(--ac)">= 0.00</span></div>
+      <div class="kv"><span class="kk">Meaning</span><span class="kv-v">Perfectly pure</span></div>
+    </div>
+    <div class="gcell">
+      <div class="tag t-re">Maximum impurity</div>
+      <div class="kv"><span class="kk">p(Yes) = 0.5</span><span class="kv-v">p(No) = 0.5</span></div>
+      <div class="kv"><span class="kk">Gini = 1 − 0.25 − 0.25</span><span class="kv-v" style="color:var(--error)">= 0.50</span></div>
+      <div class="kv"><span class="kk">Meaning</span><span class="kv-v">Most mixed possible</span></div>
+    </div>
+    <div class="gcell">
+      <div class="tag t-am">Partial purity</div>
+      <div class="kv"><span class="kk">p(Yes) = 0.8</span><span class="kv-v">p(No) = 0.2</span></div>
+      <div class="kv"><span class="kk">Gini = 1 − 0.64 − 0.04</span><span class="kv-v" style="color:var(--warn)">= 0.32</span></div>
+      <div class="kv"><span class="kk">Meaning</span><span class="kv-v">Mostly pure</span></div>
+    </div>
+  </div>
+
+  <p>Like entropy, Gini impurity is calculated for each potential split. The split with the <strong>lowest weighted Gini</strong> across child nodes is chosen. The formula for splitting:</p>
+  <div class="formula">Gini Gain = Gini(parent) − Σ [(|Sᵥ| / |S|) × Gini(Sᵥ)]</div>
+</div>
+
+<!-- ══════════ S7: ENTROPY vs GINI ══════════ -->
+<div class="section" id="s7">
+  <div class="eyebrow">07 · Head to head</div>
+  <h2>Entropy vs Gini Impurity</h2>
+  <p>Both measure node purity. Both produce very similar trees in practice. The differences are subtle but worth knowing.</p>
+
+  <div class="comp-card open" id="cc1">
+    <div class="comp-card-hdr" onclick="toggleCard('cc1')">
+      <div class="comp-card-icon" style="background:#044317;color:#a7f0ba">H</div>
+      <div class="comp-card-title">Entropy (Information Gain)</div>
+      <div class="comp-card-arrow">›</div>
+    </div>
+    <div class="comp-card-body">
+      <strong>Formula:</strong> −Σ p(i) × log₂(p(i))<br>
+      <strong>Range:</strong> 0 (pure) to log₂(n_classes) — 1.0 for binary<br>
+      <strong>Used by:</strong> ID3, C4.5 algorithms<br>
+      <strong>Computation:</strong> Slightly slower — involves logarithm<br>
+      <strong>Behaviour:</strong> Penalises impurity more strongly for extreme class distributions<br>
+      <strong>Best when:</strong> You want to explore more balanced trees or have multiple classes
+    </div>
+  </div>
+
+  <div class="comp-card" id="cc2">
+    <div class="comp-card-hdr" onclick="toggleCard('cc2')">
+      <div class="comp-card-icon" style="background:#0043ce;color:#a6c8ff">G</div>
+      <div class="comp-card-title">Gini Impurity</div>
+      <div class="comp-card-arrow">›</div>
+    </div>
+    <div class="comp-card-body">
+      <strong>Formula:</strong> 1 − Σ p(i)²<br>
+      <strong>Range:</strong> 0 (pure) to 0.5 for binary — (1 − 1/n_classes) max<br>
+      <strong>Used by:</strong> CART algorithm (sklearn default)<br>
+      <strong>Computation:</strong> Faster — only squaring, no logarithm<br>
+      <strong>Behaviour:</strong> Tends to isolate the most frequent class into one branch<br>
+      <strong>Best when:</strong> You want speed and the dataset is large
+    </div>
+  </div>
+
+  <div class="tile" style="margin-top:12px">
+    <div class="tile-title">Practical comparison</div>
+    <div class="kv"><span class="kk">Result similarity</span><span class="kv-v" style="color:var(--ac)">Both produce nearly identical trees ~95% of time</span></div>
+    <div class="kv"><span class="kk">Speed</span><span class="kv-v">Gini is faster (no log calculation)</span></div>
+    <div class="kv"><span class="kk">Default in scikit-learn</span><span class="kv-v">Gini (use criterion='entropy' to switch)</span></div>
+    <div class="kv"><span class="kk">Multiclass</span><span class="kv-v">Both handle it — entropy slightly preferred</span></div>
+    <div class="kv"><span class="kk">Exam tip</span><span class="kv-v" style="color:var(--warn)">Entropy = theory / ID3. Gini = implementation / CART</span></div>
+  </div>
+</div>
+
+<!-- ══════════ S8: OVERFITTING ══════════ -->
+<div class="section" id="s8">
+  <div class="eyebrow">08 · The problem</div>
+  <h2>Overfitting & Pruning</h2>
+  <p>Left unchecked, a decision tree will keep splitting until every leaf has exactly one sample — 100% training accuracy. But on new data? It fails completely. It has <strong>memorised</strong> the training set instead of <strong>learning</strong> from it.</p>
+
+  <div class="callout callout-r">
+    <strong>Analogy — The Overstudied Student:</strong> A student memorises every question and answer from last year's exam paper word for word. They score 100% on that exact paper. But the moment a question is slightly rephrased, they're lost — they learned the answers, not the concepts. An overfit tree does the same thing.
+  </div>
+
+  <div class="grid2">
+    <div class="gcell">
+      <div class="tag t-re">Overfitting symptoms</div>
+      <div class="kv"><span class="kk">Training accuracy</span><span class="kv-v" style="color:var(--ac)">Very high (near 100%)</span></div>
+      <div class="kv"><span class="kk">Test accuracy</span><span class="kv-v" style="color:var(--error)">Much lower</span></div>
+      <div class="kv"><span class="kk">Tree depth</span><span class="kv-v" style="color:var(--error)">Very deep</span></div>
+      <div class="kv"><span class="kk">Leaf samples</span><span class="kv-v" style="color:var(--error)">1–2 per leaf</span></div>
+    </div>
+    <div class="gcell">
+      <div class="tag t-gr">Solutions</div>
+      <div class="kv"><span class="kk">max_depth</span><span class="kv-v">Limit tree depth</span></div>
+      <div class="kv"><span class="kk">min_samples_leaf</span><span class="kv-v">Min samples per leaf</span></div>
+      <div class="kv"><span class="kk">min_samples_split</span><span class="kv-v">Min samples to split</span></div>
+      <div class="kv"><span class="kk">Pruning (post)</span><span class="kv-v">Remove low-gain branches after building</span></div>
+    </div>
+  </div>
+
+  <div class="formula" style="font-size:12px">
+from sklearn.tree import DecisionTreeClassifier<br><br>
+model = DecisionTreeClassifier(<br>
+&nbsp;&nbsp;&nbsp;&nbsp;criterion='entropy',&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--txt-ph)"># or 'gini'</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;max_depth=5,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--txt-ph)"># prevent over-deep trees</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;min_samples_leaf=10&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:var(--txt-ph)"># at least 10 samples per leaf</span><br>
+)<br>
+model.fit(X_train, y_train)
+  </div>
+</div>
+
+<!-- ══════════ S9: INTERACTIVE EXPLORER ══════════ -->
+<div class="section" id="s9">
+  <div class="eyebrow">09 · Hands-on</div>
+  <h2>Entropy & Gini interactive explorer</h2>
+  <p>Drag the slider to change class distribution. Watch both entropy and Gini impurity update live — and see how they relate to each other.</p>
+
+  <div class="tile">
+    <div class="tile-title">Adjust class balance</div>
+    <div class="slider-wrap">
+      <div class="slider-row">
+        <span class="slider-lbl">Yes count</span>
+        <input type="range" id="yesSlider" min="0" max="10" value="5" oninput="updateExplorer()">
+        <span class="slider-val" id="yesVal">5</span>
+      </div>
+    </div>
+    <div style="margin-bottom:14px">
+      <div class="kv"><span class="kk">Yes</span><span class="kv-v" id="yesCount" style="color:var(--ac)">5</span></div>
+      <div class="kv"><span class="kk">No</span><span class="kv-v" id="noCount" style="color:var(--error)">5</span></div>
+      <div class="kv"><span class="kk">Total</span><span class="kv-v">10</span></div>
+    </div>
+
+    <!-- Visual bar -->
+    <div style="display:flex;height:28px;border:1px solid var(--bdr-00);overflow:hidden;margin-bottom:16px">
+      <div id="yesBar" style="background:var(--ac);opacity:.7;transition:width .3s;width:50%"></div>
+      <div id="noBar" style="background:var(--error);opacity:.5;transition:width .3s;width:50%"></div>
+    </div>
+
+    <div class="metric-row">
+      <div class="metric-cell">
+        <div class="metric-lbl">Entropy</div>
+        <div class="metric-val" id="entropyVal">1.000</div>
+        <div class="metric-note" id="entropyDesc">Maximum confusion</div>
+      </div>
+      <div class="metric-cell">
+        <div class="metric-lbl">Gini Impurity</div>
+        <div class="metric-val" id="giniVal" style="color:var(--link)">0.500</div>
+        <div class="metric-note" id="giniDesc">Maximum impurity</div>
+      </div>
+      <div class="metric-cell">
+        <div class="metric-lbl">Node status</div>
+        <div class="metric-val" id="nodeStatus" style="font-size:13px;padding-top:4px">Split needed</div>
+        <div class="metric-note" id="nodeAction">High impurity</div>
+      </div>
+    </div>
+
+    <!-- Canvas chart -->
+    <canvas id="explCanvas" width="720" height="120" style="display:block;width:100%;margin-top:16px;border-top:1px solid var(--bdr-00);padding-top:14px"></canvas>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph);margin-top:6px;display:flex;gap:20px">
+      <span>— Entropy (max 1.0)</span>
+      <span style="color:var(--link)">— Gini (max 0.5)</span>
+      <span style="color:var(--warn)">● Current point</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ S10: QUIZ ══════════ -->
+<div class="section" id="s10">
+  <div class="eyebrow">10 · Check your understanding</div>
+  <h2>Quick quiz</h2>
+  <p>Four questions — test yourself on decision trees.</p>
+
+  <!-- Q1 -->
+  <div class="quiz-wrap">
+    <div class="quiz-q">1. A node contains 6 Yes and 0 No samples. What is its entropy?</div>
+    <div class="quiz-options" id="q1-opts">
+      <div class="quiz-opt" onclick="answerQ('q1',0,1,'q1-fb')">A. 1.0 — maximum entropy</div>
+      <div class="quiz-opt" onclick="answerQ('q1',1,1,'q1-fb')">B. 0.0 — perfectly pure ✓</div>
+      <div class="quiz-opt" onclick="answerQ('q1',2,1,'q1-fb')">C. 0.5 — half mixed</div>
+      <div class="quiz-opt" onclick="answerQ('q1',3,1,'q1-fb')">D. 0.6 — mostly pure</div>
+    </div>
+    <div class="quiz-feedback" id="q1-fb">All samples belong to one class → p(Yes)=1, p(No)=0. H = −1×log₂(1) − 0 = 0. A pure node has zero entropy — no splitting needed. ✓</div>
+    <button class="quiz-reset" id="q1-reset" onclick="resetQ('q1','q1-fb','q1-reset')">Try again</button>
+  </div>
+
+  <!-- Q2 -->
+  <div class="quiz-wrap">
+    <div class="quiz-q">2. Information Gain is calculated as:</div>
+    <div class="quiz-options" id="q2-opts">
+      <div class="quiz-opt" onclick="answerQ('q2',0,2,'q2-fb')">A. Entropy of child nodes ÷ entropy of parent</div>
+      <div class="quiz-opt" onclick="answerQ('q2',1,2,'q2-fb')">B. Sum of all child node entropies</div>
+      <div class="quiz-opt" onclick="answerQ('q2',2,2,'q2-fb')">C. Parent entropy − weighted entropy of children ✓</div>
+      <div class="quiz-opt" onclick="answerQ('q2',3,2,'q2-fb')">D. Child entropy − parent entropy</div>
+    </div>
+    <div class="quiz-feedback" id="q2-fb">IG = H(parent) − Σ[(|Sᵥ|/|S|) × H(Sᵥ)]. We subtract weighted child entropy from parent entropy. A higher result means the split reduced confusion more. ✓</div>
+    <button class="quiz-reset" id="q2-reset" onclick="resetQ('q2','q2-fb','q2-reset')">Try again</button>
+  </div>
+
+  <!-- Q3 -->
+  <div class="quiz-wrap">
+    <div class="quiz-q">3. Gini impurity of a node with 5 Yes and 5 No (Total = 10) is:</div>
+    <div class="quiz-options" id="q3-opts">
+      <div class="quiz-opt" onclick="answerQ('q3',0,1,'q3-fb')">A. 1.0 — same as entropy</div>
+      <div class="quiz-opt" onclick="answerQ('q3',1,1,'q3-fb')">B. 0.5 — maximum Gini ✓</div>
+      <div class="quiz-opt" onclick="answerQ('q3',2,1,'q3-fb')">C. 0.25 — quarter impure</div>
+      <div class="quiz-opt" onclick="answerQ('q3',3,1,'q3-fb')">D. 0.0 — perfectly pure</div>
+    </div>
+    <div class="quiz-feedback" id="q3-fb">Gini = 1 − p(Yes)² − p(No)² = 1 − 0.5² − 0.5² = 1 − 0.25 − 0.25 = 0.50. Maximum Gini for binary = 0.5 (unlike entropy max of 1.0). ✓</div>
+    <button class="quiz-reset" id="q3-reset" onclick="resetQ('q3','q3-fb','q3-reset')">Try again</button>
+  </div>
+
+  <!-- Q4 -->
+  <div class="quiz-wrap">
+    <div class="quiz-q">4. Which algorithm uses Gini impurity by default?</div>
+    <div class="quiz-options" id="q4-opts">
+      <div class="quiz-opt" onclick="answerQ('q4',0,2,'q4-fb')">A. ID3 — iterative dichotomiser 3</div>
+      <div class="quiz-opt" onclick="answerQ('q4',1,2,'q4-fb')">B. C4.5 — successor to ID3</div>
+      <div class="quiz-opt" onclick="answerQ('q4',2,2,'q4-fb')">C. CART — Classification and Regression Trees ✓</div>
+      <div class="quiz-opt" onclick="answerQ('q4',3,2,'q4-fb')">D. Random Forest — ensemble method</div>
+    </div>
+    <div class="quiz-feedback" id="q4-fb">CART (used by scikit-learn's DecisionTreeClassifier) uses Gini by default. ID3 and C4.5 use entropy/information gain. You can switch sklearn to entropy with criterion='entropy'. ✓</div>
+    <button class="quiz-reset" id="q4-reset" onclick="resetQ('q4','q4-fb','q4-reset')">Try again</button>
+  </div>
+</div>
+
+<!-- Bottom nav -->
+<div class="page-nav">
+  <a class="page-nav-btn" href="evaluation.html">← Model Evaluation Metrics</a>
+  <a class="page-nav-btn primary" href="overfitting.html">Next: Overfitting & Underfitting →</a>
+</div>
+
+</main>
+</div><!-- /page-grid -->
+
+<script>
+/* ── Theme ── */
+let isLight = false;
+function toggleTheme(){
+  isLight = !isLight;
+  document.documentElement.classList.toggle('light', isLight);
+  const i = isLight ? '◑' : '☀', l = isLight ? 'Light' : 'Dark';
+  document.getElementById('tog-icon').textContent = i;
+  document.getElementById('tog-txt').textContent  = l + ' theme';
+  document.getElementById('theme-lbl').textContent = l;
+  const m = document.getElementById('mob-tog'); if(m) m.textContent = i;
+  setTimeout(() => { updateExplorer(); }, 30);
+}
+
+/* ── Collapsible cards ── */
+function toggleCard(id){ document.getElementById(id).classList.toggle('open'); }
+
+/* ── Tab switcher ── */
+function switchTab(id, btn){
+  document.querySelectorAll('.lt-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.lt-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+
+/* ── Quiz ── */
+function answerQ(qid, clicked, correct, fbId){
+  const opts = document.getElementById(qid+'-opts').querySelectorAll('.quiz-opt');
+  opts.forEach((o,i) => {
+    o.style.pointerEvents = 'none';
+    if(i === correct) o.classList.add('show-correct');
+    if(i === clicked && clicked !== correct) o.classList.add('wrong');
+    if(i === clicked && clicked === correct) o.classList.add('correct');
+  });
+  const fb = document.getElementById(fbId);
+  fb.classList.add('show');
+  fb.style.background = clicked === correct ? 'rgba(66,190,101,.08)' : 'rgba(255,131,137,.08)';
+  fb.style.borderLeftColor = clicked === correct ? 'var(--ac)' : 'var(--error)';
+  document.getElementById(qid+'-reset').classList.add('show');
+}
+function resetQ(qid, fbId, resetId){
+  document.getElementById(qid+'-opts').querySelectorAll('.quiz-opt').forEach(o => {
+    o.style.pointerEvents = ''; o.classList.remove('correct','wrong','show-correct');
+  });
+  document.getElementById(fbId).classList.remove('show');
+  document.getElementById(resetId).classList.remove('show');
+}
+
+/* ── Scroll active nav ── */
+const secs = Array.from(document.querySelectorAll('.section[id]'));
+let lastId = '', rafP = false;
+window.addEventListener('scroll', () => {
+  if(rafP) return; rafP = true;
+  requestAnimationFrame(() => {
+    rafP = false;
+    const trigger = window.scrollY + window.innerHeight * .28;
+    let active = secs[0];
+    for(const s of secs){ if(s.offsetTop <= trigger) active = s; else break; }
+    if(active && active.id !== lastId){
+      lastId = active.id;
+      document.querySelectorAll('.nav-item, .drawer-nav-item').forEach(n => {
+        n.classList.toggle('active', n.getAttribute('href') === '#' + active.id);
+      });
+    }
+  });
+}, { passive: true });
+
+/* ── Drawer ── */
+function buildDrawer(){
+  const dr = document.getElementById('nav-drawer');
+  const sn = document.getElementById('sidenav');
+  const cl = sn.cloneNode(true);
+  cl.removeAttribute('id'); cl.removeAttribute('class');
+  cl.querySelectorAll('.nav-item').forEach(el => { el.classList.add('drawer-nav-item'); el.addEventListener('click', closeDrawer); });
+  const tog = cl.querySelector('.tog-area'); if(tog) tog.remove();
+  const cb = document.createElement('button');
+  cb.textContent = '✕ Close';
+  cb.style.cssText = 'font-family:"IBM Plex Mono",monospace;font-size:11px;background:transparent;border:none;border-bottom:1px solid var(--bdr-00);color:var(--txt-ph);padding:12px 16px;width:100%;text-align:left;cursor:pointer';
+  cb.onclick = closeDrawer;
+  dr.insertBefore(cb, dr.firstChild);
+  dr.appendChild(cl);
+}
+function toggleDrawer(){
+  const ov = document.getElementById('nav-overlay'), dr = document.getElementById('nav-drawer');
+  if(dr.classList.contains('open')){ closeDrawer(); }
+  else { ov.style.display = 'block'; setTimeout(() => ov.classList.add('open'), 10); dr.classList.add('open'); document.body.style.overflow = 'hidden'; }
+}
+function closeDrawer(){
+  const ov = document.getElementById('nav-overlay'), dr = document.getElementById('nav-drawer');
+  ov.classList.remove('open'); dr.classList.remove('open'); document.body.style.overflow = '';
+  setTimeout(() => { ov.style.display = 'none'; }, 270);
+}
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeDrawer(); });
+document.fonts.ready.then(() => buildDrawer());
+
+/* ── Interactive Explorer ── */
+function calcEntropy(yes, total){
+  if(total === 0 || yes === 0 || yes === total) return 0;
+  const py = yes/total, pn = (total-yes)/total;
+  return -(py * Math.log2(py)) - (pn * Math.log2(pn));
+}
+function calcGini(yes, total){
+  if(total === 0) return 0;
+  const py = yes/total, pn = (total-yes)/total;
+  return 1 - py*py - pn*pn;
+}
+
+function updateExplorer(){
+  const yes = parseInt(document.getElementById('yesSlider').value);
+  const total = 10, no = total - yes;
+  document.getElementById('yesVal').textContent = yes;
+  document.getElementById('yesCount').textContent = yes;
+  document.getElementById('noCount').textContent = no;
+  document.getElementById('yesBar').style.width = (yes/total*100) + '%';
+  document.getElementById('noBar').style.width  = (no/total*100)  + '%';
+
+  const H = calcEntropy(yes, total);
+  const G = calcGini(yes, total);
+
+  document.getElementById('entropyVal').textContent = H.toFixed(3);
+  document.getElementById('giniVal').textContent    = G.toFixed(3);
+
+  const eDesc = H === 0 ? 'Pure — no split needed' : H < 0.5 ? 'Low confusion' : H < 0.9 ? 'High confusion' : 'Maximum confusion';
+  const gDesc = G === 0 ? 'Perfectly pure' : G < 0.25 ? 'Low impurity' : G < 0.45 ? 'High impurity' : 'Maximum impurity';
+  document.getElementById('entropyDesc').textContent = eDesc;
+  document.getElementById('giniDesc').textContent    = gDesc;
+
+  const status = H === 0 ? 'Pure leaf ✓' : H < 0.3 ? 'Nearly pure' : 'Split needed';
+  const action = H === 0 ? 'No split required' : H < 0.3 ? 'Optional split' : 'Must split here';
+  document.getElementById('nodeStatus').textContent = status;
+  document.getElementById('nodeAction').textContent = action;
+  document.getElementById('nodeStatus').style.color = H === 0 ? 'var(--ac)' : H < 0.3 ? 'var(--warn)' : 'var(--error)';
+
+  drawExplCanvas(yes);
+}
+
+function drawExplCanvas(currentYes){
+  const canvas = document.getElementById('explCanvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const lt = document.documentElement.classList.contains('light');
+  const bgCol   = lt ? '#f4f4f4' : '#262626';
+  const gridCol = lt ? '#e0e0e0' : '#393939';
+  const acCol   = lt ? '#198038' : '#42be65';
+  const blCol   = lt ? '#0043ce' : '#78a9ff';
+  const warnCol = '#f1c21b';
+  const PAD = 28;
+
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = bgCol; ctx.fillRect(0, 0, W, H);
+
+  const total = 10;
+  const plotW = W - PAD * 2, plotH = H - PAD * 2;
+
+  // Grid lines
+  ctx.strokeStyle = gridCol; ctx.lineWidth = 0.5;
+  [0.25, 0.5, 0.75, 1.0].forEach(v => {
+    const y = PAD + (1 - v) * plotH;
+    ctx.beginPath(); ctx.moveTo(PAD, y); ctx.lineTo(W - PAD, y); ctx.stroke();
+    ctx.fillStyle = lt ? '#8d8d8d' : '#6f6f6f';
+    ctx.font = '9px IBM Plex Mono, monospace';
+    ctx.textAlign = 'right';
+    ctx.fillText(v.toFixed(2), PAD - 3, y + 3);
+  });
+
+  // X axis labels
+  ctx.textAlign = 'center'; ctx.fillStyle = lt ? '#8d8d8d' : '#6f6f6f';
+  for(let i = 0; i <= total; i++){
+    const x = PAD + (i / total) * plotW;
+    ctx.fillText(i, x, H - 4);
+  }
+
+  // Plot entropy curve
+  ctx.beginPath();
+  for(let y = 0; y <= total; y++){
+    const x = PAD + (y / total) * plotW;
+    const H_val = calcEntropy(y, total);
+    const py = PAD + (1 - H_val) * plotH;
+    y === 0 ? ctx.moveTo(x, py) : ctx.lineTo(x, py);
+  }
+  ctx.strokeStyle = acCol; ctx.lineWidth = 2; ctx.stroke();
+
+  // Plot Gini curve (scale to 0-1 for display — multiply by 2)
+  ctx.beginPath();
+  for(let y = 0; y <= total; y++){
+    const x = PAD + (y / total) * plotW;
+    const G_val = calcGini(y, total) * 2; // scale to same height
+    const py = PAD + (1 - G_val) * plotH;
+    y === 0 ? ctx.moveTo(x, py) : ctx.lineTo(x, py);
+  }
+  ctx.strokeStyle = blCol; ctx.lineWidth = 2; ctx.stroke();
+
+  // Current point markers
+  const cx = PAD + (currentYes / total) * plotW;
+  const Hv = calcEntropy(currentYes, total);
+  const Gv = calcGini(currentYes, total) * 2;
+  const Hpy = PAD + (1 - Hv) * plotH;
+  const Gpy = PAD + (1 - Gv) * plotH;
+
+  // Vertical line at current
+  ctx.strokeStyle = warnCol; ctx.lineWidth = 1; ctx.setLineDash([4, 3]);
+  ctx.beginPath(); ctx.moveTo(cx, PAD); ctx.lineTo(cx, PAD + plotH); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Dots
+  [{ y: Hpy, c: acCol }, { y: Gpy, c: blCol }].forEach(({ y, c }) => {
+    ctx.beginPath(); ctx.arc(cx, y, 5, 0, Math.PI * 2);
+    ctx.fillStyle = warnCol; ctx.fill();
+    ctx.strokeStyle = c; ctx.lineWidth = 2; ctx.stroke();
+  });
+}
+
+updateExplorer();
+
+/* ── Code Protection ── */
+(function(){
+  var _p=function(e){e.preventDefault();return false;};
+  document.addEventListener('contextmenu',_p);
+  document.addEventListener('keydown',function(e){
+    var k=(e.key||'').toUpperCase(),c=e.ctrlKey||e.metaKey,s=e.shiftKey;
+    if(e.key==='F12'||(c&&s&&['I','J','C','K'].includes(k))||(c&&['U','S','P'].includes(k))){
+      e.preventDefault();return false;
+    }
+  },true);
+  document.addEventListener('dragstart',_p);
+  function _dt(){
+    var dw=window.outerWidth-window.innerWidth>200,dh=window.outerHeight-window.innerHeight>200;
+    var el=document.getElementById('_dtWarn');
+    if(dw||dh){
+      document.body.style.filter='blur(18px)';document.body.style.pointerEvents='none';
+      if(!el){var d=document.createElement('div');d.id='_dtWarn';
+        d.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(22,22,22,.97);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;font-family:"IBM Plex Mono",monospace';
+        d.innerHTML='<div style="font-size:11px;letter-spacing:.14em;color:#ff8389;text-transform:uppercase">&#8856; Inspect Disabled</div><div style="font-size:10px;letter-spacing:.08em;color:#6f6f6f">Close developer tools to continue</div>';
+        document.body.appendChild(d);}
+    } else {
+      document.body.style.filter='';document.body.style.pointerEvents='';if(el)el.remove();
+    }
+  }
+  setInterval(_dt,900);
+})();
+</script>
+</body>
+</html>
