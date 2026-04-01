@@ -821,8 +821,8 @@ h1 em{font-style:italic;color:var(--link)}
 
 <!-- Password modal -->
 <div id="pw-overlay" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.7);align-items:center;justify-content:center">
-  <div id="pw-modal" style="background:var(--layer-01);border:1px solid var(--blue);border-top:3px solid var(--blue);padding:32px;width:360px;max-width:90vw">
-    <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;color:var(--blue);text-transform:uppercase;margin-bottom:8px">Question bank</div>
+  <div id="pw-modal" style="background:var(--layer-01);border:1px solid var(--blue);border-top:3px solid var(--blue);padding:32px;width:360px;max-width:90vw;transition:border-color .2s">
+    <div id="pw-eyebrow" style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;color:var(--blue);text-transform:uppercase;margin-bottom:8px">Question bank</div>
     <div style="font-family:'IBM Plex Serif',serif;font-size:22px;font-weight:300;color:var(--txt-pri);margin-bottom:4px" id="pw-mod-title">Module 01</div>
     <div style="font-size:13px;color:var(--txt-ph);margin-bottom:24px;font-weight:300">Enter the access code to view questions</div>
 
@@ -830,9 +830,8 @@ h1 em{font-style:italic;color:var(--link)}
       <input id="pw-input" type="password" placeholder="Access code"
         style="flex:1;height:40px;background:transparent;border:none;outline:none;padding:0 12px;font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--txt-pri);letter-spacing:.1em"
         onkeydown="if(event.key==='Enter')checkPW()">
-      <button onclick="checkPW()"
-        style="height:40px;padding:0 16px;background:var(--blue);border:none;cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#fff;letter-spacing:.05em;transition:background .15s"
-        onmouseover="this.style.background='var(--blue-hov)'" onmouseout="this.style.background='var(--blue)'">
+      <button id="pw-unlock-btn" onclick="checkPW()"
+        style="height:40px;padding:0 16px;background:var(--blue);border:none;cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#fff;letter-spacing:.05em;transition:background .15s">
         Unlock
       </button>
     </div>
@@ -921,7 +920,18 @@ const _modFiles=['','ml_module1_questions.html','ml_module2_questions.html','','
 
 function openQB(mod){
   _mod=mod;
+  const color = `var(--m${mod})`;
+  
+  // Set content
   document.getElementById('pw-mod-title').textContent=_modTitles[mod]||'Module '+String(mod).padStart(2,'0');
+  
+  // Set colors
+  const modal = document.getElementById('pw-modal');
+  modal.style.borderColor = color;
+  modal.style.borderTopColor = color;
+  document.getElementById('pw-eyebrow').style.color = color;
+  document.getElementById('pw-unlock-btn').style.background = color;
+  
   document.getElementById('pw-err').textContent='';
   document.getElementById('pw-input').value='';
   const ov=document.getElementById('pw-overlay');
