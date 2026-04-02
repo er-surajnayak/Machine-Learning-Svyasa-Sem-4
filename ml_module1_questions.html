@@ -30,7 +30,8 @@ body{font-family:'IBM Plex Sans',sans-serif;font-size:15px;line-height:1.5;backg
 /* Topbar */
 .topbar{position:sticky;top:0;z-index:100;background:var(--layer-01);border-bottom:1px solid var(--bdr-00);height:60px;display:flex;align-items:center;padding:0 40px;gap:16px;transition:background .25s}
 .topbar-logo{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;letter-spacing:.1em;color:var(--txt-pri);text-transform:uppercase;display:flex;align-items:center;gap:10px}
-.logo-mark{width:26px;height:26px;background:var(--m1);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#fff}
+.logo-mark{width:28px;height:28px;background:transparent;display:flex;align-items:center;justify-content:center}
+.logo-mark img{width:100%;height:100%;object-fit:contain}
 .topbar-divider{width:1px;height:20px;background:var(--bdr-00)}
 .topbar-title{font-size:14px;color:var(--txt-sec);font-weight:300}
 
@@ -97,7 +98,9 @@ h1{font-family:'IBM Plex Serif',serif;font-size:clamp(34px,5vw,52px);font-weight
 
 <header class="topbar">
   <div class="topbar-logo">
-    <div class="logo-mark">ML</div>
+    <div class="logo-mark">
+      <img src="machine-learning-model.svg" alt="ML Icon">
+    </div>
     Machine Learning
   </div>
   <div class="topbar-divider"></div>

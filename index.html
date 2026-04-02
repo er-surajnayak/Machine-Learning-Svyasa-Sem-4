@@ -70,10 +70,12 @@ body{font-family:'IBM Plex Sans',sans-serif;font-size:15px;line-height:1.5;backg
   display:flex;align-items:center;gap:10px;
 }
 .topbar-logo-mark{
-  width:26px;height:26px;background:var(--blue);
+  width:28px;height:28px;background:transparent;
   display:flex;align-items:center;justify-content:center;
-  font-size:12px;font-weight:600;color:#fff;flex-shrink:0;
-  font-family:'IBM Plex Mono',monospace;
+  flex-shrink:0;
+}
+.topbar-logo-mark img{
+  width:100%;height:100%;object-fit:contain;
 }
 .topbar-divider{width:1px;height:20px;background:var(--bdr-00)}
 .topbar-course{font-size:14px;color:var(--txt-sec);font-weight:300}
@@ -487,7 +489,9 @@ h1 em{font-style:italic;color:var(--link)}
 <!-- Desktop topbar -->
 <header class="topbar">
   <div class="topbar-logo">
-    <div class="topbar-logo-mark">ML</div>
+    <div class="topbar-logo-mark">
+      <img src="machine-learning-model.svg" alt="ML Icon">
+    </div>
     Machine Learning
   </div>
   <div class="topbar-divider"></div>
@@ -503,7 +507,10 @@ h1 em{font-style:italic;color:var(--link)}
 
 <!-- Mobile topbar -->
 <div class="mobile-topbar">
-  <span class="mobile-logo">ML · Sem 4 · 2nd Year</span>
+  <span class="mobile-logo" style="display:flex;align-items:center;gap:8px">
+    <img src="machine-learning-model.svg" alt="ML" style="width:20px;height:20px">
+    Sem 4 · 2nd Year
+  </span>
   <button class="tog-btn" onclick="toggleTheme()" style="border:none;padding:4px 8px">
     <span id="mob-tog-icon">☀</span>
     <span class="tog-track"><span class="tog-thumb"></span></span>
