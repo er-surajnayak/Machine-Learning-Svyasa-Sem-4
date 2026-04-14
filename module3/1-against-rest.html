@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="../machine-learning-model.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>One-vs-Rest (OvR) Explained | Module 3</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;1,300&family=IBM+Plex+Serif:ital,wght@0,300;1,300&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#161616;--layer-01:#262626;--layer-02:#393939;--layer-03:#525252;
+  --hover-01:#333333;--bdr-00:#393939;--bdr-01:#474747;--bdr-str:#6f6f6f;
+  --txt-pri:#f4f4f4;--txt-sec:#c6c6c6;--txt-ph:#6f6f6f;
+  --blue:#4589ff;--link:#78a9ff;--success:#42be65;--warn:#f1c21b;--error:#ff8389;--teal:#3ddbd9;--purple:#d4bbff;
+  /* Topic 1 accent = blue */
+  --ac:#78a9ff;
+}
+html.light{
+  --bg:#fff;--layer-01:#f4f4f4;--layer-02:#e0e0e0;--layer-03:#c6c6c6;
+  --hover-01:#e8e8e8;--bdr-00:#e0e0e0;--bdr-01:#c6c6c6;--bdr-str:#8d8d8d;
+  --txt-pri:#161616;--txt-sec:#525252;--txt-ph:#8d8d8d;
+  --blue:#0f62fe;--link:#0043ce;--success:#198038;--warn:#b28600;--error:#da1e28;--teal:#007d79;--purple:#6929c4;
+  /* Topic 1 light accent = blue */
+  --ac:#0043ce;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'IBM Plex Sans',sans-serif;font-size:15px;line-height:1.5;background:var(--bg);color:var(--txt-pri);-webkit-font-smoothing:antialiased;transition:background .25s,color .2s}
+a{text-decoration:none;color:inherit}
+
+/* ── Layout ── */
+.page-grid{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+
+/* ── Sidenav ── */
+.sidenav{background:var(--layer-01);border-right:1px solid var(--bdr-00);position:sticky;top:0;height:100vh;overflow-y:auto;padding-bottom:32px;transition:background .25s,border-color .2s}
+.nav-hdr{padding:16px;border-bottom:1px solid var(--bdr-00);margin-bottom:4px}
+.nav-back{display:flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph);letter-spacing:.06em;margin-bottom:8px;transition:color .15s}
+.nav-back:hover{color:var(--ac)}
+.nav-mod{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;color:var(--ac);text-transform:uppercase;margin-bottom:3px}
+.nav-title{font-size:13px;font-weight:600;color:var(--txt-pri);line-height:1.3}
+.nav-sec{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;color:var(--txt-ph);text-transform:uppercase;padding:12px 16px 4px}
+.nav-item{display:flex;align-items:center;gap:8px;padding:8px 16px;font-size:13px;color:var(--txt-sec);cursor:pointer;border-left:3px solid transparent;transition:background .1s,color .1s,border-color .1s;text-decoration:none}
+.nav-item:hover{background:var(--hover-01);color:var(--txt-pri)}
+.nav-item.active{background:var(--hover-01);color:var(--txt-pri);border-left-color:var(--ac);font-weight:600}
+.nav-item.active .nn{color:var(--ac)}
+.nn{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--txt-ph);min-width:16px;transition:color .15s}
+.tog-area{padding:20px 16px 0}
+.tog-btn{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding:8px 10px;background:var(--layer-02);border:1px solid var(--bdr-01);cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-sec);letter-spacing:.05em;transition:background .15s}
+.tog-btn:hover{background:var(--hover-01);color:var(--txt-pri)}
+.tog-track{width:26px;height:13px;background:var(--bdr-str);border-radius:7px;position:relative;flex-shrink:0;transition:background .25s}
+.tog-thumb{position:absolute;top:2px;left:2px;width:9px;height:9px;border-radius:50%;background:#fff;transition:transform .25s}
+html.light .tog-track{background:var(--ac)}
+html.light .tog-thumb{transform:translateX(13px)}
+
+/* ── Mobile topbar ── */
+.mob-topbar{display:none;position:fixed;top:0;left:0;right:0;z-index:200;height:52px;background:var(--layer-01);border-bottom:1px solid var(--bdr-00);align-items:center;padding:0 16px;gap:8px;transition:background .25s}
+.mob-menu-btn{width:34px;height:34px;background:transparent;border:1px solid var(--bdr-01);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-direction:column;gap:4px}
+.mob-bar{width:14px;height:1.5px;background:var(--txt-pri)}
+.mob-title{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--txt-pri);flex:1;letter-spacing:.04em}
+.mob-tog{width:34px;height:34px;background:transparent;border:1px solid var(--bdr-01);cursor:pointer;font-size:14px;color:var(--txt-sec)}
+
+/* ── Drawer ── */
+.nav-overlay{display:none;position:fixed;inset:0;z-index:150;background:rgba(0,0,0,.6);opacity:0;transition:opacity .25s}
+.nav-overlay.open{opacity:1}
+.nav-drawer{position:fixed;left:0;top:0;bottom:0;z-index:160;width:260px;background:var(--layer-01);border-right:1px solid var(--bdr-00);overflow-y:auto;transform:translateX(-100%);transition:transform .3s cubic-bezier(.4,0,.2,1);padding-bottom:32px}
+.nav-drawer.open{transform:translateX(0)}
+
+/* ── Main ── */
+.main{padding:0 48px 100px;max-width:820px;transition:background .25s}
+.page-hdr{padding:52px 0 40px;border-bottom:1px solid var(--bdr-00);margin-bottom:52px}
+.breadcrumb{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-ph);letter-spacing:.05em;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.breadcrumb a{color:var(--ac);transition:opacity .15s}.breadcrumb a:hover{opacity:.7}
+h1{font-family:'IBM Plex Serif',serif;font-size:clamp(34px,5vw,54px);font-weight:300;line-height:1.15;color:var(--txt-pri);margin-bottom:12px}
+h1 em{font-style:italic;color:var(--ac)}
+.hdr-desc{font-size:15px;font-weight:300;color:var(--txt-sec);max-width:580px;line-height:1.7}
+
+/* ── Sections ── */
+.section{margin-bottom:60px;opacity:0;transform:translateY(14px);animation:fadeUp .4s ease forwards}
+.section:nth-child(1){animation-delay:.05s}.section:nth-child(2){animation-delay:.10s}
+.section:nth-child(3){animation-delay:.15s}.section:nth-child(4){animation-delay:.20s}
+.section:nth-child(5){animation-delay:.25s}.section:nth-child(6){animation-delay:.30s}
+.section:nth-child(7){animation-delay:.35s}.section:nth-child(8){animation-delay:.40s}
+@keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
+
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;color:var(--ac);text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.eyebrow::before{content:'';display:inline-block;width:14px;height:1px;background:var(--ac)}
+h2{font-family:'IBM Plex Serif',serif;font-size:24px;font-weight:300;color:var(--txt-pri);margin-bottom:14px;line-height:1.25}
+h3{font-size:15px;font-weight:600;color:var(--txt-pri);margin-bottom:8px}
+p{font-size:14px;font-weight:300;color:var(--txt-sec);margin-bottom:12px;line-height:1.75}
+p strong{color:var(--txt-pri);font-weight:600}
+ul li {margin-bottom:8px;font-size:14px;font-weight:300;color:var(--txt-sec);line-height:1.6}
+.hl{color:var(--ac);font-weight:600}
+
+/* ── Callout ── */
+.callout{border-left:3px solid var(--ac);background:var(--layer-01);padding:14px 18px;margin:14px 0;font-size:14px;font-weight:300;color:var(--txt-sec);line-height:1.75;transition:background .25s}
+.callout strong{color:var(--txt-pri);font-weight:600}
+.callout-g{border-left-color:var(--success)}
+.callout-y{border-left-color:var(--warn)}
+.callout-p{border-left-color:var(--purple)}
+.callout-b{border-left-color:var(--link)}
+
+/* ── Tile & Grids ── */
+.tile{background:var(--layer-01);border:1px solid var(--bdr-00);padding:20px 24px;margin-bottom:12px;transition:background .25s,border-color .2s}
+.tile-title{font-size:13px;font-weight:600;color:var(--txt-pri);margin-bottom:12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--bdr-00);border:1px solid var(--bdr-00);margin:14px 0}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--bdr-00);border:1px solid var(--bdr-00);margin:14px 0}
+.gcell{background:var(--layer-01);padding:20px 22px;transition:background .25s}
+.kv{display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--bdr-00);font-size:13px;gap:12px;transition:border-color .2s}
+.kv:last-child{border-bottom:none}
+.kk{color:var(--txt-sec);font-weight:300;flex-shrink:0}
+.kv-v{color:var(--txt-pri);font-weight:400;text-align:right}
+
+/* ── Tags ── */
+.tag{display:inline-flex;align-items:center;height:22px;padding:0 10px;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.03em;margin-bottom:10px}
+.t-bl{background:#0043ce;color:#a6c8ff}
+.t-gr{background:#044317;color:#a7f0ba}
+.t-re{background:#750e13;color:#ffb3b8}
+html.light .t-bl{background:#d0e2ff;color:#0043ce}
+html.light .t-gr{background:#a7f0ba;color:#044317}
+html.light .t-re{background:#ffd7d9;color:#750e13}
+
+/* ── Formula ── */
+.formula{font-family:'IBM Plex Mono',monospace;font-size:13px;background:var(--layer-02);border:1px solid var(--bdr-01);border-left:3px solid var(--ac);padding:11px 15px;margin:10px 0;line-height:2;color:var(--txt-pri);transition:background .25s}
+
+/* ── Table ── */
+.dtbl{width:100%;border-collapse:collapse;margin:8px 0;font-size:13px}
+.dtbl thead tr{background:var(--layer-02);border-bottom:1px solid var(--bdr-str)}
+.dtbl th{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--txt-sec);padding:9px 14px;text-align:left}
+.dtbl td{padding:9px 14px;border-bottom:1px solid var(--bdr-00);color:var(--txt-pri);vertical-align:middle;font-size:13px}
+.dtbl tbody tr:hover{background:var(--hover-01)}
+
+/* ── Quiz/Interactive Container ── */
+.quiz-wrap{background:var(--layer-01);border:1px solid var(--bdr-00);padding:24px;margin:16px 0}
+
+/* ── Slider / Interactive ── */
+.slider-wrap{margin:14px 0}
+.slider-row{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.slider-lbl{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--txt-pri)}
+input[type=range]{-webkit-appearance:none;appearance:none;flex:1;height:4px;background:var(--bdr-str);outline:none;cursor:pointer;border-radius:2px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;background:var(--ac);cursor:pointer;border-radius:50%}
+input[type=range]::-moz-range-thumb{width:18px;height:18px;background:var(--ac);border:none;cursor:pointer;border-radius:50%}
+.slider-val{font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;color:var(--ac);min-width:48px;text-align:right}
+
+/* ── Bottom nav ── */
+.page-nav{display:flex;justify-content:space-between;align-items:center;padding-top:40px;border-top:1px solid var(--bdr-00);margin-top:60px}
+.page-nav-btn{display:flex;align-items:center;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-sec);padding:10px 16px;border:1px solid var(--bdr-01);background:transparent;cursor:pointer;transition:background .15s,color .15s;text-decoration:none}
+.page-nav-btn:hover{background:var(--hover-01);color:var(--txt-pri)}
+.page-nav-btn.primary{background:var(--ac);border-color:var(--ac);color:#fff}
+.page-nav-btn.primary:hover{opacity:.9}
+
+@media(max-width:767px){
+  .mob-topbar{display:flex}
+  .sidenav{display:none}
+  .page-grid{display:block}
+  .main{padding:68px 16px 80px;max-width:100%}
+  .page-hdr{padding:24px 0 20px;margin-bottom:32px}
+  h1{font-size:24px}
+  .grid2,.grid3{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- Mobile topbar -->
+<div class="mob-topbar" id="mob-topbar">
+  <button class="mob-menu-btn" onclick="toggleDrawer()" aria-label="Menu">
+    <div class="mob-bar"></div><div class="mob-bar"></div><div class="mob-bar"></div>
+  </button>
+  <span class="mob-title">One-vs-Rest (OvR)</span>
+  <button class="mob-tog" onclick="toggleTheme()" id="mob-tog">☀</button>
+</div>
+<div class="nav-overlay" id="nav-overlay" onclick="closeDrawer()"></div>
+<nav class="nav-drawer" id="nav-drawer"></nav>
+
+<div class="page-grid">
+
+<!-- ══ SIDENAV ══ -->
+<nav class="sidenav" id="sidenav">
+  <div class="nav-hdr">
+    <a class="nav-back" href="index_11.html">← Module 3</a>
+    <div class="nav-mod">Topic 01</div>
+    <div class="nav-title">One-vs-Rest (OvR)</div>
+  </div>
+  <div class="nav-sec">Sections</div>
+  <a class="nav-item active" href="#s1"><span class="nn">01</span>Intuition & Story</a>
+  <a class="nav-item" href="#s2"><span class="nn">02</span>Core Idea & Example</a>
+  <a class="nav-item" href="#s3"><span class="nn">03</span>Prediction Logic</a>
+  <a class="nav-item" href="#s4"><span class="nn">04</span>Fun Analogy</a>
+  <a class="nav-item" href="#s5"><span class="nn">05</span>Implementation Steps</a>
+  <a class="nav-item" href="#s6"><span class="nn">06</span>Comparison Table</a>
+  <a class="nav-item" href="#s7"><span class="nn">07</span>Advantages & Limits</a>
+  <a class="nav-item" href="#s8"><span class="nn">08</span>Interactive Playground</a>
+  <div class="tog-area">
+    <button class="tog-btn" onclick="toggleTheme()">
+      <span style="display:flex;align-items:center;gap:6px"><span id="tog-icon">☀</span><span id="tog-txt">Light theme</span></span>
+      <span class="tog-track"><span class="tog-thumb"></span></span>
+    </button>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph);margin-top:10px;line-height:1.6">IBM Carbon · <span id="theme-lbl">Dark</span></div>
+  </div>
+</nav>
+
+<!-- ══ MAIN ══ -->
+<main class="main">
+<div class="page-hdr">
+  <div class="breadcrumb">
+    <a href="../index.html">Home</a><span>/</span>
+    <a href="index_11.html">Module 3</a><span>/</span>
+    <span style="color:var(--txt-sec)">One-vs-Rest</span>
+  </div>
+  <h1>One-vs-Rest (OvR)<br><em>Explained</em></h1>
+  <p class="hdr-desc">How to mathematically solve a multi-class problem by breaking it down into multiple "Yes or No" binary questions.</p>
+</div>
+
+<!-- ══════════ S1: INTUITION ══════════ -->
+<div class="section" id="s1">
+  <div class="eyebrow">01 · Intuition</div>
+  <h2>The Club Assignment</h2>
+  <p>Imagine a teacher assigning students to three very different school clubs: 🎨 <strong>Art</strong>, ⚽ <strong>Sports</strong>, and 🎵 <strong>Music</strong>.</p>
+  <p>If the teacher can only ask <strong>YES or NO</strong> questions, she couldn't simply ask "Which club do you want?" Instead, she asks three separate distinct questions to every student:</p>
+  <ul>
+    <li>"Do you want to join Art? Yes or No?"</li>
+    <li>"Do you want to join Sports? Yes or No?"</li>
+    <li>"Do you want to join Music? Yes or No?"</li>
+  </ul>
+  <div class="callout callout-b">
+    <strong>The connection:</strong> This is exactly how the One-vs-Rest algorithm works. It converts one complex, multi-choice problem into several simple binary classification sets.
+  </div>
+</div>
+
+<!-- ══════════ S2: CORE IDEA ══════════ -->
+<div class="section" id="s2">
+  <div class="eyebrow">02 · Mechanism</div>
+  <h2>Core Idea & Machine Learning Example</h2>
+  <p>In One-vs-Rest (OvR), we train <strong>one model per class</strong>. The core philosophy is straightforward: <span class="hl">"Class vs Not Class"</span>.</p>
+  
+  <div class="tile">
+    <div class="tile-title">Example: Classifying 🐱 Cat, 🐶 Dog, and 🐴 Horse</div>
+    <div class="grid3">
+      <div class="gcell">
+        <div class="tag t-bl">Model 1</div>
+        <div class="kv"><span class="kk">Question</span><span class="kv-v">Cat vs Rest</span></div>
+        <div class="kv"><span class="kk">Positive (+)</span><span class="kv-v" style="color:var(--ac)">🐱 Cat</span></div>
+        <div class="kv"><span class="kk">Negative (-)</span><span class="kv-v">🐶 Dog, 🐴 Horse</span></div>
+      </div>
+      <div class="gcell">
+        <div class="tag t-gr">Model 2</div>
+        <div class="kv"><span class="kk">Question</span><span class="kv-v">Dog vs Rest</span></div>
+        <div class="kv"><span class="kk">Positive (+)</span><span class="kv-v" style="color:var(--success)">🐶 Dog</span></div>
+        <div class="kv"><span class="kk">Negative (-)</span><span class="kv-v">🐱 Cat, 🐴 Horse</span></div>
+      </div>
+      <div class="gcell">
+        <div class="tag t-re">Model 3</div>
+        <div class="kv"><span class="kk">Question</span><span class="kv-v">Horse vs Rest</span></div>
+        <div class="kv"><span class="kk">Positive (+)</span><span class="kv-v" style="color:var(--error)">🐴 Horse</span></div>
+        <div class="kv"><span class="kk">Negative (-)</span><span class="kv-v">🐱 Cat, 🐶 Dog</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ S3: PREDICTION LOGIC ══════════ -->
+<div class="section" id="s3">
+  <div class="eyebrow">03 · Mathematics</div>
+  <h2>Prediction Logic & Math Intuition</h2>
+  <p>Once all 3 models are trained, how do we make a final unified prediction? We pass the new data to <strong>all</strong> models and look at their probability confidence scores.</p>
+  <div class="formula">
+    Prediction = argmax [ P(Class | input) ]
+  </div>
+  <p>We simply <strong>choose the class whose model output is the highest probability</strong>.</p>
+  <div class="tile">
+    <div class="tile-title">Example Probabilities Output</div>
+    <div class="kv"><span class="kk">P(Cat | input)</span><span class="kv-v">15%</span></div>
+    <div class="kv"><span class="kk">P(Dog | input)</span><span class="kv-v" style="color:var(--ac);font-weight:600;font-size:15px">82% (Highest!)</span></div>
+    <div class="kv"><span class="kk">P(Horse | input)</span><span class="kv-v">24%</span></div>
+    <p style="margin-top:16px;margin-bottom:0"><strong>Result:</strong> Since Model 2 (Dog vs Rest) provides the highest confidence score, the final unified prediction is 🐶 Dog.</p>
+  </div>
+</div>
+
+<!-- ══════════ S4: ANALOGY ══════════ -->
+<div class="section" id="s4">
+  <div class="eyebrow">04 · Concepts</div>
+  <h2>Fun Analogy & Memory Trick</h2>
+  <div class="callout callout-g">
+    <strong>Talent Show Judges 🎤</strong><br>
+    Imagine three judges at a talent show. Judge A only scores singing, Judge B only scores dancing, and Judge C only scores magic tricks. For an unknown contestant performing, each judge holds up a score plate from 1-10. The contestant's category is decided by whichever judge held up the highest score plate!
+  </div>
+  <div class="callout callout-p">
+    <strong>Memory Trick 👉</strong><br>
+    "Each class fights against the rest!"
+  </div>
+  <p style="margin-top:16px"><strong>One-line Summary:</strong> OvR breaks a multi-class problem into N separate binary classification challenges, and selects the most confident champion.</p>
+</div>
+
+<!-- ══════════ S5: IMPLEMENTATION ══════════ -->
+<div class="section" id="s5">
+  <div class="eyebrow">05 · Workflow</div>
+  <h2>Steps (How it Works)</h2>
+  <ul>
+    <li><strong>Step 1: Binary Conversion.</strong> Transform your N-class dataset into N separate binary datasets.</li>
+    <li><strong>Step 2: Train Models.</strong> Train a binary classifier (like Logistic Regression or SVM) on each corresponding dataset independently.</li>
+    <li><strong>Step 3: Predict.</strong> Run a test sample through all N models to retrieve N probability scores.</li>
+    <li><strong>Step 4: Choose Max.</strong> Use the <em>argmax</em> mathematical function to declare the class with the highest confidence as the winner.</li>
+  </ul>
+</div>
+
+<!-- ══════════ S6: COMPARISON ══════════ -->
+<div class="section" id="s6">
+  <div class="eyebrow">06 · Evaluation</div>
+  <h2>Comparison: OvR vs OvO vs Softmax</h2>
+  <table class="dtbl">
+    <thead>
+      <tr>
+        <th>Feature</th>
+        <th>OvR (One-vs-Rest)</th>
+        <th>OvO (One-vs-One)</th>
+        <th>Softmax (Native)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="font-weight:600">Technique</td>
+        <td>1 class vs the combined rest</td>
+        <td>Every class vs every other class</td>
+        <td>Single model predicts all probs</td>
+      </tr>
+      <tr>
+        <td style="font-weight:600">Model Count</td>
+        <td>$N$ models</td>
+        <td>$N(N-1) / 2$ models</td>
+        <td>1 model</td>
+      </tr>
+      <tr>
+        <td style="font-weight:600">Data Balance</td>
+        <td style="color:var(--error)">Imbalanced (1 vs many)</td>
+        <td style="color:var(--success)">Balanced (1 vs 1)</td>
+        <td style="color:var(--success)">Balanced</td>
+      </tr>
+      <tr>
+        <td style="font-weight:600">Speed (Prediction)</td>
+        <td style="color:var(--success)">Fast</td>
+        <td style="color:var(--error)">Slow ($O(N^2)$)</td>
+        <td style="color:var(--success)">Very Fast</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ══════════ S7: ADVANTAGES ══════════ -->
+<div class="section" id="s7">
+  <div class="eyebrow">07 · Strengths</div>
+  <h2>Advantages & Limitations</h2>
+  <div class="grid2">
+    <div class="gcell">
+      <div class="tag t-gr">Advantages</div>
+      <ul>
+        <li>Intuitive to understand and debug.</li>
+        <li>Computationally scalable (only runs $N$ models total).</li>
+        <li>Allows algorithms that are strictly binary (like SVMs) to be used on multi-class data freely.</li>
+      </ul>
+    </div>
+    <div class="gcell">
+      <div class="tag t-re">Limitations</div>
+      <ul>
+        <li><strong>Class imbalance issue:</strong> The 'Rest' bucket is always artificially larger causing majority class bias.</li>
+        <li>Because models are separated, their "scores" might not be identically calibrated scales.</li>
+      </ul>
+    </div>
+  </div>
+  <p style="margin-top:16px"><strong>Use Cases:</strong> Extending classic binary Logistic Regression or legacy SVMs to accommodate multiple categorical targets without deploying heavy neural networks.</p>
+</div>
+
+<!-- ══════════ S8: INTERACTIVE PLAYGROUND ══════════ -->
+<div class="section" id="s8">
+  <div class="eyebrow">08 · Hands-on Interactive Mode</div>
+  <h2>Interactive Playground</h2>
+  <p>Play with OvR! Adjust the hypothetical output probabilities for the three independent binary models, then click <strong>Predict</strong> to simulate the argmax function deciding which class holds the highest confidence.</p>
+
+  <div class="quiz-wrap">
+    <div class="slider-row">
+      <span class="slider-lbl" style="width:70px">🐱 Cat</span>
+      <input type="range" id="pCat" min="0" max="100" value="15" oninput="liveUpdate()">
+      <span class="slider-val" id="pCatVal">15%</span>
+    </div>
+    <div class="slider-row">
+      <span class="slider-lbl" style="width:70px">🐶 Dog</span>
+      <input type="range" id="pDog" min="0" max="100" value="82" oninput="liveUpdate()">
+      <span class="slider-val" id="pDogVal">82%</span>
+    </div>
+    <div class="slider-row">
+      <span class="slider-lbl" style="width:70px">🐴 Horse</span>
+      <input type="range" id="pHorse" min="0" max="100" value="45" oninput="liveUpdate()">
+      <span class="slider-val" id="pHorseVal">45%</span>
+    </div>
+    
+    <button class="page-nav-btn primary" style="width:100%;justify-content:center;margin-top:28px;font-size:14px;padding:12px;font-weight:600;letter-spacing:.05em" onclick="makePrediction()">RUN PREDICTION / ARGMAX</button>
+
+    <div id="int-winner" style="display:none;margin-top:24px;border:2px dashed var(--ac);background:var(--layer-02);padding:24px;text-align:center;transition:background 0.3s">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-ph);margin-bottom:8px;text-transform:uppercase;letter-spacing:.1em">Prediction Result</div>
+      <div id="int-winner-text" style="font-size:28px;color:var(--ac);font-weight:600">🐶 Dog Wins!</div>
+      <div style="font-size:13px;color:var(--txt-sec);margin-top:10px">👉 OvR selects the class with the highest confidence</div>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom nav -->
+<div class="page-nav">
+  <a class="page-nav-btn" href="index_11.html">← Topic List</a>
+  <a class="page-nav-btn" href="#" style="background:var(--layer-02);border:1px solid var(--bdr-01)">Next: 1-against-1 →</a>
+</div>
+
+</main>
+</div><!-- /page-grid -->
+
+<script>
+/* ── Theme ── */
+let isLight = localStorage.getItem('theme') === 'light';
+function applyTheme() {
+  document.documentElement.classList.toggle('light', isLight);
+  const i = isLight ? '◑' : '☀', l = isLight ? 'Light' : 'Dark';
+  if(document.getElementById('tog-icon')) document.getElementById('tog-icon').textContent = i;
+  if(document.getElementById('tog-txt')) document.getElementById('tog-txt').textContent = l + ' theme';
+  if(document.getElementById('theme-lbl')) document.getElementById('theme-lbl').textContent = l;
+  const m = document.getElementById('mob-tog'); if(m) m.textContent = i;
+}
+applyTheme();
+
+function toggleTheme(){
+  isLight = !isLight;
+  localStorage.setItem('theme', isLight?'light':'dark');
+  applyTheme();
+}
+
+/* ── Interactive Playground ── */
+function liveUpdate() {
+  document.getElementById('pCatVal').innerText = document.getElementById('pCat').value + '%';
+  document.getElementById('pDogVal').innerText = document.getElementById('pDog').value + '%';
+  document.getElementById('pHorseVal').innerText = document.getElementById('pHorse').value + '%';
+  
+  // Hide result if sliders are moved to force re-clicking predict
+  document.getElementById('int-winner').style.display = 'none';
+}
+
+function makePrediction() {
+  const c = parseInt(document.getElementById('pCat').value);
+  const d = parseInt(document.getElementById('pDog').value);
+  const h = parseInt(document.getElementById('pHorse').value);
+  
+  let max = Math.max(c, d, h);
+  let winText = '';
+  
+  if(max === c && c > d && c > h) winText = '🐱 Cat Wins!';
+  else if(max === d && d > c && d > h) winText = '🐶 Dog Wins!';
+  else if(max === h && h > c && h > d) winText = '🐴 Horse Wins!';
+  else winText = 'It\'s a tie 🎲';
+  
+  document.getElementById('int-winner-text').innerText = winText;
+  
+  const winnerBox = document.getElementById('int-winner');
+  winnerBox.style.display = 'block';
+  
+  // Quick flash animation
+  winnerBox.style.background = isLight ? 'rgba(0,67,206,.15)' : 'rgba(120,169,255,.2)';
+  setTimeout(() => {
+    winnerBox.style.background = 'var(--layer-02)';
+  }, 300);
+}
+
+/* ── Scroll active nav ── */
+const secs = Array.from(document.querySelectorAll('.section[id]'));
+let lastId = '', rafP = false;
+window.addEventListener('scroll', () => {
+  if(rafP) return; rafP = true;
+  requestAnimationFrame(() => {
+    rafP = false;
+    const trigger = window.scrollY + window.innerHeight * .28;
+    let active = secs[0];
+    for(const s of secs){ if(s.offsetTop <= trigger) active = s; else break; }
+    if(active && active.id !== lastId){
+      lastId = active.id;
+      document.querySelectorAll('.nav-item, .drawer-nav-item').forEach(n => {
+        n.classList.toggle('active', n.getAttribute('href') === '#' + active.id);
+      });
+    }
+  });
+}, { passive: true });
+
+/* ── Drawer ── */
+function buildDrawer(){
+  const dr = document.getElementById('nav-drawer');
+  const sn = document.getElementById('sidenav');
+  if(!sn) return;
+  const cl = sn.cloneNode(true);
+  cl.removeAttribute('id'); cl.removeAttribute('class');
+  cl.querySelectorAll('.nav-item').forEach(el => { el.classList.add('drawer-nav-item'); el.addEventListener('click', closeDrawer); });
+  const tog = cl.querySelector('.tog-area'); if(tog) tog.remove();
+  const cb = document.createElement('button');
+  cb.textContent = '✕ Close';
+  cb.style.cssText = 'font-family:"IBM Plex Mono",monospace;font-size:11px;background:transparent;border:none;border-bottom:1px solid var(--bdr-00);color:var(--txt-ph);padding:12px 16px;width:100%;text-align:left;cursor:pointer';
+  cb.onclick = closeDrawer;
+  dr.insertBefore(cb, dr.firstChild);
+  dr.appendChild(cl);
+}
+function toggleDrawer(){
+  const ov = document.getElementById('nav-overlay'), dr = document.getElementById('nav-drawer');
+  if(dr.classList.contains('open')){ closeDrawer(); }
+  else { ov.style.display = 'block'; setTimeout(() => ov.classList.add('open'), 10); dr.classList.add('open'); document.body.style.overflow = 'hidden'; }
+}
+function closeDrawer(){
+  const ov = document.getElementById('nav-overlay'), dr = document.getElementById('nav-drawer');
+  ov.classList.remove('open'); dr.classList.remove('open'); document.body.style.overflow = '';
+  setTimeout(() => { ov.style.display = 'none'; }, 270);
+}
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeDrawer(); });
+document.fonts.ready.then(() => buildDrawer());
+
+/* ── Code Protection ── */
+(function(){
+  var _p=function(e){e.preventDefault();return false;};
+  document.addEventListener('contextmenu',_p);
+  document.addEventListener('keydown',function(e){
+    var k=(e.key||'').toUpperCase(),c=e.ctrlKey||e.metaKey,s=e.shiftKey;
+    if(e.key==='F12'||(c&&s&&['I','J','C','K'].includes(k))||(c&&['U','S','P'].includes(k))){
+      e.preventDefault();return false;
+    }
+  },true);
+  document.addEventListener('dragstart',_p);
+  function _dt(){
+    var dw=window.outerWidth-window.innerWidth>200,dh=window.outerHeight-window.innerHeight>200;
+    var el=document.getElementById('_dtWarn');
+    if(dw||dh){
+      document.body.style.filter='blur(18px)';document.body.style.pointerEvents='none';
+      if(!el){var d=document.createElement('div');d.id='_dtWarn';
+        d.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(22,22,22,.97);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;font-family:"IBM Plex Mono",monospace';
+        d.innerHTML='<div style="font-size:11px;letter-spacing:.14em;color:#ff8389;text-transform:uppercase">&#8856; Inspect Disabled</div><div style="font-size:10px;letter-spacing:.08em;color:#6f6f6f">Close developer tools to continue</div>';
+        document.body.appendChild(d);}
+    } else {
+      document.body.style.filter='';document.body.style.pointerEvents='';if(el)el.remove();
+    }
+  }
+  setInterval(_dt,900);
+})();
+</script>
+</body>
+</html>
