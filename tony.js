@@ -182,13 +182,32 @@ class TonyChat {
     }
 
     async askGemini(query, context) {
-        const apiKey = this.getNextApiKey();
-        if (!apiKey || apiKey.startsWith('YOUR_')) {
-            return "Please configure your **Gemini API keys** in `tony_keys.js` to enable the chatbot.";
+        const modelName = 'gemini-2.0-flash'; // Optimized default
+
+        // 1. Try Vercel Serverless Proxy (Secure/Hidden keys)
+        try {
+            const response = await fetch('/api/tony', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query, context, model: modelName })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.error) throw new Error(data.error.message);
+                return data.candidates[0].content.parts[0].text;
+            }
+        } catch (e) {
+            console.warn("Tony: Vercel API not available or failed. Falling back to direct client-side call.");
         }
 
-        // Using v1 stable endpoint
-        const url = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+        // 2. Fallback to direct call (Uses keys from tony_keys.js)
+        const apiKey = this.getNextApiKey();
+        if (!apiKey || apiKey.startsWith('YOUR_')) {
+            return "To use Tony on Vercel securely, please set the **TONY_API_KEYS** Environment Variable in your Vercel Dashboard.";
+        }
+
+        const url = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${apiKey}`;
         
         const prompt = `
             SYSTEM INSTRUCTIONS:
@@ -196,10 +215,9 @@ class TonyChat {
             
             STRICT RULES:
             1. ONLY answer questions related to Machine Learning and the course content provided in the context.
-            2. If a user asks something unrelated to Machine Learning (e.g., "tell me a joke", "who is the president", "how to cook"), politely respond: "I am Tony, a specialized ML assistant. I can only help you with topics related to this Machine Learning course."
+            2. If a user asks something unrelated to Machine Learning, politely decline.
             3. Use the provided CONTEXT to give accurate, course-specific answers. 
-            4. If the user's question is about ML but not in the context, you may use your internal knowledge but KEEP IT RELEVANT to a student's learning.
-            5. Keep responses professional, educational, and concise.
+            4. Keep responses professional, educational, and concise.
             
             CONTEXT FROM COURSE:
             ${context || "No specific context found."}
@@ -221,24 +239,17 @@ class TonyChat {
 
             const data = await response.json();
             if (data.error) {
-                console.error("Gemini Error:", data.error);
-                
-                // Rotation logic: Try the next key for ANY error 
-                // (Rate limiting, server overload, high demand, etc.)
                 if (this.retryCount < this.apiKeys.length) {
                     this.retryCount++;
-                    console.log(`Tony: Retrying with key ${this.currentKeyIndex + 1}/${this.apiKeys.length}...`);
                     return this.askGemini(query, context);
                 }
-                
                 this.retryCount = 0; 
-                return `**Tony's Error:** All API keys are currently exhausted or experiencing issues. \n\n (Last Error: ${data.error.message})`;
+                return `**Tony's Error:** All keys exhausted. \n\n (Last Error: ${data.error.message})`;
             }
 
             this.retryCount = 0;
             return data.candidates[0].content.parts[0].text;
         } catch (e) {
-            console.error("Fetch Error:", e);
             return "Connection error. Please check your internet.";
         }
     }
