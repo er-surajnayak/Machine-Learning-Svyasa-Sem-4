@@ -11,10 +11,19 @@ export default async function handler(req, res) {
   const { query, context, model } = req.body;
 
   // Get keys from Vercel Environment Variables
-  // You should set TONY_API_KEYS as a comma-separated string in Vercel Dashboard
-  // Example: AIza...,AIza...,AIza...
+  // Looking for individual keys as requested: tony1, tony2, tony3, tony4
+  const individualKeys = [
+    process.env.tony1,
+    process.env.tony2,
+    process.env.tony3,
+    process.env.tony4
+  ].filter(k => k && k.trim().length > 0);
+
+  // Also check for the original comma-separated string as a fallback
   const keysStr = process.env.TONY_API_KEYS || "";
-  const apiKeys = keysStr.split(',').filter(k => k.trim().length > 0);
+  const batchKeys = keysStr.split(',').filter(k => k.trim().length > 0);
+
+  const apiKeys = individualKeys.length > 0 ? individualKeys : batchKeys;
 
   if (apiKeys.length === 0) {
     return res.status(500).json({ error: { message: 'No API keys configured on server.' } });
