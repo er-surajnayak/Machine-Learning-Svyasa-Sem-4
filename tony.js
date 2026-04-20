@@ -1,19 +1,16 @@
 /**
  * Tony - The Machine Learning Assistant
- * RAG-based chatbot for Svyasa ML Course
+ * LLM-powered chatbot for Svyasa ML Course
  */
 
 class TonyChat {
     constructor() {
         this.apiKeys = window.TONY_API_KEYS || [];
         this.currentKeyIndex = 0;
-        this.knowledgeBase = [];
-        this.history = [];
         this.isOpen = false;
         this.isProcessing = false;
         this.retryCount = 0;
-        this.maxRetries = 5;
-        
+
         // Find the root path (tony.js location)
         const script = document.querySelector('script[src*="tony.js"]');
         this.rootPath = script ? script.src.split('tony.js')[0] : './';
@@ -21,32 +18,20 @@ class TonyChat {
         this.init();
     }
 
-    async init() {
+    init() {
         // Dynamically load CSS
         const link = document.createElement('link');
         link.rel = 'stylesheet';
         link.href = this.rootPath + 'tony.css';
         document.head.appendChild(link);
 
-        // Load knowledge base
-        try {
-            const response = await fetch(this.rootPath + 'knowledge_base.json');
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            this.knowledgeBase = await response.json();
-            console.log(`Tony: Knowledge base loaded with ${this.knowledgeBase.length} entries.`);
-        } catch (e) {
-            console.error('Tony: Failed to load knowledge base.', e);
-            if (window.location.protocol === 'file:') {
-                this.addBotMessage("⚠️ **Note:** It looks like you're opening the HTML file directly. Knowledge base features might be limited due to browser security (CORS). For best results, use a local server (e.g., VS Code Live Server).");
-            }
-        }
-
         this.render();
         this.attachEvents();
-        this.addBotMessage("Hi! I'm **Tony**, your ML learning assistant. Ask me anything about the modules in this course!");
+        this.addBotMessage("Hi! I'm **Tony**, your ML learning assistant. Ask me anything about Machine Learning!");
     }
 
     getNextApiKey() {
+        if (!this.apiKeys.length) return null;
         const key = this.apiKeys[this.currentKeyIndex];
         this.currentKeyIndex = (this.currentKeyIndex + 1) % this.apiKeys.length;
         return key;
@@ -63,7 +48,7 @@ class TonyChat {
                 <div class="tony-header">
                     <div class="tony-avatar">T</div>
                     <div class="tony-info">
-                        <div class="tony-name">Tony <span style="font-size:10px; opacity:0.6">v1.0</span></div>
+                        <div class="tony-name">Tony <span style="font-size:10px; opacity:0.6">ML Assistant</span></div>
                         <div class="tony-status">Online</div>
                     </div>
                     <button id="tony-clear" title="Clear Chat" style="background:none; border:none; color:var(--tony-text-sec); cursor:pointer; font-size:14px; margin-right:8px;">↺</button>
@@ -72,7 +57,7 @@ class TonyChat {
                 <div class="tony-history" id="tony-history"></div>
                 <div class="tony-input-area">
                     <div class="tony-input-wrapper">
-                        <input type="text" id="tony-input" placeholder="Type your question..." autocomplete="off">
+                        <input type="text" id="tony-input" placeholder="Ask anything about ML..." autocomplete="off">
                         <button id="tony-send" title="Send">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                         </button>
@@ -88,25 +73,22 @@ class TonyChat {
         const close = document.getElementById('tony-close');
         const input = document.getElementById('tony-input');
         const send = document.getElementById('tony-send');
-        const window = document.getElementById('tony-window');
+        const win = document.getElementById('tony-window');
 
         fab.onclick = () => {
             this.isOpen = !this.isOpen;
-            window.classList.toggle('open', this.isOpen);
+            win.classList.toggle('open', this.isOpen);
             if (this.isOpen) input.focus();
         };
 
         close.onclick = () => {
             this.isOpen = false;
-            window.classList.remove('open');
+            win.classList.remove('open');
         };
 
-        const clearBtn = document.getElementById('tony-clear');
-        clearBtn.onclick = () => {
-            const hist = document.getElementById('tony-history');
-            hist.innerHTML = '';
-            this.history = [];
-            this.addBotMessage("Chat cleared. How else can I help you?");
+        document.getElementById('tony-clear').onclick = () => {
+            document.getElementById('tony-history').innerHTML = '';
+            this.addBotMessage("Chat cleared! What ML topic can I help you with?");
         };
 
         const handleSend = () => {
@@ -126,70 +108,29 @@ class TonyChat {
         this.isProcessing = true;
         this.showTyping(true);
 
-        const context = this.getRelevantContext(text);
-        const answer = await this.askGemini(text, context);
-        
+        const answer = await this.askGemini(text);
+
         this.showTyping(false);
         this.addBotMessage(answer);
         this.isProcessing = false;
     }
 
-    getRelevantContext(query) {
-        if (!this.knowledgeBase.length) return "";
+    async askGemini(query) {
+        const SYSTEM_PROMPT = `You are "Tony", a specialized AI assistant for a Machine Learning university course.
 
-        const stopWords = new Set(['what', 'is', 'are', 'how', 'does', 'the', 'a', 'an', 'and', 'or', 'in', 'on', 'at', 'to', 'for', 'with', 'from', 'by', 'about', 'explain', 'tell', 'me']);
-        const words = query.toLowerCase().split(/\W+/).filter(w => w.length > 2 && !stopWords.has(w));
-        
-        if (words.length === 0) return "";
+YOUR RULES:
+1. ONLY answer questions related to Machine Learning, Data Science, or AI topics.
+2. If a user asks something UNRELATED to ML/AI (e.g., jokes, cooking, sports, politics), politely decline with: "I'm Tony, your Machine Learning assistant. I can only help with ML and AI-related questions!"
+3. Give clear, student-friendly explanations with examples where possible.
+4. Use bullet points and structure for complex topics.
+5. Be encouraging and educational in tone.`;
 
-        const scores = this.knowledgeBase.map(item => {
-            let score = 0;
-            const itemText = (item.text || "").toLowerCase();
-            const itemSection = (item.section || "").toLowerCase();
-            const itemTitle = (item.page_title || "").toLowerCase();
-
-            words.forEach(word => {
-                // Exact word match in text
-                const regex = new RegExp(`\\b${word}\\b`, 'g');
-                const textMatches = (itemText.match(regex) || []).length;
-                score += textMatches;
-
-                // High weight for matches in titles or section headers
-                if (itemTitle.includes(word)) score += 5;
-                if (itemSection.includes(word)) score += 3;
-            });
-            return { ...item, score };
-        });
-
-        // Get top 8 most relevant snippets, sorted by score
-        const topItems = scores
-            .filter(item => item.score > 0)
-            .sort((a, b) => b.score - a.score)
-            .slice(0, 8);
-
-        if (topItems.length === 0) return "No specific context found in the course materials.";
-
-        // Deduplicate and format
-        const seen = new Set();
-        return topItems
-            .map(item => {
-                const key = `${item.url}-${item.section}`;
-                const prefix = seen.has(key) ? "" : `\n[Context from ${item.page_title} > ${item.section}]:\n`;
-                seen.add(key);
-                return `${prefix}${item.text}`;
-            })
-            .join("\n");
-    }
-
-    async askGemini(query, context) {
-        const modelName = 'gemini-2.0-flash'; // Optimized default
-
-        // 1. Try Vercel Serverless Proxy (Secure/Hidden keys)
+        // 1. Try Vercel Serverless Proxy first (keys are hidden on server)
         try {
             const response = await fetch('/api/tony', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ query, context, model: modelName })
+                body: JSON.stringify({ query, systemPrompt: SYSTEM_PROMPT })
             });
 
             if (response.ok) {
@@ -198,64 +139,47 @@ class TonyChat {
                 return data.candidates[0].content.parts[0].text;
             }
         } catch (e) {
-            console.warn("Tony: Vercel API not available or failed. Falling back to direct client-side call.");
+            console.warn("Tony: Vercel proxy unavailable. Falling back to direct call.");
         }
 
-        // 2. Fallback to direct call (Uses keys from tony_keys.js)
+        // 2. Fallback: Direct call using keys from tony_keys.js (for local dev)
         const apiKey = this.getNextApiKey();
         if (!apiKey || apiKey.startsWith('YOUR_')) {
-            return "To use Tony on Vercel securely, please set the **TONY_API_KEYS** Environment Variable in your Vercel Dashboard.";
+            return "Please add your **Gemini API keys** to `tony_keys.js` for local development, or deploy to Vercel with environment variables set.";
         }
 
-        const url = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${apiKey}`;
-        
-        const prompt = `
-            SYSTEM INSTRUCTIONS:
-            You are "Tony", a specialized AI assistant for this specific Machine Learning course.
-            
-            STRICT RULES:
-            1. ONLY answer questions related to Machine Learning. 
-            2. For Machine Learning questions, use the provided CONTEXT as your primary source of truth to ensure consistency with the course materials.
-            3. If the user asks something NOT in the context but still related to ML, use your extensive internal knowledge to provide a helpful, accurate answer.
-            4. If the user asks something UNRELATED to Machine Learning (e.g., life advice, jokes, food, pop culture), politely respond: "I am Tony, a specialized ML assistant. I can only help you with topics related to Machine Learning and this course."
-            5. Keep responses professional, educational, and easy to understand.
-            
-            CONTEXT FROM COURSE:
-            ${context || "No specific context found."}
-            
-            USER QUESTION:
-            ${query}
-            
-            TONY'S RESPONSE:
-        `;
+        const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
         try {
             const response = await fetch(url, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    contents: [{ parts: [{ text: prompt }] }]
+                    contents: [{ parts: [{ text: `${SYSTEM_PROMPT}\n\nUser: ${query}\nTony:` }] }]
                 })
             });
 
             const data = await response.json();
+
             if (data.error) {
+                // Auto-rotate to next key on any error
                 if (this.retryCount < this.apiKeys.length) {
                     this.retryCount++;
-                    return this.askGemini(query, context);
+                    return this.askGemini(query);
                 }
-                this.retryCount = 0; 
-                let errorMsg = data.error.message || "Unknown API error";
-                if (errorMsg.toLowerCase().includes("quota")) {
-                    return `**Tony's Error: Quota Exceeded across all keys.** \n\n Please wait a minute for the quota to reset, or add more Gemini API keys to your configuration to increase capacity.`;
+                this.retryCount = 0;
+                const msg = (data.error.message || "").toLowerCase();
+                if (msg.includes("quota") || msg.includes("limit")) {
+                    return "⏳ All API keys have hit their quota. Please wait a minute and try again!";
                 }
-                return `**Tony's Error:** All API keys are currently exhausted or experiencing issues. \n\n (Last Error: ${errorMsg})`;
+                return `Something went wrong: ${data.error.message}`;
             }
 
             this.retryCount = 0;
             return data.candidates[0].content.parts[0].text;
+
         } catch (e) {
-            return "Connection error. Please check your internet.";
+            return "Connection error. Please check your internet connection.";
         }
     }
 
@@ -264,14 +188,12 @@ class TonyChat {
     }
 
     addBotMessage(text) {
-        // Advanced Markdown-to-HTML
         let html = text
-            .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>') // Code blocks
+            .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
             .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
             .replace(/\*(.*?)\*/g, '<em>$1</em>')
             .replace(/`(.*?)`/g, '<code>$1</code>')
             .replace(/\n/g, '<br>');
-        
         this.appendMessage('bot', html);
     }
 
@@ -294,8 +216,8 @@ class TonyChat {
             hist.appendChild(div);
             hist.scrollTop = hist.scrollHeight;
         } else {
-            const div = document.getElementById('tony-typing');
-            if (div) div.remove();
+            const el = document.getElementById('tony-typing');
+            if (el) el.remove();
         }
     }
 }
