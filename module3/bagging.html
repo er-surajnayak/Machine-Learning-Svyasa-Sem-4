@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="../machine-learning-model.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bagging — Ensemble Methods | Module 3 · Svyasa</title>
+<meta name="description" content="Learn Bootstrap Aggregating (Bagging) — how sampling with replacement, parallel model training and aggregation reduce variance. Includes Random Forest, OOB error and interactive demos.">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;1,300&family=IBM+Plex+Serif:ital,wght@0,300;1,300&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#161616;--layer-01:#262626;--layer-02:#393939;--layer-03:#525252;
+  --hover-01:#333333;--bdr-00:#393939;--bdr-01:#474747;--bdr-str:#6f6f6f;
+  --txt-pri:#f4f4f4;--txt-sec:#c6c6c6;--txt-ph:#6f6f6f;
+  --blue:#4589ff;--link:#78a9ff;--success:#42be65;--warn:#f1c21b;--error:#ff8389;--teal:#3ddbd9;--purple:#d4bbff;
+  /* Topic 3 accent = sky blue */
+  --ac:#82cfff;
+}
+html.light{
+  --bg:#fff;--layer-01:#f4f4f4;--layer-02:#e0e0e0;--layer-03:#c6c6c6;
+  --hover-01:#e8e8e8;--bdr-00:#e0e0e0;--bdr-01:#c6c6c6;--bdr-str:#8d8d8d;
+  --txt-pri:#161616;--txt-sec:#525252;--txt-ph:#8d8d8d;
+  --blue:#0f62fe;--link:#0043ce;--success:#198038;--warn:#b28600;--error:#da1e28;--teal:#007d79;--purple:#6929c4;
+  --ac:#0072c3;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'IBM Plex Sans',sans-serif;font-size:15px;line-height:1.5;background:var(--bg);color:var(--txt-pri);-webkit-font-smoothing:antialiased;transition:background .25s,color .2s}
+a{text-decoration:none;color:inherit}
+
+/* ── Layout ── */
+.page-grid{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+
+/* ── Sidenav ── */
+.sidenav{background:var(--layer-01);border-right:1px solid var(--bdr-00);position:sticky;top:0;height:100vh;overflow-y:auto;padding-bottom:32px;transition:background .25s,border-color .2s}
+.nav-hdr{padding:16px;border-bottom:1px solid var(--bdr-00);margin-bottom:4px}
+.nav-back{display:flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph);letter-spacing:.06em;margin-bottom:8px;transition:color .15s}
+.nav-back:hover{color:var(--ac)}
+.nav-mod{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;color:var(--ac);text-transform:uppercase;margin-bottom:3px}
+.nav-title{font-size:13px;font-weight:600;color:var(--txt-pri);line-height:1.3}
+.nav-sec{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;color:var(--txt-ph);text-transform:uppercase;padding:12px 16px 4px}
+.nav-item{display:flex;align-items:center;gap:8px;padding:8px 16px;font-size:13px;color:var(--txt-sec);cursor:pointer;border-left:3px solid transparent;transition:background .1s,color .1s,border-color .1s;text-decoration:none}
+.nav-item:hover{background:var(--hover-01);color:var(--txt-pri)}
+.nav-item.active{background:var(--hover-01);color:var(--txt-pri);border-left-color:var(--ac);font-weight:600}
+.nav-item.active .nn{color:var(--ac)}
+.nn{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--txt-ph);min-width:16px;transition:color .15s}
+.tog-area{padding:20px 16px 0}
+.tog-btn{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding:8px 10px;background:var(--layer-02);border:1px solid var(--bdr-01);cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-sec);letter-spacing:.05em;transition:background .15s}
+.tog-btn:hover{background:var(--hover-01);color:var(--txt-pri)}
+.tog-track{width:26px;height:13px;background:var(--bdr-str);border-radius:7px;position:relative;flex-shrink:0;transition:background .25s}
+.tog-thumb{position:absolute;top:2px;left:2px;width:9px;height:9px;border-radius:50%;background:#fff;transition:transform .25s}
+html.light .tog-track{background:var(--ac)}
+html.light .tog-thumb{transform:translateX(13px)}
+
+/* ── Mobile topbar ── */
+.mob-topbar{display:none;position:fixed;top:0;left:0;right:0;z-index:200;height:52px;background:var(--layer-01);border-bottom:1px solid var(--bdr-00);align-items:center;padding:0 16px;gap:8px;transition:background .25s}
+.mob-menu-btn{width:34px;height:34px;background:transparent;border:1px solid var(--bdr-01);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-direction:column;gap:4px}
+.mob-bar{width:14px;height:1.5px;background:var(--txt-pri)}
+.mob-title{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--txt-pri);flex:1;letter-spacing:.04em}
+.mob-tog{width:34px;height:34px;background:transparent;border:1px solid var(--bdr-01);cursor:pointer;font-size:14px;color:var(--txt-sec)}
+
+/* ── Drawer ── */
+.nav-overlay{display:none;position:fixed;inset:0;z-index:150;background:rgba(0,0,0,.6);opacity:0;transition:opacity .25s}
+.nav-overlay.open{opacity:1}
+.nav-drawer{position:fixed;left:0;top:0;bottom:0;z-index:160;width:260px;background:var(--layer-01);border-right:1px solid var(--bdr-00);overflow-y:auto;transform:translateX(-100%);transition:transform .3s cubic-bezier(.4,0,.2,1);padding-bottom:32px}
+.nav-drawer.open{transform:translateX(0)}
+
+/* ── Main ── */
+.main{padding:0 48px 100px;max-width:820px;transition:background .25s}
+.page-hdr{padding:52px 0 40px;border-bottom:1px solid var(--bdr-00);margin-bottom:52px}
+.breadcrumb{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-ph);letter-spacing:.05em;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.breadcrumb a{color:var(--ac);transition:opacity .15s}.breadcrumb a:hover{opacity:.7}
+h1{font-family:'IBM Plex Serif',serif;font-size:clamp(34px,5vw,54px);font-weight:300;line-height:1.15;color:var(--txt-pri);margin-bottom:12px}
+h1 em{font-style:italic;color:var(--ac)}
+.hdr-desc{font-size:15px;font-weight:300;color:var(--txt-sec);max-width:580px;line-height:1.7}
+
+/* ── Sections ── */
+.section{margin-bottom:60px;opacity:0;transform:translateY(14px);animation:fadeUp .4s ease forwards}
+.section:nth-child(1){animation-delay:.05s}.section:nth-child(2){animation-delay:.10s}
+.section:nth-child(3){animation-delay:.15s}.section:nth-child(4){animation-delay:.20s}
+.section:nth-child(5){animation-delay:.25s}.section:nth-child(6){animation-delay:.30s}
+.section:nth-child(7){animation-delay:.35s}.section:nth-child(8){animation-delay:.40s}
+.section:nth-child(9){animation-delay:.45s}.section:nth-child(10){animation-delay:.50s}
+.section:nth-child(11){animation-delay:.55s}.section:nth-child(12){animation-delay:.60s}
+.section:nth-child(13){animation-delay:.65s}
+@keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
+
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;color:var(--ac);text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.eyebrow::before{content:'';display:inline-block;width:14px;height:1px;background:var(--ac)}
+h2{font-family:'IBM Plex Serif',serif;font-size:24px;font-weight:300;color:var(--txt-pri);margin-bottom:14px;line-height:1.25}
+h3{font-size:16px;font-weight:600;color:var(--txt-pri);margin-bottom:8px}
+p{font-size:14px;font-weight:300;color:var(--txt-sec);margin-bottom:12px;line-height:1.75}
+p strong{color:var(--txt-pri);font-weight:600}
+ul{padding-left:0;list-style:none}
+ul li{position:relative;padding-left:16px;margin-bottom:8px;font-size:14px;font-weight:300;color:var(--txt-sec);line-height:1.6}
+ul li::before{content:'';position:absolute;left:0;top:9px;width:5px;height:1px;background:var(--ac)}
+.hl{color:var(--ac);font-weight:600}
+
+/* ── Callout ── */
+.callout{border-left:3px solid var(--ac);background:var(--layer-01);padding:14px 18px;margin:14px 0;font-size:14px;font-weight:300;color:var(--txt-sec);line-height:1.75;transition:background .25s}
+.callout strong{color:var(--txt-pri);font-weight:600}
+.callout-g{border-left-color:var(--success)}
+.callout-y{border-left-color:var(--warn)}
+.callout-p{border-left-color:var(--purple)}
+.callout-b{border-left-color:var(--link)}
+.callout-r{border-left-color:var(--error)}
+
+/* ── Tile & Grids ── */
+.tile{background:var(--layer-01);border:1px solid var(--bdr-00);padding:20px 24px;margin-bottom:12px;transition:background .25s,border-color .2s}
+.tile-title{font-size:13px;font-weight:600;color:var(--txt-pri);margin-bottom:12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--bdr-00);border:1px solid var(--bdr-00);margin:14px 0}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--bdr-00);border:1px solid var(--bdr-00);margin:14px 0}
+.gcell{background:var(--layer-01);padding:20px 22px;transition:background .25s}
+.kv{display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--bdr-00);font-size:13px;gap:12px;transition:border-color .2s}
+.kv:last-child{border-bottom:none}
+.kk{color:var(--txt-sec);font-weight:300;flex-shrink:0}
+.kv-v{color:var(--txt-pri);font-weight:400;text-align:right}
+
+/* ── Tags ── */
+.tag{display:inline-flex;align-items:center;height:22px;padding:0 10px;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.03em;margin-bottom:10px}
+.t-bl{background:#0043ce;color:#a6c8ff}
+.t-gr{background:#044317;color:#a7f0ba}
+.t-re{background:#750e13;color:#ffb3b8}
+.t-cy{background:#003a3a;color:#9ef0f0}
+.t-pu{background:#31135e;color:#e8daff}
+html.light .t-bl{background:#d0e2ff;color:#0043ce}
+html.light .t-gr{background:#a7f0ba;color:#044317}
+html.light .t-re{background:#ffd7d9;color:#750e13}
+html.light .t-cy{background:#d9fbfb;color:#005d5d}
+html.light .t-pu{background:#e8daff;color:#31135e}
+
+/* ── Formula ── */
+.formula{font-family:'IBM Plex Mono',monospace;font-size:13px;background:var(--layer-02);border:1px solid var(--bdr-01);border-left:3px solid var(--ac);padding:11px 15px;margin:10px 0;line-height:2;color:var(--txt-pri);transition:background .25s}
+
+/* ── Table ── */
+.dtbl{width:100%;border-collapse:collapse;margin:8px 0;font-size:13px}
+.dtbl thead tr{background:var(--layer-02);border-bottom:1px solid var(--bdr-str)}
+.dtbl th{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--txt-sec);padding:9px 14px;text-align:left}
+.dtbl td{padding:9px 14px;border-bottom:1px solid var(--bdr-00);color:var(--txt-pri);vertical-align:middle;font-size:13px}
+.dtbl tbody tr:hover{background:var(--hover-01)}
+
+/* ── Step flow ── */
+.step-flow{display:flex;flex-direction:column;gap:0;margin:16px 0}
+.step-item{display:grid;grid-template-columns:40px 1fr;gap:0;position:relative}
+.step-item:not(:last-child)::after{content:'';position:absolute;left:19px;top:40px;bottom:0;width:1px;background:var(--bdr-01)}
+.step-dot{width:38px;height:38px;background:var(--layer-02);border:2px solid var(--ac);display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--ac);flex-shrink:0;z-index:1}
+.step-body{padding:8px 0 20px 16px}
+.step-title{font-size:14px;font-weight:600;color:var(--txt-pri);margin-bottom:4px}
+.step-desc{font-size:13px;color:var(--txt-sec);line-height:1.7}
+
+/* ── Sampling visual ── */
+.sample-row{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.sample-chip{height:36px;min-width:36px;padding:0 12px;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;border:1px solid var(--bdr-01);background:var(--layer-02);color:var(--txt-pri);transition:all .25s}
+.sample-chip.selected{background:var(--ac);border-color:var(--ac);color:#000}
+.sample-chip.duplicate{background:#0043ce;border-color:var(--link);color:#a6c8ff}
+.sample-chip.missing{background:var(--layer-01);border-color:var(--bdr-00);color:var(--txt-ph);text-decoration:line-through}
+
+/* ── Interactive Wrap ── */
+.interactive-wrap{background:var(--layer-01);border:1px solid var(--bdr-00);padding:24px;margin:16px 0}
+.iw-title{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;color:var(--txt-ph);text-transform:uppercase;margin-bottom:16px;border-bottom:1px solid var(--bdr-00);padding-bottom:10px}
+
+/* ── Bagging sim ── */
+.models-row{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:16px 0}
+.model-box{background:var(--layer-02);border:1px solid var(--bdr-01);padding:12px 8px;text-align:center;transition:all .3s}
+.model-box.active{border-color:var(--ac);background:rgba(130,207,255,.08)}
+.model-box.voted{border-color:var(--success);background:rgba(66,190,101,.08)}
+.model-icon{font-size:22px;margin-bottom:6px}
+.model-label{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph)}
+.model-pred{font-size:12px;font-weight:600;color:var(--ac);min-height:18px;margin-top:4px}
+
+.vote-bar-wrap{margin:16px 0}
+.vote-bar-row{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.vote-bar-label{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--txt-sec);width:80px;flex-shrink:0}
+.vote-bar-track{flex:1;height:20px;background:var(--layer-02);border:1px solid var(--bdr-01);overflow:hidden}
+.vote-bar-fill{height:100%;background:var(--ac);width:0;transition:width .5s ease;display:flex;align-items:center;padding-left:8px;font-size:11px;font-weight:600;color:#000}
+.vote-count-lbl{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--txt-pri);width:30px}
+
+.sim-controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.sim-btn{padding:8px 16px;font-family:'IBM Plex Mono',monospace;font-size:11px;background:transparent;border:1px solid var(--bdr-01);color:var(--txt-sec);cursor:pointer;transition:all .15s;letter-spacing:.04em}
+.sim-btn:hover{background:var(--hover-01);color:var(--txt-pri)}
+.sim-btn.primary{background:var(--ac);border-color:var(--ac);color:#000;font-weight:600}
+.sim-btn.primary:hover{opacity:.85}
+.sim-output{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--success);margin-top:12px;min-height:20px;font-weight:600}
+
+/* ── Quiz ── */
+.quiz-card{background:var(--layer-01);border:1px solid var(--bdr-00);padding:20px;margin-bottom:12px}
+.quiz-q{font-size:14px;font-weight:600;color:var(--txt-pri);margin-bottom:14px;line-height:1.5}
+.quiz-options{display:flex;flex-direction:column;gap:8px}
+.quiz-opt{padding:10px 14px;background:var(--layer-02);border:1px solid var(--bdr-01);font-size:13px;color:var(--txt-sec);cursor:pointer;text-align:left;transition:all .15s;font-family:'IBM Plex Sans',sans-serif;width:100%}
+.quiz-opt:hover{background:var(--hover-01);color:var(--txt-pri)}
+.quiz-opt.correct{background:rgba(66,190,101,.15);border-color:var(--success);color:var(--success)}
+.quiz-opt.wrong{background:rgba(255,131,137,.1);border-color:var(--error);color:var(--error)}
+.quiz-feedback{font-size:13px;color:var(--txt-sec);margin-top:10px;padding:10px;border-left:3px solid var(--ac);background:var(--layer-02);display:none;line-height:1.6}
+.quiz-score{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--txt-ph);margin-top:8px}
+
+/* ── Bottom nav ── */
+.page-nav{display:flex;justify-content:space-between;align-items:center;padding-top:40px;border-top:1px solid var(--bdr-00);margin-top:60px}
+.page-nav-btn{display:flex;align-items:center;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-sec);padding:10px 16px;border:1px solid var(--bdr-01);background:transparent;cursor:pointer;transition:background .15s,color .15s;text-decoration:none}
+.page-nav-btn:hover{background:var(--hover-01);color:var(--txt-pri)}
+.page-nav-btn.primary{background:var(--ac);border-color:var(--ac);color:#000;font-weight:600}
+.page-nav-btn.primary:hover{opacity:.9}
+
+@media(max-width:767px){
+  .mob-topbar{display:flex}
+  .sidenav{display:none}
+  .page-grid{display:block}
+  .main{padding:68px 16px 80px;max-width:100%}
+  .page-hdr{padding:24px 0 20px;margin-bottom:32px}
+  h1{font-size:24px}
+  .grid2,.grid3,.models-row{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- Mobile topbar -->
+<div class="mob-topbar" id="mob-topbar">
+  <button class="mob-menu-btn" onclick="toggleDrawer()" aria-label="Menu">
+    <div class="mob-bar"></div><div class="mob-bar"></div><div class="mob-bar"></div>
+  </button>
+  <span class="mob-title">Bagging</span>
+  <button class="mob-tog" onclick="toggleTheme()" id="mob-tog">☀</button>
+</div>
+<div class="nav-overlay" id="nav-overlay" onclick="closeDrawer()"></div>
+<nav class="nav-drawer" id="nav-drawer"></nav>
+
+<div class="page-grid">
+
+<!-- ══ SIDENAV ══ -->
+<nav class="sidenav" id="sidenav">
+  <div class="nav-hdr">
+    <a class="nav-back" href="index_11.html">← Module 3</a>
+    <div class="nav-mod">Topic 03</div>
+    <div class="nav-title">Bagging</div>
+  </div>
+  <div class="nav-sec">Sections</div>
+  <a class="nav-item active" href="#s1"><span class="nn">01</span>Sampling First</a>
+  <a class="nav-item" href="#s2"><span class="nn">02</span>Ensemble Learning</a>
+  <a class="nav-item" href="#s3"><span class="nn">03</span>Types of Ensemble</a>
+  <a class="nav-item" href="#s4"><span class="nn">04</span>Bagging Defined</a>
+  <a class="nav-item" href="#s5"><span class="nn">05</span>Step-by-Step</a>
+  <a class="nav-item" href="#s6"><span class="nn">06</span>Why it Works</a>
+  <a class="nav-item" href="#s7"><span class="nn">07</span>Random Forest</a>
+  <a class="nav-item" href="#s8"><span class="nn">08</span>Bias vs Variance</a>
+  <a class="nav-item" href="#s9"><span class="nn">09</span>OOB Error</a>
+  <a class="nav-item" href="#s10"><span class="nn">10</span>Interactive Demo</a>
+  <a class="nav-item" href="#s11"><span class="nn">11</span>Pros & Cons</a>
+  <a class="nav-item" href="#s12"><span class="nn">12</span>Quiz Yourself</a>
+  <a class="nav-item" href="#s13"><span class="nn">13</span>Exam Ready</a>
+  <div class="tog-area">
+    <button class="tog-btn" onclick="toggleTheme()">
+      <span style="display:flex;align-items:center;gap:6px"><span id="tog-icon">☀</span><span id="tog-txt">Light theme</span></span>
+      <span class="tog-track"><span class="tog-thumb"></span></span>
+    </button>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph);margin-top:10px;line-height:1.6">IBM Carbon · <span id="theme-lbl">Dark</span></div>
+  </div>
+</nav>
+
+<!-- ══ MAIN ══ -->
+<main class="main">
+<div class="page-hdr">
+  <div class="breadcrumb">
+    <a href="../index.html">Home</a><span>/</span>
+    <a href="index_11.html">Module 3</a><span>/</span>
+    <span style="color:var(--txt-sec)">Bagging</span>
+  </div>
+  <h1>Bootstrap<br><em>Aggregating</em></h1>
+  <p class="hdr-desc">Create multiple slightly different datasets, train models on each, combine results — and get a prediction that's more stable, accurate, and resistant to noise than any single model alone.</p>
+</div>
+
+<!-- ══ S1: SAMPLING ══ -->
+<div class="section" id="s1">
+  <div class="eyebrow">01 · Foundation</div>
+  <h2>Sampling First — The Missing Concept</h2>
+  <p>Before understanding Bagging, you must understand <strong>Sampling</strong>.</p>
+  <div class="callout callout-b">
+    <strong>Sampling</strong> = Selecting a subset of data from a dataset. Instead of using the full data, we pick parts of it.
+  </div>
+  <h3>Two Types of Sampling</h3>
+  <div class="grid2">
+    <div class="gcell">
+      <div class="tag t-bl">Without Replacement</div>
+      <p style="margin-bottom:8px">Once selected → <strong>cannot be selected again.</strong></p>
+      <div class="formula">Data = [A, B, C, D]<br>Sample = [A, B]<br>A won't repeat</div>
+      <p style="font-size:12px;color:var(--txt-ph);margin:0">Like picking cards from a deck — each card picked is removed.</p>
+    </div>
+    <div class="gcell">
+      <div class="tag t-cy">With Replacement ⭐</div>
+      <p style="margin-bottom:8px">Same data point <strong>can be selected multiple times.</strong></p>
+      <div class="formula">Data = [A, B, C, D]<br>Sample = [A, B, B, D]<br>B appears twice, C may not</div>
+      <p style="font-size:12px;color:var(--txt-ph);margin:0">Like picking and putting the card back before the next draw.</p>
+    </div>
+  </div>
+
+  <h3 style="margin-top:20px">👉 Try It: Sampling Simulator</h3>
+  <p style="font-size:13px">Click <strong>Generate Sample</strong> to see how bootstrap sampling (with replacement) picks data from our original dataset. Notice duplicates and missing items.</p>
+  <div class="interactive-wrap">
+    <div class="iw-title">Bootstrap Sampling Simulator</div>
+    <div style="margin-bottom:12px">
+      <div style="font-size:12px;color:var(--txt-ph);margin-bottom:8px;font-family:'IBM Plex Mono',monospace">ORIGINAL DATASET</div>
+      <div class="sample-row" id="orig-chips">
+        <div class="sample-chip">A</div>
+        <div class="sample-chip">B</div>
+        <div class="sample-chip">C</div>
+        <div class="sample-chip">D</div>
+        <div class="sample-chip">E</div>
+        <div class="sample-chip">F</div>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:12px;color:var(--txt-ph);margin-bottom:8px;font-family:'IBM Plex Mono',monospace">BOOTSTRAP SAMPLE (Same size, with replacement)</div>
+      <div class="sample-row" id="sample-chips" style="min-height:44px"></div>
+      <div style="margin-top:8px;font-size:12px;color:var(--txt-ph)">
+        <span style="display:inline-block;width:10px;height:10px;background:var(--ac);margin-right:4px;vertical-align:middle"></span>Normal &nbsp;
+        <span style="display:inline-block;width:10px;height:10px;background:#0043ce;margin-right:4px;vertical-align:middle"></span>Duplicate &nbsp;
+        <span style="display:inline-block;width:10px;height:10px;background:var(--layer-01);border:1px solid var(--bdr-00);margin-right:4px;vertical-align:middle"></span>Missing (OOB)
+      </div>
+    </div>
+    <div class="sim-controls">
+      <button class="sim-btn primary" onclick="generateSample()">Generate Bootstrap Sample</button>
+      <button class="sim-btn" onclick="clearSample()">Clear</button>
+    </div>
+    <div class="sim-output" id="sample-output"></div>
+  </div>
+
+  <div class="callout callout-y">
+    <strong>Key Insight:</strong> Sampling introduces <em>variation</em> in data. Variation → different models → better ensemble!
+  </div>
+</div>
+
+<!-- ══ S2: ENSEMBLE ══ -->
+<div class="section" id="s2">
+  <div class="eyebrow">02 · Big Picture</div>
+  <h2>What is Ensemble Learning?</h2>
+  <p>Instead of trusting a single model, <strong>combine multiple models</strong> to produce a single improved output.</p>
+  <div class="callout callout-b">
+    <strong>Real-Life Analogy:</strong> One doctor is risky. Multiple doctors consulting together → more reliable diagnosis. The final decision is the <em>combined opinion</em>.
+  </div>
+  <p>Single models suffer from:</p>
+  <div class="grid3">
+    <div class="gcell">
+      <div class="tag t-re">Overfitting</div>
+      <p style="margin:0;font-size:13px">High variance — memorises training noise</p>
+    </div>
+    <div class="gcell">
+      <div class="tag t-re">Underfitting</div>
+      <p style="margin:0;font-size:13px">High bias — too simple to learn</p>
+    </div>
+    <div class="gcell">
+      <div class="tag t-re">Instability</div>
+      <p style="margin:0;font-size:13px">Small data change → very different model</p>
+    </div>
+  </div>
+  <p>Ensemble methods help by: <span class="hl">Improving accuracy</span>, reducing errors, and increasing stability.</p>
+
+  <div class="callout callout-g">
+    <strong>Exam Definition:</strong> "Ensemble learning is a technique in which multiple base models are combined to produce a single improved model with better accuracy and generalisation."
+  </div>
+</div>
+
+<!-- ══ S3: TYPES ══ -->
+<div class="section" id="s3">
+  <div class="eyebrow">03 · Overview</div>
+  <h2>Types of Ensemble Methods</h2>
+  <table class="dtbl">
+    <thead>
+      <tr><th>Method</th><th>Core Idea</th><th>Models</th><th>This Module?</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="font-weight:600;color:var(--ac)">Bagging</td>
+        <td>Independent parallel models on different data subsets</td>
+        <td>Random Forest</td>
+        <td style="color:var(--success)">✔ Yes</td>
+      </tr>
+      <tr>
+        <td style="font-weight:600">Boosting</td>
+        <td>Sequential — each model corrects previous errors</td>
+        <td>AdaBoost, XGBoost</td>
+        <td style="color:var(--warn)">Next Topic</td>
+      </tr>
+      <tr>
+        <td style="font-weight:600">Stacking</td>
+        <td>A meta-model learns how to combine base model outputs</td>
+        <td>Meta-learner</td>
+        <td style="color:var(--txt-ph)">Advanced</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ══ S4: BAGGING DEFINED ══ -->
+<div class="section" id="s4">
+  <div class="eyebrow">04 · Core Method</div>
+  <h2>Bagging (Bootstrap Aggregating)</h2>
+  <div class="callout">
+    <strong>Definition:</strong> "Bagging is an ensemble technique where multiple models are trained <em>independently</em> on different bootstrap samples (sampling with replacement), and their outputs are combined using voting or averaging."
+  </div>
+
+  <h3>Break the Word</h3>
+  <div class="tile">
+    <div class="kv"><span class="kk">Bootstrap</span><span class="kv-v" style="color:var(--ac)">Sampling with replacement → creates diverse datasets</span></div>
+    <div class="kv"><span class="kk">Aggregating</span><span class="kv-v" style="color:var(--ac)">Combining outputs of all trained models</span></div>
+  </div>
+
+  <h3 style="margin-top:20px">🍕 The Pizza Analogy</h3>
+  <p>Ask <strong>1 person</strong> to rate a pizza → biased opinion. Ask <strong>20 people</strong> → the average is far more reliable. That's Bagging!</p>
+  <div class="grid2">
+    <div class="gcell">
+      <div class="tag t-re">Single Model</div>
+      <p style="margin:0;font-size:13px">One biased, unstable opinion. Sensitive to training data noise.</p>
+    </div>
+    <div class="gcell">
+      <div class="tag t-cy">Bagging Ensemble</div>
+      <p style="margin:0;font-size:13px">20 diverse opinions averaged → stable, accurate, robust prediction.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S5: STEP BY STEP ══ -->
+<div class="section" id="s5">
+  <div class="eyebrow">05 · Workflow</div>
+  <h2>Step-by-Step Working</h2>
+  <div class="step-flow">
+    <div class="step-item">
+      <div class="step-dot">1</div>
+      <div class="step-body">
+        <div class="step-title">Original Dataset D</div>
+        <div class="step-desc">Start with your full dataset D with N rows of training data.</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-dot">2</div>
+      <div class="step-body">
+        <div class="step-title">Create Bootstrap Samples D₁, D₂, D₃…</div>
+        <div class="step-desc">Sample from D <em>with replacement</em> to create multiple datasets. Each is the <strong>same size</strong> as D, but contains different (and repeated) rows.</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-dot">3</div>
+      <div class="step-body">
+        <div class="step-title">Train Independent Models h₁, h₂, h₃…</div>
+        <div class="step-desc">Train a separate model on each bootstrap dataset. All models are trained <strong>in parallel</strong> — they don't know about each other.</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-dot">4</div>
+      <div class="step-body">
+        <div class="step-title">Predict with Each Model</div>
+        <div class="step-desc">Given a new input, each model makes its own independent prediction.</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-dot">5</div>
+      <div class="step-body">
+        <div class="step-title">Aggregate Final Answer</div>
+        <div class="step-desc">
+          <div class="tile" style="margin-top:8px">
+            <div class="kv"><span class="kk">Classification</span><span class="kv-v" style="color:var(--ac)">Majority Voting</span></div>
+            <div class="kv"><span class="kk">Regression</span><span class="kv-v" style="color:var(--ac)">Average of all outputs</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S6: WHY IT WORKS ══ -->
+<div class="section" id="s6">
+  <div class="eyebrow">06 · The Logic</div>
+  <h2>Why Bagging Actually Works</h2>
+  <p>Bagging reduces <strong>Variance</strong> — the tendency of a model to fluctuate wildly based on the training data it sees.</p>
+
+  <div class="grid2">
+    <div class="gcell">
+      <div class="tag t-re">High Variance Problem</div>
+      <p style="font-size:13px;margin:0">Sensitive model trained on Dataset A gives output X. Same model trained on Dataset B gives output Y. X ≠ Y — the model is unstable!</p>
+    </div>
+    <div class="gcell">
+      <div class="tag t-gr">Bagging Solution</div>
+      <p style="font-size:13px;margin:0">Each model sees different data → makes different errors. When you <strong>average their outputs</strong>, the individual errors cancel each other out → stable result.</p>
+    </div>
+  </div>
+
+  <div class="callout callout-y">
+    <strong>Think of it this way:</strong> If half the models overestimate and half underestimate, the average lands right in the middle — which is the correct answer!
+  </div>
+
+  <h3 style="margin-top:20px">Which Models Benefit Most?</h3>
+  <p>Bagging works best for <span class="hl">High Variance (Sensitive) Models</span> — models that change drastically with small data changes.</p>
+  <div class="tile">
+    <div class="kv"><span class="kk">Decision Trees 🌳</span><span class="kv-v" style="color:var(--ac)">Perfect for Bagging — highly sensitive to data</span></div>
+    <div class="kv"><span class="kk">KNN</span><span class="kv-v" style="color:var(--ac)">Also benefits significantly</span></div>
+    <div class="kv"><span class="kk">Linear Regression</span><span class="kv-v" style="color:var(--txt-ph)">Less benefit — already low variance</span></div>
+  </div>
+</div>
+
+<!-- ══ S7: RANDOM FOREST ══ -->
+<div class="section" id="s7">
+  <div class="eyebrow">07 · Real Example</div>
+  <h2>Random Forest — Bagging in Action</h2>
+  <div class="callout callout-b">
+    <strong>Random Forest</strong> = Bagging + Decision Trees + <em>Feature Randomness</em>
+  </div>
+  <p>It doesn't just create different <em>data</em> subsets (bootstrap) — it also uses a <strong>random subset of features</strong> at each tree split. This adds an extra layer of diversity.</p>
+
+  <div class="step-flow" style="margin-top:20px">
+    <div class="step-item">
+      <div class="step-dot">1</div>
+      <div class="step-body">
+        <div class="step-title">Bootstrap Sampling</div>
+        <div class="step-desc">Create N bootstrap datasets from original data.</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-dot">2</div>
+      <div class="step-body">
+        <div class="step-title">Grow Decision Trees (with Feature Randomness)</div>
+        <div class="step-desc">At each split in the tree, <strong>only a random subset of features</strong> (e.g., √n features) is considered. This prevents all trees from looking the same.</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-dot">3</div>
+      <div class="step-body">
+        <div class="step-title">Combine via Majority Vote</div>
+        <div class="step-desc">For classification, the class with the most votes across all trees wins.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid3" style="margin-top:16px">
+    <div class="gcell">
+      <div class="tag t-cy">Reduces Overfitting</div>
+      <p style="margin:0;font-size:13px">Trees vote against each other's overfit patterns</p>
+    </div>
+    <div class="gcell">
+      <div class="tag t-gr">Better Accuracy</div>
+      <p style="margin:0;font-size:13px">Consistently outperforms single decision trees</p>
+    </div>
+    <div class="gcell">
+      <div class="tag t-bl">More Diversity</div>
+      <p style="margin:0;font-size:13px">Feature randomness prevents correlated trees</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S8: BIAS VS VARIANCE ══ -->
+<div class="section" id="s8">
+  <div class="eyebrow">08 · Theory</div>
+  <h2>Bias vs. Variance — Bagging's Effect</h2>
+  <table class="dtbl">
+    <thead>
+      <tr><th>Error Type</th><th>Bagging Effect</th><th>Reason</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="font-weight:600">Bias</td>
+        <td style="color:var(--txt-sec)">Stays the same</td>
+        <td style="font-size:12px">Same type of model, same assumptions</td>
+      </tr>
+      <tr>
+        <td style="font-weight:600">Variance</td>
+        <td style="color:var(--success)">Decreases ↓</td>
+        <td style="font-size:12px">Averaging cancels out individual model errors</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="callout callout-y" style="margin-top:16px">
+    <strong>Conclusion:</strong> Bagging = <em>Variance Reduction Technique</em>. It does NOT fix bias. If your base model underfits, bagging won't help.
+  </div>
+</div>
+
+<!-- ══ S9: OOB ══ -->
+<div class="section" id="s9">
+  <div class="eyebrow">09 · Bonus Feature</div>
+  <h2>Out-of-Bag (OOB) Error</h2>
+  <p>When you sample with replacement, ~37% of data points are <strong>never selected</strong> in a given bootstrap sample. These are called <span class="hl">Out-of-Bag (OOB)</span> samples.</p>
+  <div class="callout callout-g">
+    <strong>The Clever Part:</strong> These OOB samples act as a natural validation set! Each model can be tested on the data it <em>never saw during training</em> — giving you a free, unbiased error estimate without needing a separate train-test split.
+  </div>
+  <div class="tile">
+    <div class="kv"><span class="kk">OOB Error</span><span class="kv-v" style="color:var(--ac)">Mean error of each tree on its OOB samples</span></div>
+    <div class="kv"><span class="kk">Benefit</span><span class="kv-v" style="color:var(--ac)">No need for separate validation set</span></div>
+    <div class="kv"><span class="kk">Typical OOB Rate</span><span class="kv-v">~37% of data per tree</span></div>
+  </div>
+</div>
+
+<!-- ══ S10: INTERACTIVE DEMO ══ -->
+<div class="section" id="s10">
+  <div class="eyebrow">10 · Hands-on</div>
+  <h2>The Bagging Simulator</h2>
+  <p>Watch how 5 independent models trained on different data subsets make predictions, and how the final vote produces a stable result — even when individual models disagree.</p>
+
+  <div class="interactive-wrap">
+    <div class="iw-title">Classify a fruit — Bagging ensemble of 5 models</div>
+    
+    <p style="font-size:13px;color:var(--txt-sec);margin-bottom:16px">Press <strong>Run Bagging</strong> to simulate 5 trees training on random data subsets. Each tree will predict, and the majority vote determines the final answer.</p>
+
+    <div class="models-row" id="models-row">
+      <div class="model-box" id="m0"><div class="model-icon">🌳</div><div class="model-label">Tree 1</div><div class="model-pred" id="mp0">—</div></div>
+      <div class="model-box" id="m1"><div class="model-icon">🌳</div><div class="model-label">Tree 2</div><div class="model-pred" id="mp1">—</div></div>
+      <div class="model-box" id="m2"><div class="model-icon">🌳</div><div class="model-label">Tree 3</div><div class="model-pred" id="mp2">—</div></div>
+      <div class="model-box" id="m3"><div class="model-icon">🌳</div><div class="model-label">Tree 4</div><div class="model-pred" id="mp3">—</div></div>
+      <div class="model-box" id="m4"><div class="model-icon">🌳</div><div class="model-label">Tree 5</div><div class="model-pred" id="mp4">—</div></div>
+    </div>
+
+    <div class="vote-bar-wrap" id="vote-bars">
+      <div class="vote-bar-row">
+        <span class="vote-bar-label">🍎 Apple</span>
+        <div class="vote-bar-track"><div class="vote-bar-fill" id="bar-apple" style="background:#ff8389"></div></div>
+        <span class="vote-count-lbl" id="cnt-apple">0</span>
+      </div>
+      <div class="vote-bar-row">
+        <span class="vote-bar-label">🍊 Orange</span>
+        <div class="vote-bar-track"><div class="vote-bar-fill" id="bar-orange" style="background:#f1c21b;color:#000"></div></div>
+        <span class="vote-count-lbl" id="cnt-orange">0</span>
+      </div>
+      <div class="vote-bar-row">
+        <span class="vote-bar-label">🍇 Grape</span>
+        <div class="vote-bar-track"><div class="vote-bar-fill" id="bar-grape" style="background:var(--purple)"></div></div>
+        <span class="vote-count-lbl" id="cnt-grape">0</span>
+      </div>
+    </div>
+
+    <div class="sim-output" id="sim-output"></div>
+
+    <div class="sim-controls">
+      <button class="sim-btn primary" id="run-btn" onclick="runBagging()">▶ Run Bagging</button>
+      <button class="sim-btn" onclick="resetSimulator()">↺ Reset</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S11: PROS & CONS ══ -->
+<div class="section" id="s11">
+  <div class="eyebrow">11 · Evaluation</div>
+  <h2>Advantages & Disadvantages</h2>
+  <div class="grid2">
+    <div class="gcell">
+      <div class="tag t-gr">✔ Advantages</div>
+      <ul>
+        <li>Reduces variance and overfitting significantly</li>
+        <li>Improves prediction stability</li>
+        <li>Works great with high-variance models (trees)</li>
+        <li>Models train in <strong>parallel</strong> — faster than Boosting</li>
+        <li>OOB provides free validation metric</li>
+      </ul>
+    </div>
+    <div class="gcell">
+      <div class="tag t-re">✘ Disadvantages</div>
+      <ul>
+        <li>High computation — many models to train</li>
+        <li>Less interpretable than a single model</li>
+        <li>Does <strong>not reduce bias</strong> — won't fix underfitting</li>
+        <li>High memory usage for large ensembles</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S12: QUIZ ══ -->
+<div class="section" id="s12">
+  <div class="eyebrow">12 · Practice</div>
+  <h2>Quiz Yourself</h2>
+  <p style="font-size:13px;color:var(--txt-ph)">Score: <span id="quiz-total">0</span> / 4 correct</p>
+
+  <!-- Q1 -->
+  <div class="quiz-card">
+    <div class="quiz-q">Q1. What type of sampling does Bagging use to create bootstrap datasets?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="checkQuiz(this,false,1,'q1fb')">A. Random Sampling without replacement</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,true,1,'q1fb')">B. Sampling with replacement</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,1,'q1fb')">C. Stratified Sampling</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,1,'q1fb')">D. Systematic Sampling</button>
+    </div>
+    <div class="quiz-feedback" id="q1fb">Correct! Bagging uses <strong>sampling WITH replacement</strong> (bootstrap sampling). This allows the same data point to appear multiple times in a single sample, creating diverse datasets from the same original data.</div>
+  </div>
+
+  <!-- Q2 -->
+  <div class="quiz-card">
+    <div class="quiz-q">Q2. For a Classification problem, how does Bagging combine the predictions from all models?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="checkQuiz(this,false,2,'q2fb')">A. Takes the first model's prediction</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,2,'q2fb')">B. Averages all numerical outputs</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,true,2,'q2fb')">C. Majority Voting</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,2,'q2fb')">D. Picks the prediction with highest probability</button>
+    </div>
+    <div class="quiz-feedback" id="q2fb">Correct! For <strong>classification</strong>, Bagging uses <strong>Majority Voting</strong>. For regression problems, it uses averaging. The class with the most votes across all models wins.</div>
+  </div>
+
+  <!-- Q3 -->
+  <div class="quiz-card">
+    <div class="quiz-q">Q3. Which error component does Bagging primarily reduce?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="checkQuiz(this,false,3,'q3fb')">A. Bias</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,true,3,'q3fb')">B. Variance</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,3,'q3fb')">C. Both Bias and Variance equally</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,3,'q3fb')">D. Irreducible Error</button>
+    </div>
+    <div class="quiz-feedback" id="q3fb">Correct! Bagging is a <strong>Variance Reduction Technique</strong>. It does NOT significantly change model bias. If your base model is biased (underfitting), Bagging won't fix it.</div>
+  </div>
+
+  <!-- Q4 -->
+  <div class="quiz-card">
+    <div class="quiz-q">Q4. What are Out-of-Bag (OOB) samples in Bagging?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="checkQuiz(this,false,4,'q4fb')">A. Outliers that were deliberately removed</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,4,'q4fb')">B. Data used for final testing after all models are trained</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,true,4,'q4fb')">C. Data points NOT selected in a bootstrap sample, used for validation</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,4,'q4fb')">D. Duplicate samples that are discarded</button>
+    </div>
+    <div class="quiz-feedback" id="q4fb">Correct! OOB samples are the ~37% of data points <strong>not selected</strong> in each bootstrap sample. They act as a free validation set — each tree is tested on its own OOB data, providing an unbiased error estimate with no extra split required.</div>
+  </div>
+</div>
+
+<!-- ══ S13: EXAM READY ══ -->
+<div class="section" id="s13">
+  <div class="eyebrow">13 · Revision</div>
+  <h2>Exam-Ready Notes</h2>
+  <div class="grid2">
+    <div class="gcell">
+      <div class="tag t-gr">Full Definition (5–8 marks)</div>
+      <p style="font-size:13px">"Bagging (Bootstrap Aggregating) is an ensemble learning technique where multiple base models are trained independently on different bootstrap samples created using sampling with replacement. Their predictions are combined using majority voting (for classification) or averaging (for regression) to reduce variance and improve model performance. It is particularly effective for high variance models such as decision trees, as seen in Random Forest."</p>
+    </div>
+    <div class="gcell">
+      <div class="tag t-bl">Quick Bullet Points</div>
+      <ul style="font-size:13px">
+        <li>Uses <strong>sampling with replacement</strong> (bootstrap)</li>
+        <li>Multiple models trained <strong>independently</strong></li>
+        <li>Outputs combined via <strong>voting / averaging</strong></li>
+        <li>Primarily reduces <strong>Variance</strong></li>
+        <li>Example: <strong>Random Forest</strong></li>
+        <li>OOB gives <strong>free validation error</strong></li>
+        <li>Parallel training → <strong>computationally efficient</strong></li>
+      </ul>
+    </div>
+  </div>
+  <div class="callout callout-y" style="margin-top:20px">
+    <strong>One-Line Intuition:</strong> "Create multiple slightly different datasets → train models → combine → get a stable prediction."
+  </div>
+  <div class="callout callout-p" style="margin-top:12px">
+    <strong>Final Mental Model:</strong> "Bagging is like asking multiple versions of the same model trained on slightly different realities… and trusting the majority decision." 🏆
+  </div>
+</div>
+
+<!-- Bottom nav -->
+<div class="page-nav">
+  <a class="page-nav-btn" href="1-against-1.html">← Previous: 1-against-1</a>
+  <a class="page-nav-btn primary" href="#">Next: Boosting →</a>
+</div>
+
+</main>
+</div><!-- /page-grid -->
+
+<script>
+/* ── Theme ── */
+let isLight = localStorage.getItem('theme') === 'light';
+function applyTheme() {
+  document.documentElement.classList.toggle('light', isLight);
+  const i = isLight ? '◑' : '☀', l = isLight ? 'Light' : 'Dark';
+  if(document.getElementById('tog-icon')) document.getElementById('tog-icon').textContent = i;
+  if(document.getElementById('tog-txt')) document.getElementById('tog-txt').textContent = l + ' theme';
+  if(document.getElementById('theme-lbl')) document.getElementById('theme-lbl').textContent = l;
+  const m = document.getElementById('mob-tog'); if(m) m.textContent = i;
+}
+applyTheme();
+function toggleTheme(){
+  isLight = !isLight;
+  localStorage.setItem('theme', isLight?'light':'dark');
+  applyTheme();
+}
+
+/* ── Sampling Simulator ── */
+const data = ['A','B','C','D','E','F'];
+function generateSample() {
+  const counts = {};
+  const sample = [];
+  for(let i=0;i<data.length;i++){
+    const idx = Math.floor(Math.random()*data.length);
+    const item = data[idx];
+    sample.push(item);
+    counts[item] = (counts[item]||0)+1;
+  }
+  const container = document.getElementById('sample-chips');
+  container.innerHTML = '';
+  const selected = new Set(sample);
+  const duplicates = Object.keys(counts).filter(k=>counts[k]>1);
+
+  sample.forEach(item=>{
+    const chip = document.createElement('div');
+    chip.className = 'sample-chip';
+    chip.textContent = item;
+    if(duplicates.includes(item) && counts[item]>1){
+      chip.className += ' duplicate';
+    } else {
+      chip.className += ' selected';
+    }
+    container.appendChild(chip);
+  });
+
+  // Show missing
+  const missing = data.filter(d=>!selected.has(d));
+  missing.forEach(item=>{
+    const chip = document.createElement('div');
+    chip.className = 'sample-chip missing';
+    chip.textContent = item;
+    container.appendChild(chip);
+  });
+
+  const dupList = duplicates.length ? duplicates.join(', ') : 'none';
+  const missList = missing.length ? missing.join(', ') : 'none';
+  document.getElementById('sample-output').textContent =
+    `Duplicates: ${dupList} | OOB (missing): ${missList}`;
+}
+function clearSample(){
+  document.getElementById('sample-chips').innerHTML='';
+  document.getElementById('sample-output').textContent='';
+}
+
+/* ── Bagging Simulator ── */
+const fruits = ['🍎 Apple','🍊 Orange','🍇 Grape'];
+const fruitKeys = ['apple','orange','grape'];
+let simRunning = false;
+
+function resetSimulator(){
+  simRunning = false;
+  for(let i=0;i<5;i++){
+    const box=document.getElementById('m'+i);
+    box.classList.remove('active','voted');
+    document.getElementById('mp'+i).textContent='—';
+  }
+  ['apple','orange','grape'].forEach(f=>{
+    document.getElementById('bar-'+f).style.width='0%';
+    document.getElementById('bar-'+f).textContent='';
+    document.getElementById('cnt-'+f).textContent='0';
+  });
+  document.getElementById('sim-output').textContent='';
+  document.getElementById('run-btn').disabled=false;
+}
+
+async function runBagging(){
+  if(simRunning) return;
+  simRunning = true;
+  document.getElementById('run-btn').disabled = true;
+  resetSimulator();
+  await new Promise(r=>setTimeout(r,50));
+  simRunning = true;
+
+  const votes = {apple:0, orange:0, grape:0};
+  const confidence = {apple:0, orange:0, grape:0}; // sum of confidence scores per class
+
+  for(let i=0;i<5;i++){
+    const box = document.getElementById('m'+i);
+    box.classList.add('active');
+    await new Promise(r=>setTimeout(r,300));
+
+    const pick = fruitKeys[Math.floor(Math.random()*3)];
+    // Each tree has a random confidence between 51% and 99%
+    const conf = 0.51 + Math.random() * 0.48;
+    votes[pick]++;
+    confidence[pick] += conf;
+
+    const label = fruits[fruitKeys.indexOf(pick)];
+    document.getElementById('mp'+i).textContent =
+      label.split(' ')[0] + ' ' + Math.round(conf*100) + '%';
+    box.classList.remove('active');
+    box.classList.add('voted');
+    await new Promise(r=>setTimeout(r,200));
+  }
+
+  // Update vote bars
+  fruitKeys.forEach(f=>{
+    const pct = (votes[f]/5)*100;
+    document.getElementById('bar-'+f).style.width = pct+'%';
+    if(pct>0) document.getElementById('bar-'+f).textContent = votes[f];
+    document.getElementById('cnt-'+f).textContent = votes[f];
+  });
+
+  // Find winner — handle ties with confidence scores
+  const maxVotes = Math.max(...Object.values(votes));
+  const winners = fruitKeys.filter(f => votes[f] === maxVotes);
+
+  if (winners.length > 1) {
+    // TIE — break using summed confidence scores
+    const tiedNames = winners.map(f => fruits[fruitKeys.indexOf(f)]).join(' & ');
+    let bestConf = -1, tieWinner = null;
+    winners.forEach(f => {
+      if (confidence[f] > bestConf) {
+        bestConf = confidence[f];
+        tieWinner = f;
+      }
+    });
+    const tieWinnerLabel = fruits[fruitKeys.indexOf(tieWinner)];
+    const tieWinnerConfPct = Math.round((confidence[tieWinner] / votes[tieWinner]) * 100);
+    document.getElementById('sim-output').innerHTML =
+      `⚖️ <strong>Tie!</strong> ${tiedNames} each got <strong>${maxVotes}/5 votes</strong>.<br>` +
+      `🔍 <em>Tie broken by confidence scores:</em> ${tieWinnerLabel} had the highest total confidence.<br>` +
+      `🏆 <strong>Final Prediction: ${tieWinnerLabel}</strong> (avg confidence: ${tieWinnerConfPct}%)`;
+  } else {
+    const winner = fruits[fruitKeys.indexOf(winners[0])];
+    const avgConf = Math.round((confidence[winners[0]] / votes[winners[0]]) * 100);
+    document.getElementById('sim-output').textContent =
+      `🏆 Final Prediction: ${winner} (${maxVotes}/5 votes, avg confidence: ${avgConf}%) — Majority Voting wins!`;
+  }
+}
+
+
+/* ── Quiz ── */
+let quizScore = 0;
+const answered = new Set();
+function checkQuiz(el, isCorrect, qNum, fbId){
+  if(answered.has(qNum)) return;
+  answered.add(qNum);
+  
+  el.classList.add(isCorrect ? 'correct' : 'wrong');
+  if(isCorrect){
+    quizScore++;
+    document.getElementById('quiz-total').textContent = quizScore;
+  } else {
+    // Highlight correct
+    el.parentElement.querySelectorAll('.quiz-opt').forEach(b=>{
+      if(b.getAttribute('onclick').includes('true')) b.classList.add('correct');
+    });
+  }
+  
+  const fb = document.getElementById(fbId);
+  fb.style.display = 'block';
+  el.parentElement.querySelectorAll('.quiz-opt').forEach(b=>{
+    b.disabled = true;
+    b.style.cursor = 'default';
+  });
+}
+
+/* ── Scroll active nav ── */
+const secs = Array.from(document.querySelectorAll('.section[id]'));
+let lastId = '', rafP = false;
+window.addEventListener('scroll', () => {
+  if(rafP) return; rafP = true;
+  requestAnimationFrame(() => {
+    rafP = false;
+    const trigger = window.scrollY + window.innerHeight * .28;
+    let active = secs[0];
+    for(const s of secs){ if(s.offsetTop <= trigger) active = s; else break; }
+    if(active && active.id !== lastId){
+      lastId = active.id;
+      document.querySelectorAll('.nav-item, .drawer-nav-item').forEach(n => {
+        n.classList.toggle('active', n.getAttribute('href') === '#' + active.id);
+      });
+    }
+  });
+}, { passive: true });
+
+/* ── Drawer ── */
+function buildDrawer(){
+  const dr = document.getElementById('nav-drawer');
+  const sn = document.getElementById('sidenav');
+  if(!sn) return;
+  const cl = sn.cloneNode(true);
+  cl.removeAttribute('id'); cl.removeAttribute('class');
+  cl.querySelectorAll('.nav-item').forEach(el => { el.classList.add('drawer-nav-item'); el.addEventListener('click', closeDrawer); });
+  const tog = cl.querySelector('.tog-area'); if(tog) tog.remove();
+  const cb = document.createElement('button');
+  cb.textContent = '✕ Close';
+  cb.style.cssText = 'font-family:"IBM Plex Mono",monospace;font-size:11px;background:transparent;border:none;border-bottom:1px solid var(--bdr-00);color:var(--txt-ph);padding:12px 16px;width:100%;text-align:left;cursor:pointer';
+  cb.onclick = closeDrawer;
+  dr.insertBefore(cb, dr.firstChild);
+  dr.appendChild(cl);
+}
+function toggleDrawer(){
+  const ov = document.getElementById('nav-overlay'), dr = document.getElementById('nav-drawer');
+  if(dr.classList.contains('open')){ closeDrawer(); }
+  else { ov.style.display = 'block'; setTimeout(() => ov.classList.add('open'), 10); dr.classList.add('open'); document.body.style.overflow = 'hidden'; }
+}
+function closeDrawer(){
+  const ov = document.getElementById('nav-overlay'), dr = document.getElementById('nav-drawer');
+  ov.classList.remove('open'); dr.classList.remove('open'); document.body.style.overflow = '';
+  setTimeout(() => { ov.style.display = 'none'; }, 270);
+}
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeDrawer(); });
+document.fonts.ready.then(() => buildDrawer());
+
+/* ── Code Protection ── */
+(function(){
+  var _p=function(e){e.preventDefault();return false;};
+  document.addEventListener('contextmenu',_p);
+  document.addEventListener('keydown',function(e){
+    var k=(e.key||'').toUpperCase(),c=e.ctrlKey||e.metaKey,s=e.shiftKey;
+    if(e.key==='F12'||(c&&s&&['I','J','C','K'].includes(k))||(c&&['U','S','P'].includes(k))){
+      e.preventDefault();return false;
+    }
+  },true);
+  document.addEventListener('dragstart',_p);
+  function _dt(){
+    var dw=window.outerWidth-window.innerWidth>200,dh=window.outerHeight-window.innerHeight>200;
+    var el=document.getElementById('_dtWarn');
+    if(dw||dh){
+      document.body.style.filter='blur(18px)';document.body.style.pointerEvents='none';
+      if(!el){var d=document.createElement('div');d.id='_dtWarn';
+        d.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(22,22,22,.97);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;font-family:"IBM Plex Mono",monospace';
+        d.innerHTML='<div style="font-size:11px;letter-spacing:.14em;color:#ff8389;text-transform:uppercase">&#8856; Inspect Disabled</div><div style="font-size:10px;letter-spacing:.08em;color:#6f6f6f">Close developer tools to continue</div>';
+        document.body.appendChild(d);}
+    } else {
+      document.body.style.filter='';document.body.style.pointerEvents='';if(el)el.remove();
+    }
+  }
+  setInterval(_dt,900);
+})();
+</script>
+<script src="../tony_keys.js"></script>
+<script src="../tony.js"></script>
+</body>
+</html>
