@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="../machine-learning-model.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Boosting — Ensemble Methods | Module 3 · Svyasa</title>
+<meta name="description" content="Learn Boosting — how sequential weak learners trained on mistakes produce powerful models. Covers AdaBoost, Gradient Boosting, XGBoost with interactive weight simulator and quiz.">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;1,300&family=IBM+Plex+Serif:ital,wght@0,300;1,300&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#161616;--layer-01:#262626;--layer-02:#393939;--layer-03:#525252;
+  --hover-01:#333333;--bdr-00:#393939;--bdr-01:#474747;--bdr-str:#6f6f6f;
+  --txt-pri:#f4f4f4;--txt-sec:#c6c6c6;--txt-ph:#6f6f6f;
+  --blue:#4589ff;--link:#78a9ff;--success:#42be65;--warn:#f1c21b;--error:#ff8389;--teal:#3ddbd9;--purple:#d4bbff;
+  /* Topic 4 accent = amber */
+  --ac:#f1c21b;
+}
+html.light{
+  --bg:#fff;--layer-01:#f4f4f4;--layer-02:#e0e0e0;--layer-03:#c6c6c6;
+  --hover-01:#e8e8e8;--bdr-00:#e0e0e0;--bdr-01:#c6c6c6;--bdr-str:#8d8d8d;
+  --txt-pri:#161616;--txt-sec:#525252;--txt-ph:#8d8d8d;
+  --blue:#0f62fe;--link:#0043ce;--success:#198038;--warn:#b28600;--error:#da1e28;--teal:#007d79;--purple:#6929c4;
+  --ac:#8e6a00;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'IBM Plex Sans',sans-serif;font-size:15px;line-height:1.5;background:var(--bg);color:var(--txt-pri);-webkit-font-smoothing:antialiased;transition:background .25s,color .2s}
+a{text-decoration:none;color:inherit}
+
+/* ── Layout ── */
+.page-grid{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+
+/* ── Sidenav ── */
+.sidenav{background:var(--layer-01);border-right:1px solid var(--bdr-00);position:sticky;top:0;height:100vh;overflow-y:auto;padding-bottom:32px;transition:background .25s,border-color .2s}
+.nav-hdr{padding:16px;border-bottom:1px solid var(--bdr-00);margin-bottom:4px}
+.nav-back{display:flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph);letter-spacing:.06em;margin-bottom:8px;transition:color .15s}
+.nav-back:hover{color:var(--ac)}
+.nav-mod{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;color:var(--ac);text-transform:uppercase;margin-bottom:3px}
+.nav-title{font-size:13px;font-weight:600;color:var(--txt-pri);line-height:1.3}
+.nav-sec{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;color:var(--txt-ph);text-transform:uppercase;padding:12px 16px 4px}
+.nav-item{display:flex;align-items:center;gap:8px;padding:8px 16px;font-size:13px;color:var(--txt-sec);cursor:pointer;border-left:3px solid transparent;transition:background .1s,color .1s,border-color .1s;text-decoration:none}
+.nav-item:hover{background:var(--hover-01);color:var(--txt-pri)}
+.nav-item.active{background:var(--hover-01);color:var(--txt-pri);border-left-color:var(--ac);font-weight:600}
+.nav-item.active .nn{color:var(--ac)}
+.nn{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--txt-ph);min-width:16px;transition:color .15s}
+.tog-area{padding:20px 16px 0}
+.tog-btn{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding:8px 10px;background:var(--layer-02);border:1px solid var(--bdr-01);cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-sec);letter-spacing:.05em;transition:background .15s}
+.tog-btn:hover{background:var(--hover-01);color:var(--txt-pri)}
+.tog-track{width:26px;height:13px;background:var(--bdr-str);border-radius:7px;position:relative;flex-shrink:0;transition:background .25s}
+.tog-thumb{position:absolute;top:2px;left:2px;width:9px;height:9px;border-radius:50%;background:#fff;transition:transform .25s}
+html.light .tog-track{background:var(--ac)}
+html.light .tog-thumb{transform:translateX(13px)}
+
+/* ── Mobile topbar ── */
+.mob-topbar{display:none;position:fixed;top:0;left:0;right:0;z-index:200;height:52px;background:var(--layer-01);border-bottom:1px solid var(--bdr-00);align-items:center;padding:0 16px;gap:8px;transition:background .25s}
+.mob-menu-btn{width:34px;height:34px;background:transparent;border:1px solid var(--bdr-01);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-direction:column;gap:4px}
+.mob-bar{width:14px;height:1.5px;background:var(--txt-pri)}
+.mob-title{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--txt-pri);flex:1;letter-spacing:.04em}
+.mob-tog{width:34px;height:34px;background:transparent;border:1px solid var(--bdr-01);cursor:pointer;font-size:14px;color:var(--txt-sec)}
+
+/* ── Drawer ── */
+.nav-overlay{display:none;position:fixed;inset:0;z-index:150;background:rgba(0,0,0,.6);opacity:0;transition:opacity .25s}
+.nav-overlay.open{opacity:1}
+.nav-drawer{position:fixed;left:0;top:0;bottom:0;z-index:160;width:260px;background:var(--layer-01);border-right:1px solid var(--bdr-00);overflow-y:auto;transform:translateX(-100%);transition:transform .3s cubic-bezier(.4,0,.2,1);padding-bottom:32px}
+.nav-drawer.open{transform:translateX(0)}
+
+/* ── Main ── */
+.main{padding:0 48px 100px;max-width:820px;transition:background .25s}
+.page-hdr{padding:52px 0 40px;border-bottom:1px solid var(--bdr-00);margin-bottom:52px}
+.breadcrumb{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-ph);letter-spacing:.05em;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.breadcrumb a{color:var(--ac);transition:opacity .15s}.breadcrumb a:hover{opacity:.7}
+h1{font-family:'IBM Plex Serif',serif;font-size:clamp(34px,5vw,54px);font-weight:300;line-height:1.15;color:var(--txt-pri);margin-bottom:12px}
+h1 em{font-style:italic;color:var(--ac)}
+.hdr-desc{font-size:15px;font-weight:300;color:var(--txt-sec);max-width:580px;line-height:1.7}
+
+/* ── Sections ── */
+.section{margin-bottom:60px;opacity:0;transform:translateY(14px);animation:fadeUp .4s ease forwards}
+.section:nth-child(1){animation-delay:.05s}.section:nth-child(2){animation-delay:.10s}
+.section:nth-child(3){animation-delay:.15s}.section:nth-child(4){animation-delay:.20s}
+.section:nth-child(5){animation-delay:.25s}.section:nth-child(6){animation-delay:.30s}
+.section:nth-child(7){animation-delay:.35s}.section:nth-child(8){animation-delay:.40s}
+.section:nth-child(9){animation-delay:.45s}.section:nth-child(10){animation-delay:.50s}
+.section:nth-child(11){animation-delay:.55s}.section:nth-child(12){animation-delay:.60s}
+.section:nth-child(13){animation-delay:.65s}.section:nth-child(14){animation-delay:.70s}
+@keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
+
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;color:var(--ac);text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.eyebrow::before{content:'';display:inline-block;width:14px;height:1px;background:var(--ac)}
+h2{font-family:'IBM Plex Serif',serif;font-size:24px;font-weight:300;color:var(--txt-pri);margin-bottom:14px;line-height:1.25}
+h3{font-size:16px;font-weight:600;color:var(--txt-pri);margin-bottom:8px}
+p{font-size:14px;font-weight:300;color:var(--txt-sec);margin-bottom:12px;line-height:1.75}
+p strong{color:var(--txt-pri);font-weight:600}
+ul{padding-left:0;list-style:none}
+ul li{position:relative;padding-left:16px;margin-bottom:8px;font-size:14px;font-weight:300;color:var(--txt-sec);line-height:1.6}
+ul li::before{content:'';position:absolute;left:0;top:9px;width:5px;height:1px;background:var(--ac)}
+.hl{color:var(--ac);font-weight:600}
+
+/* ── Callout ── */
+.callout{border-left:3px solid var(--ac);background:var(--layer-01);padding:14px 18px;margin:14px 0;font-size:14px;font-weight:300;color:var(--txt-sec);line-height:1.75;transition:background .25s}
+.callout strong{color:var(--txt-pri);font-weight:600}
+.callout-g{border-left-color:var(--success)}
+.callout-y{border-left-color:var(--warn)}
+.callout-p{border-left-color:var(--purple)}
+.callout-b{border-left-color:var(--link)}
+.callout-r{border-left-color:var(--error)}
+.callout-t{border-left-color:var(--teal)}
+
+/* ── Tile & Grids ── */
+.tile{background:var(--layer-01);border:1px solid var(--bdr-00);padding:20px 24px;margin-bottom:12px;transition:background .25s,border-color .2s}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--bdr-00);border:1px solid var(--bdr-00);margin:14px 0}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--bdr-00);border:1px solid var(--bdr-00);margin:14px 0}
+.gcell{background:var(--layer-01);padding:20px 22px;transition:background .25s}
+.kv{display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--bdr-00);font-size:13px;gap:12px;transition:border-color .2s}
+.kv:last-child{border-bottom:none}
+.kk{color:var(--txt-sec);font-weight:300;flex-shrink:0}
+.kv-v{color:var(--txt-pri);font-weight:400;text-align:right}
+
+/* ── Tags ── */
+.tag{display:inline-flex;align-items:center;height:22px;padding:0 10px;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.03em;margin-bottom:10px}
+.t-bl{background:#0043ce;color:#a6c8ff}
+.t-gr{background:#044317;color:#a7f0ba}
+.t-re{background:#750e13;color:#ffb3b8}
+.t-am{background:#3d2d00;color:#f1c21b}
+.t-pu{background:#31135e;color:#e8daff}
+.t-cy{background:#003a3a;color:#9ef0f0}
+html.light .t-bl{background:#d0e2ff;color:#0043ce}
+html.light .t-gr{background:#a7f0ba;color:#044317}
+html.light .t-re{background:#ffd7d9;color:#750e13}
+html.light .t-am{background:#fdf6dd;color:#8e6a00}
+html.light .t-pu{background:#e8daff;color:#31135e}
+html.light .t-cy{background:#d9fbfb;color:#005d5d}
+
+/* ── Formula ── */
+.formula{font-family:'IBM Plex Mono',monospace;font-size:13px;background:var(--layer-02);border:1px solid var(--bdr-01);border-left:3px solid var(--ac);padding:11px 15px;margin:10px 0;line-height:2;color:var(--txt-pri);transition:background .25s}
+
+/* ── Table ── */
+.dtbl{width:100%;border-collapse:collapse;margin:8px 0;font-size:13px}
+.dtbl thead tr{background:var(--layer-02);border-bottom:1px solid var(--bdr-str)}
+.dtbl th{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--txt-sec);padding:9px 14px;text-align:left}
+.dtbl td{padding:9px 14px;border-bottom:1px solid var(--bdr-00);color:var(--txt-pri);vertical-align:middle;font-size:13px}
+.dtbl tbody tr:hover{background:var(--hover-01)}
+
+/* ── Step flow ── */
+.step-flow{display:flex;flex-direction:column;gap:0;margin:16px 0}
+.step-item{display:grid;grid-template-columns:40px 1fr;gap:0;position:relative}
+.step-item:not(:last-child)::after{content:'';position:absolute;left:19px;top:40px;bottom:0;width:1px;background:var(--bdr-01)}
+.step-dot{width:38px;height:38px;background:var(--layer-02);border:2px solid var(--ac);display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--ac);flex-shrink:0;z-index:1}
+.step-body{padding:8px 0 20px 16px}
+.step-title{font-size:14px;font-weight:600;color:var(--txt-pri);margin-bottom:4px}
+.step-desc{font-size:13px;color:var(--txt-sec);line-height:1.7}
+
+/* ── Interactive Wrap ── */
+.interactive-wrap{background:var(--layer-01);border:1px solid var(--bdr-00);padding:24px;margin:16px 0}
+.iw-title{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;color:var(--txt-ph);text-transform:uppercase;margin-bottom:16px;border-bottom:1px solid var(--bdr-00);padding-bottom:10px}
+
+/* ── Weight simulator ── */
+.data-points-grid{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0;min-height:60px}
+.dp{width:52px;height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px solid var(--bdr-01);cursor:pointer;transition:all .3s;position:relative;font-size:18px;border-radius:2px}
+.dp .dp-weight{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--txt-ph);margin-top:2px;transition:color .3s}
+.dp.correct{border-color:var(--success);background:rgba(66,190,101,.08)}
+.dp.correct .dp-weight{color:var(--success)}
+.dp.wrong{border-color:var(--error);background:rgba(255,131,137,.12);animation:pulse-wrong .6s ease}
+.dp.wrong .dp-weight{color:var(--error);font-weight:600}
+.dp.heavy{box-shadow:0 0 0 3px var(--ac);border-color:var(--ac);background:rgba(241,194,27,.1)}
+.dp.heavy .dp-weight{color:var(--ac);font-weight:600}
+@keyframes pulse-wrong{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+
+.round-row{display:flex;align-items:center;gap:16px;margin-bottom:16px;flex-wrap:wrap}
+.round-label{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-ph);min-width:60px}
+.round-acc{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--ac)}
+
+.sim-btn{padding:8px 16px;font-family:'IBM Plex Mono',monospace;font-size:11px;background:transparent;border:1px solid var(--bdr-01);color:var(--txt-sec);cursor:pointer;transition:all .15s;letter-spacing:.04em}
+.sim-btn:hover{background:var(--hover-01);color:var(--txt-pri)}
+.sim-btn:disabled{opacity:0.4;cursor:not-allowed}
+.sim-btn.primary{background:var(--ac);border-color:var(--ac);color:#000;font-weight:600}
+.sim-btn.primary:hover{opacity:.85}
+.sim-output{font-size:13px;color:var(--txt-sec);margin-top:12px;padding:12px;border-left:3px solid var(--ac);background:var(--layer-02);min-height:20px;line-height:1.7;display:none}
+.sim-output.show{display:block}
+
+/* ── Algo tabs ── */
+.tab-row{display:flex;gap:0;border-bottom:1px solid var(--bdr-00);margin-bottom:20px}
+.tab-btn{padding:10px 20px;font-family:'IBM Plex Mono',monospace;font-size:11px;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--txt-ph);cursor:pointer;letter-spacing:.04em;transition:all .15s;margin-bottom:-1px}
+.tab-btn:hover{color:var(--txt-pri)}
+.tab-btn.active{color:var(--ac);border-bottom-color:var(--ac)}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* ── Boosting vs Bagging comparison ── */
+.compare-toggle{display:flex;gap:0;border:1px solid var(--bdr-01);width:fit-content;margin-bottom:16px}
+.cmp-btn{padding:8px 20px;font-family:'IBM Plex Mono',monospace;font-size:11px;background:transparent;border:none;color:var(--txt-ph);cursor:pointer;transition:all .15s;letter-spacing:.04em}
+.cmp-btn.active{background:var(--ac);color:#000;font-weight:600}
+
+/* ── Learner chain ── */
+.learner-chain{display:flex;align-items:center;gap:0;flex-wrap:wrap;margin:16px 0;overflow-x:auto}
+.learner-node{background:var(--layer-02);border:1px solid var(--bdr-01);padding:12px 14px;text-align:center;min-width:80px;transition:all .4s}
+.learner-node.lit{border-color:var(--ac);background:rgba(241,194,27,.1)}
+.learner-node.done{border-color:var(--success);background:rgba(66,190,101,.08)}
+.learner-icon{font-size:20px;margin-bottom:4px}
+.learner-lbl{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph)}
+.learner-acc{font-size:11px;color:var(--ac);font-weight:600;min-height:16px}
+.chain-arrow{font-size:16px;color:var(--ac);padding:0 6px;flex-shrink:0}
+
+/* ── Quiz ── */
+.quiz-card{background:var(--layer-01);border:1px solid var(--bdr-00);padding:20px;margin-bottom:12px}
+.quiz-q{font-size:14px;font-weight:600;color:var(--txt-pri);margin-bottom:14px;line-height:1.5}
+.quiz-options{display:flex;flex-direction:column;gap:8px}
+.quiz-opt{padding:10px 14px;background:var(--layer-02);border:1px solid var(--bdr-01);font-size:13px;color:var(--txt-sec);cursor:pointer;text-align:left;transition:all .15s;font-family:'IBM Plex Sans',sans-serif;width:100%}
+.quiz-opt:hover{background:var(--hover-01);color:var(--txt-pri)}
+.quiz-opt.correct{background:rgba(66,190,101,.15);border-color:var(--success);color:var(--success)}
+.quiz-opt.wrong{background:rgba(255,131,137,.1);border-color:var(--error);color:var(--error)}
+.quiz-feedback{font-size:13px;color:var(--txt-sec);margin-top:10px;padding:10px;border-left:3px solid var(--ac);background:var(--layer-02);display:none;line-height:1.6}
+
+/* ── Bottom nav ── */
+.page-nav{display:flex;justify-content:space-between;align-items:center;padding-top:40px;border-top:1px solid var(--bdr-00);margin-top:60px}
+.page-nav-btn{display:flex;align-items:center;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-sec);padding:10px 16px;border:1px solid var(--bdr-01);background:transparent;cursor:pointer;transition:background .15s,color .15s;text-decoration:none}
+.page-nav-btn:hover{background:var(--hover-01);color:var(--txt-pri)}
+.page-nav-btn.primary{background:var(--ac);border-color:var(--ac);color:#000;font-weight:600}
+.page-nav-btn.primary:hover{opacity:.9}
+
+@media(max-width:767px){
+  .mob-topbar{display:flex}
+  .sidenav{display:none}
+  .page-grid{display:block}
+  .main{padding:68px 16px 80px;max-width:100%}
+  .page-hdr{padding:24px 0 20px;margin-bottom:32px}
+  h1{font-size:24px}
+  .grid2,.grid3{grid-template-columns:1fr}
+  .learner-chain{gap:4px}
+}
+</style>
+</head>
+<body>
+
+<!-- Mobile topbar -->
+<div class="mob-topbar" id="mob-topbar">
+  <button class="mob-menu-btn" onclick="toggleDrawer()" aria-label="Menu">
+    <div class="mob-bar"></div><div class="mob-bar"></div><div class="mob-bar"></div>
+  </button>
+  <span class="mob-title">Boosting</span>
+  <button class="mob-tog" onclick="toggleTheme()" id="mob-tog">☀</button>
+</div>
+<div class="nav-overlay" id="nav-overlay" onclick="closeDrawer()"></div>
+<nav class="nav-drawer" id="nav-drawer"></nav>
+
+<div class="page-grid">
+
+<!-- ══ SIDENAV ══ -->
+<nav class="sidenav" id="sidenav">
+  <div class="nav-hdr">
+    <a class="nav-back" href="index_11.html">← Module 3</a>
+    <div class="nav-mod">Topic 04</div>
+    <div class="nav-title">Boosting</div>
+  </div>
+  <div class="nav-sec">Sections</div>
+  <a class="nav-item active" href="#s1"><span class="nn">01</span>First Intuition</a>
+  <a class="nav-item" href="#s2"><span class="nn">02</span>What is Boosting?</a>
+  <a class="nav-item" href="#s3"><span class="nn">03</span>Weak Learners</a>
+  <a class="nav-item" href="#s4"><span class="nn">04</span>Step-by-Step</a>
+  <a class="nav-item" href="#s5"><span class="nn">05</span>Weight Simulator</a>
+  <a class="nav-item" href="#s6"><span class="nn">06</span>Boosting Algorithms</a>
+  <a class="nav-item" href="#s7"><span class="nn">07</span>Why Boosting Works</a>
+  <a class="nav-item" href="#s8"><span class="nn">08</span>Bagging vs Boosting</a>
+  <a class="nav-item" href="#s9"><span class="nn">09</span>Bias vs Variance</a>
+  <a class="nav-item" href="#s10"><span class="nn">10</span>When to Use</a>
+  <a class="nav-item" href="#s11"><span class="nn">11</span>Pros & Cons</a>
+  <a class="nav-item" href="#s12"><span class="nn">12</span>Quiz Yourself</a>
+  <a class="nav-item" href="#s13"><span class="nn">13</span>Exam Ready</a>
+  <div class="tog-area">
+    <button class="tog-btn" onclick="toggleTheme()">
+      <span style="display:flex;align-items:center;gap:6px"><span id="tog-icon">☀</span><span id="tog-txt">Light theme</span></span>
+      <span class="tog-track"><span class="tog-thumb"></span></span>
+    </button>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph);margin-top:10px;line-height:1.6">IBM Carbon · <span id="theme-lbl">Dark</span></div>
+  </div>
+</nav>
+
+<!-- ══ MAIN ══ -->
+<main class="main">
+<div class="page-hdr">
+  <div class="breadcrumb">
+    <a href="../index.html">Home</a><span>/</span>
+    <a href="index_11.html">Module 3</a><span>/</span>
+    <span style="color:var(--txt-sec)">Boosting</span>
+  </div>
+  <h1>Sequential<br><em>Boosting</em></h1>
+  <p class="hdr-desc">Learn from mistakes. Focus on what went wrong. Iterate. — Boosting turns a chain of weak models into a single powerful predictor by concentrating on errors at every step.</p>
+</div>
+
+<!-- ══ S1: INTUITION ══ -->
+<div class="section" id="s1">
+  <div class="eyebrow">01 · First Intuition</div>
+  <h2>Start with a Familiar Situation</h2>
+  <p>You gave a test. You got some questions wrong. Now what do you do?</p>
+  <div class="grid2">
+    <div class="gcell">
+      <div class="tag t-re">❌ Bad Approach</div>
+      <p style="font-size:13px;margin:0">Solve <strong>everything again randomly</strong>. You spend equal time on things you already know and things you don't. It's inefficient.</p>
+    </div>
+    <div class="gcell">
+      <div class="tag t-gr">✔ Boosting Approach</div>
+      <p style="font-size:13px;margin:0">Focus <strong>specifically on your mistakes</strong>. Give more time to the hard questions. Each revision session targets what you got wrong last time.</p>
+    </div>
+  </div>
+  <div class="callout callout-y" style="margin-top:16px">
+    <strong>That second approach = Boosting.</strong> In ML, each new model focuses specifically on the errors (misclassifications) of the previous model.
+  </div>
+  <div class="callout callout-t">
+    <strong>🎮 Gaming Analogy:</strong> Imagine levelling up in a game — Level 1 is weak, Level 2 fixes Level 1's flaws, Level 3 is even stronger. The final player = extremely powerful. That progression is exactly Boosting.
+  </div>
+</div>
+
+<!-- ══ S2: DEFINITION ══ -->
+<div class="section" id="s2">
+  <div class="eyebrow">02 · Core Concept</div>
+  <h2>What is Boosting?</h2>
+  <p>Boosting is an ensemble technique where models are trained <strong>sequentially</strong>, and each new model pays extra attention to the data points the previous model got wrong.</p>
+  <div class="callout callout-g">
+    <strong>Exam Definition:</strong> "Boosting is an ensemble learning technique in which multiple weak learners are trained sequentially, where each subsequent model focuses more on the misclassified data points of the previous models, and the final prediction is obtained by combining all models using weighted voting or summation."
+  </div>
+  <div class="formula">🔑 Golden Line: "Learn from mistakes and improve step by step."</div>
+
+  <h3 style="margin-top:20px">🎓 Teacher Analogy</h3>
+  <p>A teacher explaining a math concept:</p>
+  <div class="step-flow">
+    <div class="step-item">
+      <div class="step-dot">1</div>
+      <div class="step-body">
+        <div class="step-title">1st explanation → some students don't understand</div>
+        <div class="step-desc">The teacher gives the same lesson to everyone equally.</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-dot">2</div>
+      <div class="step-body">
+        <div class="step-title">2nd explanation → focuses on weak students</div>
+        <div class="step-desc">The teacher identifies who struggled and tailors the next lesson to them.</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-dot">3</div>
+      <div class="step-body">
+        <div class="step-title">3rd explanation → focuses even more specifically</div>
+        <div class="step-desc">Only the hardest concepts are revisited. Eventually, everyone understands. That's Boosting!</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S3: WEAK LEARNERS ══ -->
+<div class="section" id="s3">
+  <div class="eyebrow">03 · Key Component</div>
+  <h2>Weak Learners — The Building Block</h2>
+  <div class="callout callout-b">
+    A <strong>Weak Learner</strong> is a model that is only slightly better than random guessing — individually poor at predictions, but trainable.
+  </div>
+  <div class="grid2">
+    <div class="gcell">
+      <div class="tag t-am">Individually Weak</div>
+      <ul>
+        <li>Small decision trees (stumps — depth 1)</li>
+        <li>Only answers one question at a time</li>
+        <li>~55–65% accuracy on its own</li>
+      </ul>
+    </div>
+    <div class="gcell">
+      <div class="tag t-gr">Together → Strong 💪</div>
+      <ul>
+        <li>Each weak model corrects another's errors</li>
+        <li>Combined output is highly accurate</li>
+        <li>Can achieve 90%+ accuracy</li>
+      </ul>
+    </div>
+  </div>
+  <div class="callout callout-y">
+    <strong>Why weak learners?</strong> Using complex models would overfit to the errors being corrected. Simple weak learners stay generalizable while still learning from each round of mistakes.
+  </div>
+
+  <h3 style="margin-top:20px">Sequential Chain Visualisation</h3>
+  <p style="font-size:13px">Each weak learner is connected — the output of one feeds as weighted input to the next:</p>
+  <div class="learner-chain" id="lchain">
+    <div class="learner-node" id="ln0"><div class="learner-icon">🌱</div><div class="learner-lbl">Stump 1</div><div class="learner-acc" id="la0"></div></div>
+    <div class="chain-arrow">→</div>
+    <div class="learner-node" id="ln1"><div class="learner-icon">🌿</div><div class="learner-lbl">Stump 2</div><div class="learner-acc" id="la1"></div></div>
+    <div class="chain-arrow">→</div>
+    <div class="learner-node" id="ln2"><div class="learner-icon">🌳</div><div class="learner-lbl">Stump 3</div><div class="learner-acc" id="la2"></div></div>
+    <div class="chain-arrow">→</div>
+    <div class="learner-node" id="ln3"><div class="learner-icon">🌲</div><div class="learner-lbl">Stump 4</div><div class="learner-acc" id="la3"></div></div>
+    <div class="chain-arrow">→</div>
+    <div class="learner-node" id="ln4" style="border-color:var(--ac)"><div class="learner-icon">🏆</div><div class="learner-lbl">Combined</div><div class="learner-acc" id="la4"></div></div>
+  </div>
+  <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+    <button class="sim-btn primary" onclick="animateLearners()">▶ Animate Chain</button>
+    <button class="sim-btn" onclick="resetLearners()">↺ Reset</button>
+  </div>
+</div>
+
+<!-- ══ S4: STEP BY STEP ══ -->
+<div class="section" id="s4">
+  <div class="eyebrow">04 · Workflow</div>
+  <h2>Step-by-Step: How Boosting Works</h2>
+  <div class="step-flow">
+    <div class="step-item">
+      <div class="step-dot">1</div>
+      <div class="step-body">
+        <div class="step-title">Start — All data points have equal weight</div>
+        <div class="step-desc">Every training sample starts with the same importance. No point is considered harder than another yet.</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-dot">2</div>
+      <div class="step-body">
+        <div class="step-title">Train Model 1 (Weak Learner)</div>
+        <div class="step-desc">The first model trains on the dataset and makes predictions. It learns the easy, obvious patterns.</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-dot">3</div>
+      <div class="step-body">
+        <div class="step-title">Identify Errors</div>
+        <div class="step-desc">Find all the data points that Model 1 got wrong — these are the "hard cases" that need more attention.</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-dot">4</div>
+      <div class="step-body">
+        <div class="step-title">Increase Weights of Misclassified Points ⬆</div>
+        <div class="step-desc">
+          Wrong predictions get <strong>higher weights</strong> — the next model will pay more attention to them.<br>
+          Correct predictions get <strong>lower weights</strong> — they are already handled well.
+          <div class="tile" style="margin-top:10px">
+            <div class="kv"><span class="kk">Misclassified ❌</span><span class="kv-v" style="color:var(--error)">Weight increases ↑</span></div>
+            <div class="kv"><span class="kk">Correctly classified ✔</span><span class="kv-v" style="color:var(--success)">Weight decreases ↓</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-dot">5</div>
+      <div class="step-body">
+        <div class="step-title">Train Model 2 on Re-weighted Data</div>
+        <div class="step-desc">The next model trains on the same data but with updated weights. It naturally focuses on the harder, misclassified points.</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-dot">6</div>
+      <div class="step-body">
+        <div class="step-title">Repeat for N rounds</div>
+        <div class="step-desc">Model 3 learns from Model 2's mistakes. Model 4 from Model 3's. Each iteration the ensemble gets smarter.</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-dot">7</div>
+      <div class="step-body">
+        <div class="step-title">Final Prediction — Weighted Voting</div>
+        <div class="step-desc">All models vote, but <strong>not equally</strong>. More accurate models are given higher voting weight. The final answer is the weighted sum of all predictions.
+          <div class="formula" style="margin-top:8px">F(x) = α₁h₁(x) + α₂h₂(x) + ... + αₙhₙ(x)</div>
+          <p style="font-size:12px;color:var(--txt-ph);margin:4px 0 0">where αᵢ = weight of model i, hᵢ(x) = prediction of model i</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S5: WEIGHT SIMULATOR ══ -->
+<div class="section" id="s5">
+  <div class="eyebrow">05 · Hands-on</div>
+  <h2>The Weight Simulator</h2>
+  <p>Click on data points to mark them as <strong>wrong predictions</strong>. Watch how their weights increase — and how the next model is forced to focus on them. This is exactly how AdaBoost works.</p>
+
+  <div class="interactive-wrap">
+    <div class="iw-title">AdaBoost Weight Adjustment — Round <span id="round-num">1</span> of 3</div>
+
+    <div style="display:flex;gap:24px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
+      <div>
+        <div style="font-size:12px;color:var(--txt-ph);font-family:'IBM Plex Mono',monospace;margin-bottom:6px">DATA POINTS — click to mark as wrong prediction:</div>
+        <div class="data-points-grid" id="dp-grid"></div>
+      </div>
+    </div>
+
+    <div style="font-size:12px;color:var(--txt-ph);margin-bottom:8px;font-family:'IBM Plex Mono',monospace">ROUND HISTORY:</div>
+    <div id="round-history" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px"></div>
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="sim-btn primary" id="next-round-btn" onclick="nextRound()">Next Round →</button>
+      <button class="sim-btn" onclick="resetWeightSim()">↺ Reset</button>
+    </div>
+    <div class="sim-output" id="weight-output"></div>
+  </div>
+</div>
+
+<!-- ══ S6: ALGORITHMS ══ -->
+<div class="section" id="s6">
+  <div class="eyebrow">06 · Algorithms</div>
+  <h2>Types of Boosting Algorithms</h2>
+
+  <div class="tab-row">
+    <button class="tab-btn active" onclick="switchTab('adaboost')">🥇 AdaBoost</button>
+    <button class="tab-btn" onclick="switchTab('gradient')">🥈 Gradient Boosting</button>
+    <button class="tab-btn" onclick="switchTab('xgboost')">🥉 XGBoost</button>
+  </div>
+
+  <!-- AdaBoost -->
+  <div class="tab-panel active" id="tab-adaboost">
+    <div class="tag t-am">AdaBoost — Adaptive Boosting</div>
+    <p>The <strong>original and most fundamental</strong> boosting algorithm. Focuses on adjusting data point weights after each round.</p>
+    <div class="step-flow">
+      <div class="step-item">
+        <div class="step-dot">1</div>
+        <div class="step-body"><div class="step-title">Assign equal weights</div><div class="step-desc">Every data point starts with weight w = 1/N</div></div>
+      </div>
+      <div class="step-item">
+        <div class="step-dot">2</div>
+        <div class="step-body"><div class="step-title">Train a weak learner (decision stump)</div><div class="step-desc">Typically a decision tree of depth 1 — answers one question.</div></div>
+      </div>
+      <div class="step-item">
+        <div class="step-dot">3</div>
+        <div class="step-body"><div class="step-title">Increase weights of wrong predictions</div><div class="step-desc">Misclassified points get amplified; correct ones get reduced.</div></div>
+      </div>
+      <div class="step-item">
+        <div class="step-dot">4</div>
+        <div class="step-body"><div class="step-title">Assign model weight αᵢ based on accuracy</div><div class="step-desc">More accurate models get a higher say in the final vote.</div></div>
+      </div>
+      <div class="step-item">
+        <div class="step-dot">5</div>
+        <div class="step-body"><div class="step-title">Final prediction = weighted sum of all model votes</div><div class="step-desc">F(x) = sign(Σ αᵢ hᵢ(x))</div></div>
+      </div>
+    </div>
+    <div class="callout callout-y">
+      <strong>Key insight:</strong> Each model gets a <em>different importance weight (αᵢ)</em>. A model with 90% accuracy talks louder than one with 60%.
+    </div>
+  </div>
+
+  <!-- Gradient Boosting -->
+  <div class="tab-panel" id="tab-gradient">
+    <div class="tag t-bl">Gradient Boosting</div>
+    <p>More powerful than AdaBoost. Instead of adjusting weights, it builds each new model to <strong>predict the residual errors</strong> of the previous model.</p>
+    <div class="callout callout-b">
+      <strong>Core Idea:</strong> Each model doesn't predict the original target — it predicts the <em>mistakes</em> (residuals) of the previous ensemble.
+    </div>
+    <div class="tile">
+      <div class="kv"><span class="kk">Round 1</span><span class="kv-v">Predict target → error = actual − predicted</span></div>
+      <div class="kv"><span class="kk">Round 2</span><span class="kv-v">Predict the error from Round 1</span></div>
+      <div class="kv"><span class="kk">Round 3</span><span class="kv-v">Predict the remaining error from Round 2</span></div>
+      <div class="kv"><span class="kk">Final</span><span class="kv-v">Sum all models: F(x) = h₁(x) + h₂(x) + h₃(x)…</span></div>
+    </div>
+    <div class="formula">Residual = Actual − Predicted<br>Next model targets → Residual</div>
+    <div class="callout callout-y">
+      <strong>vs AdaBoost:</strong> AdaBoost reweights samples. Gradient Boosting directly fits the residual errors. GBM is more flexible and powerful, especially for regression.
+    </div>
+  </div>
+
+  <!-- XGBoost -->
+  <div class="tab-panel" id="tab-xgboost">
+    <div class="tag t-gr">XGBoost — Extreme Gradient Boosting</div>
+    <p>An <strong>optimized, production-grade</strong> implementation of Gradient Boosting. Industry standard for competitive machine learning.</p>
+    <div class="grid3">
+      <div class="gcell">
+        <div class="tag t-am">⚡ Speed</div>
+        <p style="margin:0;font-size:13px">Parallel tree building. Significantly faster than standard GBM.</p>
+      </div>
+      <div class="gcell">
+        <div class="tag t-gr">🛡️ Regularization</div>
+        <p style="margin:0;font-size:13px">Built-in L1 and L2 regularization to prevent overfitting.</p>
+      </div>
+      <div class="gcell">
+        <div class="tag t-bl">📊 Handles Missing</div>
+        <p style="margin:0;font-size:13px">Automatically learns the best direction for missing values.</p>
+      </div>
+    </div>
+    <div class="tile" style="margin-top:16px">
+      <div class="kv"><span class="kk">Base</span><span class="kv-v">Gradient Boosting</span></div>
+      <div class="kv"><span class="kk">Speed boost</span><span class="kv-v" style="color:var(--ac)">Parallel processing + cache optimization</span></div>
+      <div class="kv"><span class="kk">Regularization</span><span class="kv-v" style="color:var(--ac)">L1 + L2 built-in</span></div>
+      <div class="kv"><span class="kk">Industry use</span><span class="kv-v" style="color:var(--success)">Kaggle competitions, finance, healthcare</span></div>
+    </div>
+    <div class="callout callout-g">
+      <strong>Quick comparison:</strong> GBM = Better than AdaBoost. XGBoost = Better than GBM. LightGBM (even newer) = Better than XGBoost for huge datasets.
+    </div>
+  </div>
+</div>
+
+<!-- ══ S7: WHY IT WORKS ══ -->
+<div class="section" id="s7">
+  <div class="eyebrow">07 · Theory</div>
+  <h2>Why Boosting Works</h2>
+  <div class="callout callout-y">
+    <strong>Hard examples get more attention → Model improves where it was weak → Error decreases every round.</strong>
+  </div>
+  <div class="grid3">
+    <div class="gcell">
+      <div class="tag t-gr">✔ Better Accuracy</div>
+      <p style="margin:0;font-size:13px">Each round specifically targets remaining weaknesses, driving accuracy up.</p>
+    </div>
+    <div class="gcell">
+      <div class="tag t-gr">✔ Complex Patterns</div>
+      <p style="margin:0;font-size:13px">Sequential refinement allows the ensemble to capture subtle, non-linear patterns.</p>
+    </div>
+    <div class="gcell">
+      <div class="tag t-gr">✔ Bias Reduction</div>
+      <p style="margin:0;font-size:13px">Unlike Bagging, Boosting directly attacks bias (underfitting) as well as variance.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S8: BAGGING VS BOOSTING ══ -->
+<div class="section" id="s8">
+  <div class="eyebrow">08 · Comparison</div>
+  <h2>Bagging vs. Boosting — Side by Side</h2>
+
+  <table class="dtbl">
+    <thead>
+      <tr><th>Feature</th><th style="color:#82cfff">Bagging</th><th style="color:#f1c21b">Boosting</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="font-weight:600">Training Order</td>
+        <td>Parallel (independent)</td>
+        <td style="color:var(--ac)">Sequential (dependent)</td>
+      </tr>
+      <tr>
+        <td style="font-weight:600">Data Focus</td>
+        <td>Random subsets</td>
+        <td style="color:var(--ac)">Mistakes of previous model</td>
+      </tr>
+      <tr>
+        <td style="font-weight:600">Goal</td>
+        <td>Reduce Variance</td>
+        <td style="color:var(--ac)">Reduce Bias + Variance</td>
+      </tr>
+      <tr>
+        <td style="font-weight:600">Model Voting</td>
+        <td>Equal weight for all</td>
+        <td style="color:var(--ac)">Weighted by accuracy</td>
+      </tr>
+      <tr>
+        <td style="font-weight:600">Sensitive to Noise?</td>
+        <td style="color:var(--success)">No — robust</td>
+        <td style="color:var(--error)">Yes — can overfit noise</td>
+      </tr>
+      <tr>
+        <td style="font-weight:600">Speed</td>
+        <td style="color:var(--success)">Fast (parallel)</td>
+        <td>Slower (sequential)</td>
+      </tr>
+      <tr>
+        <td style="font-weight:600">Best Example</td>
+        <td>Random Forest</td>
+        <td style="color:var(--ac)">XGBoost, AdaBoost</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout callout-y" style="margin-top:16px">
+    <strong>Simple Rule:</strong> Model overfitting (high variance)? → Use <span style="color:#82cfff">Bagging</span>. Model underfitting (high bias)? → Use <span style="color:#f1c21b">Boosting</span>.
+  </div>
+</div>
+
+<!-- ══ S9: BIAS VS VARIANCE ══ -->
+<div class="section" id="s9">
+  <div class="eyebrow">09 · Theory</div>
+  <h2>Bias vs. Variance — Boosting's Effect</h2>
+  <table class="dtbl">
+    <thead>
+      <tr><th>Error Type</th><th>Boosting Effect</th><th>Reason</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="font-weight:600">Bias</td>
+        <td style="color:var(--success)">Decreases ↓</td>
+        <td style="font-size:12px">Sequential error correction directly reduces the systematic mistakes</td>
+      </tr>
+      <tr>
+        <td style="font-weight:600">Variance</td>
+        <td style="color:var(--success)">Decreases ↓ (with care)</td>
+        <td style="font-size:12px">Averaging many models reduces variance — but can increase if overfitting noise</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="callout callout-y" style="margin-top:16px">
+    <strong>Boosting vs Bagging on errors:</strong> Bagging only reduces <em>variance</em>. Boosting reduces <em>both bias and variance</em> — making it generally more powerful, but also more dangerous with noisy data.
+  </div>
+</div>
+
+<!-- ══ S10: WHEN TO USE ══ -->
+<div class="section" id="s10">
+  <div class="eyebrow">10 · Practical Guide</div>
+  <h2>When to Use Boosting</h2>
+  <div class="grid2">
+    <div class="gcell">
+      <div class="tag t-gr">✔ Use Boosting When</div>
+      <ul>
+        <li>Model is <strong>underfitting</strong> (high bias)</li>
+        <li>Data is <strong>clean and low-noise</strong></li>
+        <li>Accuracy is the <strong>top priority</strong></li>
+        <li>Dataset is moderately complex</li>
+        <li>You have time for tuning hyperparameters</li>
+      </ul>
+    </div>
+    <div class="gcell">
+      <div class="tag t-re">✘ Avoid Boosting When</div>
+      <ul>
+        <li>Data has <strong>lots of noise or outliers</strong></li>
+        <li>You need <strong>fast training</strong> (sequential is slow)</li>
+        <li>Interpretability is <strong>required</strong></li>
+        <li>Dataset is very small</li>
+        <li>Computational resources are limited</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S11: PROS & CONS ══ -->
+<div class="section" id="s11">
+  <div class="eyebrow">11 · Evaluation</div>
+  <h2>Advantages & Disadvantages</h2>
+  <div class="grid2">
+    <div class="gcell">
+      <div class="tag t-gr">✔ Advantages</div>
+      <ul>
+        <li>Very <strong>high accuracy</strong> — state of the art on many problems</li>
+        <li>Reduces both <strong>bias and variance</strong></li>
+        <li>Handles complex, non-linear patterns well</li>
+        <li>Strong predictive power from weak learners</li>
+        <li>XGBoost has built-in regularization</li>
+      </ul>
+    </div>
+    <div class="gcell">
+      <div class="tag t-re">✘ Disadvantages</div>
+      <ul>
+        <li><strong>Sensitive to noise</strong> — can focus on outliers</li>
+        <li><strong>Slower training</strong> — sequential, not parallel</li>
+        <li>Harder to tune (many hyperparameters)</li>
+        <li>Less interpretable than a single tree</li>
+        <li>Risk of overfitting if too many rounds</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S12: QUIZ ══ -->
+<div class="section" id="s12">
+  <div class="eyebrow">12 · Practice</div>
+  <h2>Quiz Yourself</h2>
+  <p style="font-size:13px;color:var(--txt-ph)">Score: <span id="quiz-total">0</span> / 5 correct</p>
+
+  <div class="quiz-card">
+    <div class="quiz-q">Q1. What is the key difference between Bagging and Boosting in terms of how models are trained?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="checkQuiz(this,false,1,'q1fb')">A. Bagging trains sequentially; Boosting trains in parallel</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,true,1,'q1fb')">B. Bagging trains in parallel; Boosting trains sequentially</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,1,'q1fb')">C. Both train in parallel but on different datasets</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,1,'q1fb')">D. Both train sequentially on the same dataset</button>
+    </div>
+    <div class="quiz-feedback" id="q1fb">Correct! <strong>Bagging</strong> trains all models in parallel (independently on bootstrap samples). <strong>Boosting</strong> trains models sequentially — each new model depends on the previous one's errors.</div>
+  </div>
+
+  <div class="quiz-card">
+    <div class="quiz-q">Q2. In AdaBoost, what happens to a data point that was misclassified by the current model?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="checkQuiz(this,false,2,'q2fb')">A. It is removed from the dataset</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,2,'q2fb')">B. Its weight is decreased</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,true,2,'q2fb')">C. Its weight is increased so the next model focuses on it</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,2,'q2fb')">D. It remains unchanged for the next round</button>
+    </div>
+    <div class="quiz-feedback" id="q2fb">Correct! Misclassified points get <strong>increased weights</strong>. This forces the next model in the sequence to pay extra attention to these hard examples. Correctly classified points get reduced weights.</div>
+  </div>
+
+  <div class="quiz-card">
+    <div class="quiz-q">Q3. In Gradient Boosting, what does each subsequent model try to predict?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="checkQuiz(this,false,3,'q3fb')">A. The original target variable from scratch</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,3,'q3fb')">B. A random subset of the original target</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,true,3,'q3fb')">C. The residual errors (mistakes) of the previous model</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,3,'q3fb')">D. The average of all previous predictions</button>
+    </div>
+    <div class="quiz-feedback" id="q3fb">Correct! In Gradient Boosting, each new model predicts the <strong>residual errors</strong> (Actual − Predicted) of the previous ensemble. This directly corrects what the previous round got wrong.</div>
+  </div>
+
+  <div class="quiz-card">
+    <div class="quiz-q">Q4. Which error type does Boosting primarily reduce that Bagging does NOT?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="checkQuiz(this,true,4,'q4fb')">A. Bias</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,4,'q4fb')">B. Variance</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,4,'q4fb')">C. Irreducible Error</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,4,'q4fb')">D. Standard Deviation</button>
+    </div>
+    <div class="quiz-feedback" id="q4fb">Correct! Bagging reduces <strong>Variance</strong> only. Boosting reduces <strong>Bias</strong> (and also variance) — making it more powerful for underfitting models. This is the single biggest practical difference between the two.</div>
+  </div>
+
+  <div class="quiz-card">
+    <div class="quiz-q">Q5. Why is Boosting sensitive to noisy data and outliers?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="checkQuiz(this,false,5,'q5fb')">A. Because it uses too many features at each step</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,5,'q5fb')">B. Because the models are trained in parallel</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,true,5,'q5fb')">C. Because it increases the weight of misclassified points — including noise and outliers</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,5,'q5fb')">D. Because it only uses decision stumps</button>
+    </div>
+    <div class="quiz-feedback" id="q5fb">Correct! Boosting treats <strong>all misclassifications the same</strong> — including genuine noise and outliers. By increasing the weight of every wrong prediction, it can start obsessing over noise instead of real patterns, causing overfitting.</div>
+  </div>
+</div>
+
+<!-- ══ S13: EXAM READY ══ -->
+<div class="section" id="s13">
+  <div class="eyebrow">13 · Revision</div>
+  <h2>Exam-Ready Notes</h2>
+  <div class="grid2">
+    <div class="gcell">
+      <div class="tag t-gr">Full Definition (5–8 marks)</div>
+      <p style="font-size:13px">"Boosting is an ensemble learning technique in which multiple weak learners are trained sequentially, where each new model focuses on correcting the errors of the previous models by giving more importance to misclassified data points, and the final prediction is obtained by combining all models using weighted voting or summation."</p>
+    </div>
+    <div class="gcell">
+      <div class="tag t-am">Quick Bullet Points</div>
+      <ul style="font-size:13px">
+        <li><strong>Sequential training</strong> — each model depends on previous</li>
+        <li>Focuses on <strong>errors / misclassified points</strong></li>
+        <li>Uses <strong>weak learners</strong> (decision stumps)</li>
+        <li>Final vote is <strong>weighted</strong> by model accuracy</li>
+        <li>Reduces <strong>Bias + Variance</strong></li>
+        <li>Examples: <strong>AdaBoost, Gradient Boosting, XGBoost</strong></li>
+        <li>Sensitive to <strong>noise and outliers</strong></li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 style="margin-top:24px">Viva Questions (Be Ready)</h3>
+  <div class="tile">
+    <div class="kv"><span class="kk">Why sequential training?</span><span class="kv-v" style="color:var(--ac);font-size:12px;text-align:right">So each model can learn from the previous model's mistakes</span></div>
+    <div class="kv"><span class="kk">Why weak learners?</span><span class="kv-v" style="color:var(--ac);font-size:12px;text-align:right">Strong models overfit to residuals; weak ones stay general</span></div>
+    <div class="kv"><span class="kk">AdaBoost vs Gradient Boosting?</span><span class="kv-v" style="color:var(--ac);font-size:12px;text-align:right">Ada adjusts weights; GBM fits residuals directly</span></div>
+    <div class="kv"><span class="kk">Sensitive to noise?</span><span class="kv-v" style="color:var(--ac);font-size:12px;text-align:right">Upweighting noise makes it an error target — overfitting</span></div>
+    <div class="kv"><span class="kk">Different from Bagging?</span><span class="kv-v" style="color:var(--ac);font-size:12px;text-align:right">Sequential vs parallel; bias vs variance reduction</span></div>
+  </div>
+
+  <div class="callout callout-y" style="margin-top:20px">
+    <strong>One-Line Intuition:</strong> "Boosting = Learn → make mistake → focus → improve → repeat."
+  </div>
+  <div class="callout callout-p" style="margin-top:12px">
+    <strong>Final Mental Model:</strong> "Boosting is like a student who keeps revising only what they got wrong — until they master everything." 🎯
+  </div>
+</div>
+
+<!-- Bottom nav -->
+<div class="page-nav">
+  <a class="page-nav-btn" href="bagging.html">← Previous: Bagging</a>
+  <a class="page-nav-btn primary" href="index_11.html">Back to Module 3 →</a>
+</div>
+
+</main>
+</div><!-- /page-grid -->
+
+<script>
+/* ── Theme ── */
+let isLight = localStorage.getItem('theme') === 'light';
+function applyTheme() {
+  document.documentElement.classList.toggle('light', isLight);
+  const i = isLight ? '◑' : '☀', l = isLight ? 'Light' : 'Dark';
+  if(document.getElementById('tog-icon')) document.getElementById('tog-icon').textContent = i;
+  if(document.getElementById('tog-txt')) document.getElementById('tog-txt').textContent = l + ' theme';
+  if(document.getElementById('theme-lbl')) document.getElementById('theme-lbl').textContent = l;
+  const m = document.getElementById('mob-tog'); if(m) m.textContent = i;
+}
+applyTheme();
+function toggleTheme(){
+  isLight = !isLight;
+  localStorage.setItem('theme', isLight?'light':'dark');
+  applyTheme();
+}
+
+/* ── Tab switcher ── */
+function switchTab(id) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+/* ── Learner chain animation ── */
+const accs = [62, 71, 80, 87, 94];
+const labels = ['62%', '71%', '80%', '87%', '94%'];
+let chainDone = false;
+async function animateLearners() {
+  if(chainDone) return;
+  chainDone = true;
+  for(let i = 0; i < 4; i++){
+    const node = document.getElementById('ln'+i);
+    node.classList.add('lit');
+    document.getElementById('la'+i).textContent = labels[i];
+    await new Promise(r => setTimeout(r, 600));
+    node.classList.remove('lit');
+    node.classList.add('done');
+  }
+  // Final combined node
+  const final = document.getElementById('ln4');
+  final.style.borderColor = 'var(--ac)';
+  final.style.background = 'rgba(241,194,27,.15)';
+  document.getElementById('la4').textContent = labels[4];
+}
+function resetLearners() {
+  chainDone = false;
+  for(let i = 0; i < 5; i++){
+    const n = document.getElementById('ln'+i);
+    n.classList.remove('lit','done');
+    document.getElementById('la'+i).textContent = '';
+  }
+  const final = document.getElementById('ln4');
+  final.style.borderColor = 'var(--ac)';
+  final.style.background = '';
+}
+
+/* ── Weight Simulator ── */
+const EMOJIS = ['🔴','🔵','🟢','🟡','🟠','🟣','⚫','🔶','🔷','🔸'];
+let dpState = []; // {emoji, weight, status}
+let simRound = 1;
+const MAX_ROUNDS = 3;
+
+function initWeightSim() {
+  dpState = EMOJIS.map(e => ({ emoji: e, weight: 10, status: 'neutral' }));
+  simRound = 1;
+  renderDP();
+  document.getElementById('round-num').textContent = simRound;
+  document.getElementById('round-history').innerHTML = '';
+  document.getElementById('weight-output').classList.remove('show');
+  document.getElementById('weight-output').innerHTML = '';
+  document.getElementById('next-round-btn').disabled = false;
+  document.getElementById('next-round-btn').textContent = 'Next Round →';
+}
+
+function renderDP() {
+  const grid = document.getElementById('dp-grid');
+  grid.innerHTML = '';
+  dpState.forEach((dp, i) => {
+    const el = document.createElement('div');
+    el.className = 'dp' + (dp.status === 'wrong' ? ' wrong' : dp.status === 'correct' ? ' correct' : '');
+    if(dp.weight > 15) el.classList.add('heavy');
+    el.innerHTML = `<span>${dp.emoji}</span><span class="dp-weight">w=${dp.weight}</span>`;
+    el.onclick = () => toggleDP(i);
+    grid.appendChild(el);
+  });
+}
+
+function toggleDP(i) {
+  if(dpState[i].status === 'wrong') {
+    dpState[i].status = 'neutral';
+  } else {
+    dpState[i].status = 'wrong';
+  }
+  renderDP();
+}
+
+function nextRound() {
+  if(simRound > MAX_ROUNDS) return;
+
+  const wrongIdx = dpState.map((d,i)=> d.status === 'wrong' ? i : -1).filter(i=>i>=0);
+  const correctIdx = dpState.map((d,i)=> d.status !== 'wrong' ? i : -1).filter(i=>i>=0);
+  const roundAcc = Math.round((correctIdx.length / dpState.length) * 100);
+
+  // Record in history
+  const hist = document.getElementById('round-history');
+  const row = document.createElement('div');
+  row.className = 'round-row';
+  row.innerHTML = `
+    <span class="round-label">Round ${simRound}</span>
+    <span style="font-size:12px;color:var(--txt-sec)">Wrong: <strong style="color:var(--error)">${wrongIdx.length}</strong> | Correct: <strong style="color:var(--success)">${correctIdx.length}</strong></span>
+    <span class="round-acc">Accuracy: ${roundAcc}%</span>`;
+  hist.appendChild(row);
+
+  // Update weights
+  wrongIdx.forEach(i => {
+    dpState[i].weight = Math.min(dpState[i].weight + 8, 30);
+    dpState[i].status = 'neutral';
+  });
+  correctIdx.forEach(i => {
+    dpState[i].weight = Math.max(dpState[i].weight - 2, 2);
+    dpState[i].status = 'correct';
+  });
+
+  simRound++;
+  document.getElementById('round-num').textContent = simRound <= MAX_ROUNDS ? simRound : MAX_ROUNDS;
+
+  if(simRound > MAX_ROUNDS) {
+    renderDP();
+    const out = document.getElementById('weight-output');
+    out.classList.add('show');
+    out.innerHTML = `<strong>✅ Simulation complete!</strong><br>
+      Notice how points that were <span style="color:var(--error)">repeatedly wrong</span> now have <strong style="color:var(--ac)">much higher weights</strong> (shown with amber glow).<br>
+      The next model in the sequence would focus heavily on these heavy-weight points — that's exactly how AdaBoost works!`;
+    document.getElementById('next-round-btn').disabled = true;
+    document.getElementById('next-round-btn').textContent = 'Done ✓';
+  } else {
+    renderDP();
+    const out = document.getElementById('weight-output');
+    out.classList.add('show');
+    out.innerHTML = `Round ${simRound-1} done. Weights updated! <strong style="color:var(--error)">${wrongIdx.length} misclassified points</strong> now have higher weights. Click wrong points for the next round, then press Next Round.`;
+  }
+}
+
+function resetWeightSim() { initWeightSim(); }
+
+/* ── Quiz ── */
+let quizScore = 0;
+const answered = new Set();
+function checkQuiz(el, isCorrect, qNum, fbId) {
+  if(answered.has(qNum)) return;
+  answered.add(qNum);
+  el.classList.add(isCorrect ? 'correct' : 'wrong');
+  if(isCorrect){
+    quizScore++;
+    document.getElementById('quiz-total').textContent = quizScore;
+  } else {
+    el.parentElement.querySelectorAll('.quiz-opt').forEach(b => {
+      if(b.getAttribute('onclick').includes('true')) b.classList.add('correct');
+    });
+  }
+  document.getElementById(fbId).style.display = 'block';
+  el.parentElement.querySelectorAll('.quiz-opt').forEach(b => {
+    b.disabled = true; b.style.cursor = 'default';
+  });
+}
+
+/* ── Scroll active nav ── */
+const secs = Array.from(document.querySelectorAll('.section[id]'));
+let lastId = '', rafP = false;
+window.addEventListener('scroll', () => {
+  if(rafP) return; rafP = true;
+  requestAnimationFrame(() => {
+    rafP = false;
+    const trigger = window.scrollY + window.innerHeight * .28;
+    let active = secs[0];
+    for(const s of secs){ if(s.offsetTop <= trigger) active = s; else break; }
+    if(active && active.id !== lastId){
+      lastId = active.id;
+      document.querySelectorAll('.nav-item, .drawer-nav-item').forEach(n => {
+        n.classList.toggle('active', n.getAttribute('href') === '#' + active.id);
+      });
+    }
+  });
+}, { passive: true });
+
+/* ── Drawer ── */
+function buildDrawer(){
+  const dr = document.getElementById('nav-drawer');
+  const sn = document.getElementById('sidenav');
+  if(!sn) return;
+  const cl = sn.cloneNode(true);
+  cl.removeAttribute('id'); cl.removeAttribute('class');
+  cl.querySelectorAll('.nav-item').forEach(el => { el.classList.add('drawer-nav-item'); el.addEventListener('click', closeDrawer); });
+  const tog = cl.querySelector('.tog-area'); if(tog) tog.remove();
+  const cb = document.createElement('button');
+  cb.textContent = '✕ Close';
+  cb.style.cssText = 'font-family:"IBM Plex Mono",monospace;font-size:11px;background:transparent;border:none;border-bottom:1px solid var(--bdr-00);color:var(--txt-ph);padding:12px 16px;width:100%;text-align:left;cursor:pointer';
+  cb.onclick = closeDrawer;
+  dr.insertBefore(cb, dr.firstChild);
+  dr.appendChild(cl);
+}
+function toggleDrawer(){
+  const ov = document.getElementById('nav-overlay'), dr = document.getElementById('nav-drawer');
+  if(dr.classList.contains('open')){ closeDrawer(); }
+  else { ov.style.display='block'; setTimeout(()=>ov.classList.add('open'),10); dr.classList.add('open'); document.body.style.overflow='hidden'; }
+}
+function closeDrawer(){
+  const ov = document.getElementById('nav-overlay'), dr = document.getElementById('nav-drawer');
+  ov.classList.remove('open'); dr.classList.remove('open'); document.body.style.overflow='';
+  setTimeout(()=>{ ov.style.display='none'; }, 270);
+}
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeDrawer(); });
+document.fonts.ready.then(() => { buildDrawer(); initWeightSim(); });
+
+/* ── Code Protection ── */
+(function(){
+  var _p=function(e){e.preventDefault();return false;};
+  document.addEventListener('contextmenu',_p);
+  document.addEventListener('keydown',function(e){
+    var k=(e.key||'').toUpperCase(),c=e.ctrlKey||e.metaKey,s=e.shiftKey;
+    if(e.key==='F12'||(c&&s&&['I','J','C','K'].includes(k))||(c&&['U','S','P'].includes(k))){
+      e.preventDefault();return false;
+    }
+  },true);
+  document.addEventListener('dragstart',_p);
+  function _dt(){
+    var dw=window.outerWidth-window.innerWidth>200,dh=window.outerHeight-window.innerHeight>200;
+    var el=document.getElementById('_dtWarn');
+    if(dw||dh){
+      document.body.style.filter='blur(18px)';document.body.style.pointerEvents='none';
+      if(!el){var d=document.createElement('div');d.id='_dtWarn';
+        d.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(22,22,22,.97);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;font-family:"IBM Plex Mono",monospace';
+        d.innerHTML='<div style="font-size:11px;letter-spacing:.14em;color:#ff8389;text-transform:uppercase">&#8856; Inspect Disabled</div><div style="font-size:10px;letter-spacing:.08em;color:#6f6f6f">Close developer tools to continue</div>';
+        document.body.appendChild(d);}
+    } else {
+      document.body.style.filter='';document.body.style.pointerEvents='';if(el)el.remove();
+    }
+  }
+  setInterval(_dt,900);
+})();
+</script>
+<script src="../tony_keys.js"></script>
+<script src="../tony.js"></script>
+</body>
+</html>
