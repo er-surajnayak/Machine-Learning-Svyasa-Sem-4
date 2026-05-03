@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="../machine-learning-model.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 4 — Clustering &amp; Outlier Detection | Svyasa</title>
+<meta name="description" content="Module 4 covers clustering techniques including K-Means, hierarchical clustering, and outlier detection methods for unsupervised machine learning.">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;1,300&family=IBM+Plex+Serif:ital,wght@0,300;1,300&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#161616;--layer-01:#262626;--layer-02:#393939;--layer-03:#525252;
+  --hover-01:#333333;--bdr-00:#393939;--bdr-01:#474747;--bdr-str:#6f6f6f;
+  --txt-pri:#f4f4f4;--txt-sec:#c6c6c6;--txt-ph:#6f6f6f;
+  --blue:#4589ff;--blue-hov:#0f62fe;--link:#78a9ff;
+  --success:#42be65;--warn:#f1c21b;--error:#ff8389;--teal:#3ddbd9;
+  --m4:#f1c21b;--m4-dim:rgba(241,194,27,.1);
+
+  /* Topic accent colors */
+  --t1-c:#f1c21b;
+  --t2-c:#42be65;
+  --t3-c:#3ddbd9;
+  --t4-c:#be95ff;
+}
+html.light{
+  --bg:#fff;--layer-01:#f4f4f4;--layer-02:#e0e0e0;--layer-03:#c6c6c6;
+  --hover-01:#e8e8e8;--bdr-00:#e0e0e0;--bdr-01:#c6c6c6;--bdr-str:#8d8d8d;
+  --txt-pri:#161616;--txt-sec:#525252;--txt-ph:#8d8d8d;
+  --blue:#0f62fe;--blue-hov:#0043ce;--link:#0043ce;
+  --success:#198038;--warn:#b28600;--error:#da1e28;--teal:#007d79;
+  --m4:#b28600;--m4-dim:rgba(178,134,0,.08);
+
+  --t1-c:#8e6a00;
+  --t2-c:#198038;
+  --t3-c:#007d79;
+  --t4-c:#6929c4;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'IBM Plex Sans',sans-serif;font-size:15px;line-height:1.5;background:var(--bg);color:var(--txt-pri);-webkit-font-smoothing:antialiased;transition:background .25s,color .2s}
+a{text-decoration:none;color:inherit}
+
+/* ── Topbar ── */
+.topbar{position:sticky;top:0;z-index:100;background:var(--layer-01);border-bottom:1px solid var(--bdr-00);height:56px;display:flex;align-items:center;padding:0 32px;gap:12px;transition:background .25s}
+.topbar-back{display:flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-ph);letter-spacing:.05em;text-decoration:none;transition:color .15s}
+.topbar-back:hover{color:var(--m4)}
+.topbar-div{width:1px;height:18px;background:var(--bdr-00)}
+.topbar-title{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--txt-pri);letter-spacing:.06em}
+.topbar-badge{height:20px;padding:0 8px;background:var(--m4-dim);border:1px solid var(--m4);font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--m4);letter-spacing:.06em;display:flex;align-items:center}
+.tog-btn{margin-left:auto;display:flex;align-items:center;gap:7px;padding:5px 11px;background:transparent;border:1px solid var(--bdr-01);cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-sec);letter-spacing:.05em;transition:background .15s}
+.tog-btn:hover{background:var(--hover-01);color:var(--txt-pri)}
+.tog-track{width:26px;height:13px;background:var(--bdr-str);border-radius:7px;position:relative;flex-shrink:0;transition:background .25s}
+.tog-thumb{position:absolute;top:2px;left:2px;width:9px;height:9px;border-radius:50%;background:#fff;transition:transform .25s}
+html.light .tog-track{background:var(--m4)}
+html.light .tog-thumb{transform:translateX(13px)}
+
+/* ── Hero ── */
+.hero{max-width:1100px;margin:0 auto;padding:56px 32px 48px;border-bottom:1px solid var(--bdr-00)}
+.hero-eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.12em;color:var(--m4);text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.hero-eyebrow::before{content:'';display:inline-block;width:16px;height:1px;background:var(--m4)}
+h1{font-family:'IBM Plex Serif',serif;font-size:clamp(34px,5vw,54px);font-weight:300;line-height:1.15;color:var(--txt-pri);margin-bottom:16px}
+h1 em{font-style:italic;color:var(--m4)}
+.hero-desc{font-size:16px;font-weight:300;color:var(--txt-sec);max-width:600px;line-height:1.7;margin-bottom:28px}
+.hero-stats{display:flex;gap:0;border:1px solid var(--bdr-00);width:fit-content}
+.stat{padding:12px 22px;border-right:1px solid var(--bdr-00);font-family:'IBM Plex Mono',monospace}
+.stat:last-child{border-right:none}
+.stat-n{font-size:22px;font-weight:600;color:var(--txt-pri);line-height:1}
+.stat-l{font-size:10px;color:var(--txt-ph);letter-spacing:.08em;text-transform:uppercase;margin-top:3px}
+
+/* ── Topics grid ── */
+.topics-wrap{max-width:1100px;margin:0 auto;padding:40px 32px 80px}
+.section-lbl{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.section-lbl-txt{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.12em;color:var(--txt-ph);text-transform:uppercase;white-space:nowrap}
+.section-lbl-line{flex:1;height:1px;background:var(--bdr-00)}
+
+.topics-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--bdr-00);border:1px solid var(--bdr-00)}
+.topic-card{background:var(--layer-01);padding:28px;display:flex;flex-direction:column;gap:12px;position:relative;overflow:hidden;transition:background .15s;text-decoration:none;color:inherit}
+.topic-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--tc);transform:scaleX(0);transform-origin:left;transition:transform .25s}
+.topic-card:hover{background:var(--hover-01)}
+.topic-card:hover::before{transform:scaleX(1)}
+
+.topic-num{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;color:var(--txt-ph);display:flex;align-items:center;gap:6px}
+.topic-num-dot{width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--bg);background:var(--tc);font-family:'IBM Plex Mono',monospace;flex-shrink:0}
+.topic-title{font-family:'IBM Plex Serif',serif;font-size:18px;font-weight:300;color:var(--txt-pri);line-height:1.3}
+.topic-desc{font-size:13px;font-weight:300;color:var(--txt-sec);line-height:1.6;flex:1}
+.topic-subtopics{display:flex;flex-direction:column;gap:0}
+.subtopic{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-sec);padding:5px 0;border-bottom:1px solid var(--bdr-00);display:flex;align-items:flex-start;gap:6px;line-height:1.4}
+.subtopic:last-child{border-bottom:none}
+.sub-dot{width:3px;height:3px;border-radius:50%;background:var(--tc);flex-shrink:0;margin-top:4px}
+.topic-footer{display:flex;align-items:center;justify-content:space-between;padding-top:12px;border-top:1px solid var(--bdr-00);margin-top:auto}
+.topic-time{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph)}
+.topic-open{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--tc);letter-spacing:.05em;display:flex;align-items:center;gap:4px;transition:gap .15s}
+.topic-card:hover .topic-open{gap:8px}
+
+/* ── Coming soon card ── */
+.topic-card.locked{opacity:.55;pointer-events:none}
+.cs-badge{font-family:'IBM Plex Mono',monospace;font-size:9px;padding:2px 8px;background:var(--layer-02);color:var(--txt-ph);border:1px solid var(--bdr-01);letter-spacing:.06em;width:fit-content}
+
+/* ── Responsive ── */
+@media(max-width:640px){
+  .topbar{padding:0 16px}
+  .topbar-title{display:none}
+  .hero{padding:40px 16px 32px}
+  .topics-wrap{padding:24px 16px 60px}
+  .topics-grid{grid-template-columns:1fr}
+  .hero-stats{flex-wrap:wrap}
+  .stat{border-bottom:1px solid var(--bdr-00);border-right:none;width:50%}
+}
+
+/* ── Entrance animation ── */
+.topic-card{opacity:0;transform:translateY(12px);animation:ci .4s ease forwards}
+.topic-card:nth-child(1){animation-delay:.05s}
+.topic-card:nth-child(2){animation-delay:.10s}
+.topic-card:nth-child(3){animation-delay:.15s}
+.topic-card:nth-child(4){animation-delay:.20s}
+@keyframes ci{to{opacity:1;transform:translateY(0)}}
+
+/* ── Code Protection ── */
+*{-webkit-user-select:none;user-select:none;-moz-user-select:none;-ms-user-select:none}
+input,textarea,select{-webkit-user-select:text;user-select:text}
+@media print{body{display:none!important;visibility:hidden!important}}
+img{-webkit-user-drag:none;user-drag:none;pointer-events:none}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="topbar-back" href="../index.html">← Home</a>
+  <div class="topbar-div"></div>
+  <span class="topbar-title">MODULE 04</span>
+  <span class="topbar-badge">Sem 4 · B.Tech CSE</span>
+  <button class="tog-btn" onclick="toggleTheme()">
+    <span id="tog-icon">☀</span><span id="tog-txt">Light</span>
+    <span class="tog-track"><span class="tog-thumb"></span></span>
+  </button>
+</header>
+
+<div class="hero">
+  <div class="hero-eyebrow">Module 04</div>
+  <h1>Clustering &amp;<br><em>Outlier Detection</em></h1>
+  <p class="hero-desc">From grouping data without labels to finding anomalies — this module covers unsupervised learning with partitional and hierarchical clustering methods, validity measures, and outlier detection techniques.</p>
+  <div class="hero-stats">
+    <div class="stat"><div class="stat-n">4</div><div class="stat-l">Topics</div></div>
+    <div class="stat"><div class="stat-n">3+</div><div class="stat-l">Algorithms</div></div>
+    <div class="stat"><div class="stat-n">~2 hr</div><div class="stat-l">Total read</div></div>
+    <div class="stat"><div class="stat-n">3+</div><div class="stat-l">Interactive demos</div></div>
+  </div>
+</div>
+
+<div class="topics-wrap">
+  <div class="section-lbl">
+    <span class="section-lbl-txt">Topics in this module</span>
+    <div class="section-lbl-line"></div>
+  </div>  
+
+  <div class="topics-grid">
+
+    <!-- Topic 1 — K-Means / Partitional Clustering -->
+    <a class="topic-card" href="kmeans.html" style="--tc:var(--t1-c)">
+      <div class="topic-num"><span class="topic-num-dot">1</span>Topic 01</div>
+      <div class="topic-title">Partitional Clustering — K-Means</div>
+      <p class="topic-desc">Understand how K-Means partitions data into K clusters using centroids, the elbow method for choosing K, and why it's the most widely used unsupervised algorithm.</p>
+      <div class="topic-subtopics">
+        <div class="subtopic"><span class="sub-dot"></span>What is clustering &amp; partitional clustering</div>
+        <div class="subtopic"><span class="sub-dot"></span>K-Means algorithm — step-by-step</div>
+        <div class="subtopic"><span class="sub-dot"></span>WCSS &amp; Euclidean distance</div>
+        <div class="subtopic"><span class="sub-dot"></span>Choosing K — Elbow Method</div>
+        <div class="subtopic"><span class="sub-dot"></span>Advantages, limitations &amp; real-world applications</div>
+      </div>
+      <div class="topic-footer">
+        <span class="topic-time">~30 min</span>
+        <span class="topic-open">Open <span>→</span></span>
+      </div>
+    </a>
+
+    <!-- Topic 2 — Hierarchical Clustering -->
+    <a class="topic-card locked" href="#" style="--tc:var(--t2-c)">
+      <div class="topic-num"><span class="topic-num-dot">2</span>Topic 02</div>
+      <div class="topic-title">Hierarchical Clustering</div>
+      <p class="topic-desc">Explore agglomerative (bottom-up) and divisive (top-down) hierarchical clustering strategies, dendrograms, and linkage methods for grouping data without specifying K upfront.</p>
+      <div class="topic-subtopics">
+        <div class="subtopic"><span class="sub-dot"></span>Agglomerative clustering</div>
+        <div class="subtopic"><span class="sub-dot"></span>Divisive clustering</div>
+        <div class="subtopic"><span class="sub-dot"></span>Dendrogram interpretation</div>
+        <div class="subtopic"><span class="sub-dot"></span>Linkage methods: single, complete, average</div>
+        <div class="subtopic"><span class="sub-dot"></span>K-Means vs. Hierarchical</div>
+      </div>
+      <div class="topic-footer">
+        <span class="topic-time">~25 min</span>
+        <span class="cs-badge">Coming soon</span>
+      </div>
+    </a>
+
+    <!-- Topic 3 — Cluster Validity -->
+    <a class="topic-card locked" href="#" style="--tc:var(--t3-c)">
+      <div class="topic-num"><span class="topic-num-dot">3</span>Topic 03</div>
+      <div class="topic-title">Intra-Cluster Similarity &amp; Validity</div>
+      <p class="topic-desc">Learn how to measure the quality of clusters using internal validity measures like silhouette score, cohesion, and separation metrics to evaluate clustering solutions.</p>
+      <div class="topic-subtopics">
+        <div class="subtopic"><span class="sub-dot"></span>Cohesion vs. separation</div>
+        <div class="subtopic"><span class="sub-dot"></span>Silhouette score</div>
+        <div class="subtopic"><span class="sub-dot"></span>Davies-Bouldin index</div>
+        <div class="subtopic"><span class="sub-dot"></span>External validity measures</div>
+      </div>
+      <div class="topic-footer">
+        <span class="topic-time">~20 min</span>
+        <span class="cs-badge">Coming soon</span>
+      </div>
+    </a>
+
+    <!-- Topic 4 — Outlier Detection -->
+    <a class="topic-card locked" href="#" style="--tc:var(--t4-c)">
+      <div class="topic-num"><span class="topic-num-dot">4</span>Topic 04</div>
+      <div class="topic-title">Introduction to Outlier Detection</div>
+      <p class="topic-desc">Discover what outliers are, why they matter, and the statistical and proximity-based methods used to detect anomalies in data — from IQR to distance-based approaches.</p>
+      <div class="topic-subtopics">
+        <div class="subtopic"><span class="sub-dot"></span>What is an outlier?</div>
+        <div class="subtopic"><span class="sub-dot"></span>Statistical methods — Z-score, IQR</div>
+        <div class="subtopic"><span class="sub-dot"></span>Distance-based outlier detection</div>
+        <div class="subtopic"><span class="sub-dot"></span>Real-world applications</div>
+      </div>
+      <div class="topic-footer">
+        <span class="topic-time">~20 min</span>
+        <span class="cs-badge">Coming soon</span>
+      </div>
+    </a>
+
+  </div>
+</div>
+
+<script>
+// Theme toggle
+let isLight = localStorage.getItem('theme') === 'light';
+function applyTheme(){
+  document.documentElement.classList.toggle('light',isLight);
+  const i=isLight?'◑':'☀',t=isLight?'Dark':'Light',l=isLight?'Light':'Dark';
+  if(document.getElementById('tog-icon')) document.getElementById('tog-icon').textContent=i;
+  if(document.getElementById('tog-txt')) document.getElementById('tog-txt').textContent=t;
+  if(document.getElementById('theme-lbl')) document.getElementById('theme-lbl').textContent=l;
+  const m=document.getElementById('mob-tog'); if(m)m.textContent=i;
+}
+applyTheme();
+
+function toggleTheme(){
+  isLight=!isLight;
+  localStorage.setItem('theme', isLight?'light':'dark');
+  applyTheme();
+}
+
+// ── Code Protection ──
+(function(){
+  var _p=function(e){e.preventDefault();return false;};
+  document.addEventListener('contextmenu',_p);
+  document.addEventListener('keydown',function(e){
+    var k=(e.key||'').toUpperCase(),c=e.ctrlKey||e.metaKey,s=e.shiftKey;
+    if(e.key==='F12'||(c&&s&&['I','J','C','K'].includes(k))||
+       (c&&['U','S','P'].includes(k))){
+      e.preventDefault();return false;
+    }
+  },true);
+  document.addEventListener('dragstart',_p);
+  function _dt(){
+    var dw=window.outerWidth-window.innerWidth>200;
+    var dh=window.outerHeight-window.innerHeight>200;
+    var el=document.getElementById('_dtWarn');
+    if(dw||dh){
+      document.body.style.filter='blur(18px)';
+      document.body.style.pointerEvents='none';
+      if(!el){
+        var d=document.createElement('div');
+        d.id='_dtWarn';
+        d.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(22,22,22,.97);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;font-family:"IBM Plex Mono",monospace';
+        d.innerHTML='<div style="font-size:11px;letter-spacing:.14em;color:#ff8389;text-transform:uppercase">&#8856; Inspect Disabled</div><div style="font-size:10px;letter-spacing:.08em;color:#6f6f6f">Close developer tools to continue</div>';
+        document.body.appendChild(d);
+      }
+    } else {
+      document.body.style.filter='';
+      document.body.style.pointerEvents='';
+      if(el)el.remove();
+    }
+  }
+  setInterval(_dt,900);
+})();
+</script>
+<script src="../tony_keys.js"></script>
+<script src="../tony.js"></script>
+</body>
+</html>
