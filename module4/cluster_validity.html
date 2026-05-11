@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="../machine-learning-model.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Intra-Cluster Similarity & Cluster Validity | Module 4 · Svyasa</title>
+<meta name="description" content="Learn how to evaluate clustering quality using cohesion, separation, silhouette score, Davies-Bouldin Index, and external validity measures.">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;1,300&family=IBM+Plex+Serif:ital,wght@0,300;1,300&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#161616;--layer-01:#262626;--layer-02:#393939;--layer-03:#525252;
+  --hover-01:#333333;--bdr-00:#393939;--bdr-01:#474747;--bdr-str:#6f6f6f;
+  --txt-pri:#f4f4f4;--txt-sec:#c6c6c6;--txt-ph:#6f6f6f;
+  --blue:#4589ff;--link:#78a9ff;--success:#42be65;--warn:#f1c21b;--error:#ff8389;--teal:#3ddbd9;--purple:#d4bbff;
+  --ac:#3ddbd9;--ac-dim:rgba(61,219,217,0.12);--ac-glow:rgba(61,219,217,0.3);
+}
+html.light{
+  --bg:#fff;--layer-01:#f4f4f4;--layer-02:#e0e0e0;--layer-03:#c6c6c6;
+  --hover-01:#e8e8e8;--bdr-00:#e0e0e0;--bdr-01:#c6c6c6;--bdr-str:#8d8d8d;
+  --txt-pri:#161616;--txt-sec:#525252;--txt-ph:#8d8d8d;
+  --blue:#0f62fe;--link:#0043ce;--success:#198038;--warn:#b28600;--error:#da1e28;--teal:#007d79;--purple:#6929c4;
+  --ac:#007d79;--ac-dim:rgba(0,125,121,0.1);--ac-glow:rgba(0,125,121,0.25);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'IBM Plex Sans',sans-serif;font-size:15px;line-height:1.5;background:var(--bg);color:var(--txt-pri);-webkit-font-smoothing:antialiased;transition:background .25s,color .2s}
+a{text-decoration:none;color:inherit}
+.page-grid{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+.sidenav{background:var(--layer-01);border-right:1px solid var(--bdr-00);position:sticky;top:0;height:100vh;overflow-y:auto;padding-bottom:32px;transition:background .25s,border-color .2s}
+.nav-hdr{padding:16px;border-bottom:1px solid var(--bdr-00);margin-bottom:4px}
+.nav-back{display:flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph);letter-spacing:.06em;margin-bottom:8px;transition:color .15s}
+.nav-back:hover{color:var(--ac)}
+.nav-mod{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;color:var(--ac);text-transform:uppercase;margin-bottom:3px}
+.nav-title{font-size:13px;font-weight:600;color:var(--txt-pri);line-height:1.3}
+.nav-sec{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;color:var(--txt-ph);text-transform:uppercase;padding:12px 16px 4px}
+.nav-item{display:flex;align-items:center;gap:8px;padding:8px 16px;font-size:13px;color:var(--txt-sec);cursor:pointer;border-left:3px solid transparent;transition:background .1s,color .1s,border-color .1s;text-decoration:none}
+.nav-item:hover{background:var(--hover-01);color:var(--txt-pri)}
+.nav-item.active{background:var(--hover-01);color:var(--txt-pri);border-left-color:var(--ac);font-weight:600}
+.nav-item.active .nn{color:var(--ac)}
+.nn{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--txt-ph);min-width:16px;transition:color .15s}
+.tog-area{padding:20px 16px 0}
+.tog-btn{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding:8px 10px;background:var(--layer-02);border:1px solid var(--bdr-01);cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-sec);letter-spacing:.05em;transition:background .15s}
+.tog-btn:hover{background:var(--hover-01);color:var(--txt-pri)}
+.tog-track{width:26px;height:13px;background:var(--bdr-str);border-radius:7px;position:relative;flex-shrink:0;transition:background .25s}
+.tog-thumb{position:absolute;top:2px;left:2px;width:9px;height:9px;border-radius:50%;background:#fff;transition:transform .25s}
+html.light .tog-track{background:var(--ac)}
+html.light .tog-thumb{transform:translateX(13px)}
+.mob-topbar{display:none;position:fixed;top:0;left:0;right:0;z-index:200;height:52px;background:var(--layer-01);border-bottom:1px solid var(--bdr-00);align-items:center;padding:0 16px;gap:8px;transition:background .25s}
+.mob-menu-btn{width:34px;height:34px;background:transparent;border:1px solid var(--bdr-01);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-direction:column;gap:4px}
+.mob-bar{width:14px;height:1.5px;background:var(--txt-pri)}
+.mob-title{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--txt-pri);flex:1;letter-spacing:.04em}
+.mob-tog{width:34px;height:34px;background:transparent;border:1px solid var(--bdr-01);cursor:pointer;font-size:14px;color:var(--txt-sec)}
+.nav-overlay{display:none;position:fixed;inset:0;z-index:150;background:rgba(0,0,0,.6);opacity:0;transition:opacity .25s}
+.nav-overlay.open{opacity:1}
+.nav-drawer{position:fixed;left:0;top:0;bottom:0;z-index:160;width:260px;background:var(--layer-01);border-right:1px solid var(--bdr-00);overflow-y:auto;transform:translateX(-100%);transition:transform .3s cubic-bezier(.4,0,.2,1);padding-bottom:32px}
+.nav-drawer.open{transform:translateX(0)}
+.main{padding:0 48px 100px;max-width:820px;transition:background .25s}
+.page-hdr{padding:52px 0 40px;border-bottom:1px solid var(--bdr-00);margin-bottom:52px}
+.breadcrumb{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-ph);letter-spacing:.05em;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.breadcrumb a{color:var(--ac);transition:opacity .15s}.breadcrumb a:hover{opacity:.7}
+h1{font-family:'IBM Plex Serif',serif;font-size:clamp(34px,5vw,54px);font-weight:300;line-height:1.15;color:var(--txt-pri);margin-bottom:12px}
+h1 em{font-style:italic;color:var(--ac)}
+.hdr-desc{font-size:15px;font-weight:300;color:var(--txt-sec);max-width:580px;line-height:1.7}
+.section{margin-bottom:60px;opacity:0;transform:translateY(14px);animation:fadeUp .4s ease forwards}
+.section:nth-child(1){animation-delay:.05s}.section:nth-child(2){animation-delay:.10s}
+.section:nth-child(3){animation-delay:.15s}.section:nth-child(4){animation-delay:.20s}
+.section:nth-child(5){animation-delay:.25s}.section:nth-child(6){animation-delay:.30s}
+.section:nth-child(7){animation-delay:.35s}.section:nth-child(8){animation-delay:.40s}
+.section:nth-child(9){animation-delay:.45s}.section:nth-child(10){animation-delay:.50s}
+.section:nth-child(11){animation-delay:.55s}.section:nth-child(12){animation-delay:.60s}
+.section:nth-child(13){animation-delay:.65s}.section:nth-child(14){animation-delay:.70s}
+.section:nth-child(15){animation-delay:.75s}.section:nth-child(16){animation-delay:.80s}
+@keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;color:var(--ac);text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.eyebrow::before{content:'';display:inline-block;width:14px;height:1px;background:var(--ac)}
+h2{font-family:'IBM Plex Serif',serif;font-size:24px;font-weight:300;color:var(--txt-pri);margin-bottom:14px;line-height:1.25}
+h3{font-size:16px;font-weight:600;color:var(--txt-pri);margin-bottom:8px}
+p{font-size:14px;font-weight:300;color:var(--txt-sec);margin-bottom:12px;line-height:1.75}
+p strong{color:var(--txt-pri);font-weight:600}
+ul{padding-left:0;list-style:none}
+ul li{position:relative;padding-left:16px;margin-bottom:8px;font-size:14px;font-weight:300;color:var(--txt-sec);line-height:1.6}
+ul li::before{content:'';position:absolute;left:0;top:9px;width:5px;height:1px;background:var(--ac)}
+.callout{border-left:3px solid var(--ac);background:var(--layer-01);padding:14px 18px;margin:14px 0;font-size:14px;font-weight:300;color:var(--txt-sec);line-height:1.75;transition:background .25s}
+.callout strong{color:var(--txt-pri);font-weight:600}
+.callout-g{border-left-color:var(--success)}
+.callout-y{border-left-color:var(--warn)}
+.callout-p{border-left-color:var(--purple)}
+.callout-b{border-left-color:var(--link)}
+.callout-r{border-left-color:var(--error)}
+.tile{background:var(--layer-01);border:1px solid var(--bdr-00);padding:20px 24px;margin-bottom:12px;transition:background .25s,border-color .2s}
+.tile-title{font-size:13px;font-weight:600;color:var(--txt-pri);margin-bottom:12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--bdr-00);border:1px solid var(--bdr-00);margin:14px 0}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--bdr-00);border:1px solid var(--bdr-00);margin:14px 0}
+.gcell{background:var(--layer-01);padding:20px 22px;transition:background .25s}
+.kv{display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--bdr-00);font-size:13px;gap:12px}
+.kv:last-child{border-bottom:none}
+.kk{color:var(--txt-sec);font-weight:300;flex-shrink:0}
+.kv-v{color:var(--txt-pri);font-weight:400;text-align:right}
+.tag{display:inline-flex;align-items:center;height:22px;padding:0 10px;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.03em;margin-bottom:10px}
+.t-bl{background:#0043ce;color:#a6c8ff}
+.t-gr{background:#044317;color:#a7f0ba}
+.t-re{background:#750e13;color:#ffb3b8}
+.t-cy{background:#003a3a;color:#9ef0f0}
+.t-pu{background:#31135e;color:#e8daff}
+.t-ye{background:#8e6a00;color:#f1c21b}
+html.light .t-bl{background:#d0e2ff;color:#0043ce}
+html.light .t-gr{background:#a7f0ba;color:#044317}
+html.light .t-re{background:#ffd7d9;color:#750e13}
+html.light .t-cy{background:#d9fbfb;color:#005d5d}
+html.light .t-pu{background:#e8daff;color:#31135e}
+html.light .t-ye{background:#f1c21b;color:#8e6a00}
+.formula{font-family:'IBM Plex Mono',monospace;font-size:13px;background:var(--layer-02);border:1px solid var(--bdr-01);border-left:3px solid var(--ac);padding:11px 15px;margin:10px 0;line-height:2;color:var(--txt-pri)}
+.step-flow{display:flex;flex-direction:column;gap:0;margin:16px 0}
+.step-item{display:grid;grid-template-columns:40px 1fr;gap:0;position:relative}
+.step-item:not(:last-child)::after{content:'';position:absolute;left:19px;top:40px;bottom:0;width:1px;background:var(--bdr-01)}
+.step-dot{width:38px;height:38px;background:var(--layer-02);border:2px solid var(--ac);display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--ac);flex-shrink:0;z-index:1}
+.step-body{padding:8px 0 20px 16px}
+.step-title{font-size:14px;font-weight:600;color:var(--txt-pri);margin-bottom:4px}
+.step-desc{font-size:13px;color:var(--txt-sec);line-height:1.7}
+.cmp-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px;text-align:left;border:1px solid var(--bdr-01)}
+.cmp-table th{background:var(--layer-02);color:var(--ac);padding:12px 16px;font-weight:600}
+.cmp-table td{padding:12px 16px;border-top:1px solid var(--bdr-00);color:var(--txt-sec)}
+.cmp-table tr:nth-child(even) td{background:var(--layer-01)}
+.cmp-table tr:nth-child(odd) td{background:var(--bg)}
+.interactive-wrap{background:var(--layer-01);border:1px solid var(--bdr-00);padding:24px;margin:16px 0;position:relative;overflow:hidden}
+.interactive-wrap::before{content:'INTERACTIVE';position:absolute;top:0;right:0;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.12em;color:var(--ac);background:var(--ac-dim);border-left:1px solid var(--bdr-00);border-bottom:1px solid var(--bdr-00);padding:4px 10px}
+.iw-title{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;color:var(--txt-ph);text-transform:uppercase;margin-bottom:16px;border-bottom:1px solid var(--bdr-00);padding-bottom:10px}
+.sim-controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.sim-btn{padding:8px 16px;font-family:'IBM Plex Mono',monospace;font-size:11px;background:transparent;border:1px solid var(--bdr-01);color:var(--txt-sec);cursor:pointer;transition:all .15s;letter-spacing:.04em}
+.sim-btn:hover:not(:disabled){background:var(--hover-01);color:var(--txt-pri)}
+.sim-btn.primary{background:var(--ac);border-color:var(--ac);color:#000;font-weight:600}
+.sim-btn.primary:hover:not(:disabled){opacity:.85;box-shadow:0 0 16px var(--ac-glow)}
+.sim-btn:disabled{opacity:.45;cursor:not-allowed}
+.demo-canvas{width:100%;height:300px;background:var(--layer-02);border:1px solid var(--bdr-01);display:block}
+.km-info{display:flex;justify-content:space-between;margin-top:10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-sec)}
+.score-bar-wrap{margin:10px 0}
+.score-bar-label{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-sec);margin-bottom:4px;display:flex;justify-content:space-between}
+.score-bar-track{height:8px;background:var(--layer-02);border:1px solid var(--bdr-01);position:relative;overflow:hidden}
+.score-bar-fill{height:100%;transition:width .6s cubic-bezier(.4,0,.2,1),background .4s}
+.quiz-card{background:var(--layer-01);border:1px solid var(--bdr-00);padding:20px;margin-bottom:12px;transition:border-color .2s}
+.quiz-q{font-size:14px;font-weight:600;color:var(--txt-pri);margin-bottom:14px;line-height:1.5}
+.quiz-options{display:flex;flex-direction:column;gap:8px}
+.quiz-opt{padding:10px 14px;background:var(--layer-02);border:1px solid var(--bdr-01);font-size:13px;color:var(--txt-sec);cursor:pointer;text-align:left;transition:all .15s;font-family:'IBM Plex Sans',sans-serif;width:100%}
+.quiz-opt:hover:not(:disabled){background:var(--hover-01);color:var(--txt-pri);border-color:var(--ac)}
+.quiz-opt.correct{background:rgba(66,190,101,.15);border-color:var(--success);color:var(--success)}
+.quiz-opt.wrong{background:rgba(255,131,137,.1);border-color:var(--error);color:var(--error)}
+.quiz-feedback{font-size:13px;color:var(--txt-sec);margin-top:10px;padding:10px;border-left:3px solid var(--ac);background:var(--layer-02);display:none;line-height:1.6;animation:fadeUp .3s ease}
+.page-nav{display:flex;justify-content:space-between;align-items:center;padding-top:40px;border-top:1px solid var(--bdr-00);margin-top:60px}
+.page-nav-btn{display:flex;align-items:center;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-sec);padding:10px 16px;border:1px solid var(--bdr-01);background:transparent;cursor:pointer;transition:background .15s,color .15s;text-decoration:none}
+.page-nav-btn:hover{background:var(--hover-01);color:var(--txt-pri)}
+.page-nav-btn.primary{background:var(--ac);border-color:var(--ac);color:#000;font-weight:600}
+.page-nav-btn.primary:hover{opacity:.9;box-shadow:0 0 16px var(--ac-glow)}
+.big-concept{display:flex;gap:1px;background:var(--bdr-00);border:1px solid var(--bdr-00);margin:20px 0}
+.bc-half{background:var(--layer-01);padding:24px;flex:1;text-align:center}
+.bc-icon{font-size:32px;margin-bottom:8px}
+.bc-label{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;color:var(--ac);text-transform:uppercase;margin-bottom:6px}
+.bc-val{font-family:'IBM Plex Serif',serif;font-size:20px;font-weight:300;color:var(--txt-pri);line-height:1.3}
+.bc-desc{font-size:12px;color:var(--txt-sec);margin-top:6px}
+@media(max-width:767px){
+  .mob-topbar{display:flex}
+  .sidenav{display:none}
+  .page-grid{display:block}
+  .main{padding:68px 16px 80px;max-width:100%}
+  .page-hdr{padding:24px 0 20px;margin-bottom:32px}
+  h1{font-size:24px}
+  .grid2,.grid3{grid-template-columns:1fr}
+  .big-concept{flex-direction:column}
+}
+</style>
+</head>
+<body>
+
+<div class="mob-topbar" id="mob-topbar">
+  <button class="mob-menu-btn" onclick="toggleDrawer()" aria-label="Menu">
+    <div class="mob-bar"></div><div class="mob-bar"></div><div class="mob-bar"></div>
+  </button>
+  <span class="mob-title">Cluster Validity</span>
+  <button class="mob-tog" onclick="toggleTheme()" id="mob-tog">☀</button>
+</div>
+<div class="nav-overlay" id="nav-overlay" onclick="closeDrawer()"></div>
+<nav class="nav-drawer" id="nav-drawer"></nav>
+
+<div class="page-grid">
+<nav class="sidenav" id="sidenav">
+  <div class="nav-hdr">
+    <a class="nav-back" href="index_11.html">← Module 4</a>
+    <div class="nav-mod">Topic 03</div>
+    <div class="nav-title">Cluster Validity</div>
+  </div>
+  <div class="nav-sec">Sections</div>
+  <a class="nav-item active" href="#s1"><span class="nn">01</span>Why Validate?</a>
+  <a class="nav-item" href="#s2"><span class="nn">02</span>Cohesion vs Separation</a>
+  <a class="nav-item" href="#s3"><span class="nn">03</span>Cohesion</a>
+  <a class="nav-item" href="#s4"><span class="nn">04</span>Separation</a>
+  <a class="nav-item" href="#s5"><span class="nn">05</span>Interactive Demo</a>
+  <a class="nav-item" href="#s6"><span class="nn">06</span>Silhouette Score</a>
+  <a class="nav-item" href="#s7"><span class="nn">07</span>Silhouette Examples</a>
+  <a class="nav-item" href="#s8"><span class="nn">08</span>Silhouette Demo</a>
+  <a class="nav-item" href="#s9"><span class="nn">09</span>Davies-Bouldin Index</a>
+  <a class="nav-item" href="#s10"><span class="nn">10</span>External Validity</a>
+  <a class="nav-item" href="#s11"><span class="nn">11</span>Internal vs External</a>
+  <a class="nav-item" href="#s12"><span class="nn">12</span>Evaluation Flow</a>
+  <a class="nav-item" href="#s13"><span class="nn">13</span>Exam Note</a>
+  <a class="nav-item" href="#s14"><span class="nn">14</span>Quiz Yourself</a>
+  <div class="tog-area">
+    <button class="tog-btn" onclick="toggleTheme()">
+      <span style="display:flex;align-items:center;gap:6px"><span id="tog-icon">☀</span><span id="tog-txt">Light theme</span></span>
+      <span class="tog-track"><span class="tog-thumb"></span></span>
+    </button>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph);margin-top:10px;line-height:1.6">IBM Carbon · <span id="theme-lbl">Dark</span></div>
+  </div>
+</nav>
+
+<main class="main">
+<div class="page-hdr">
+  <div class="breadcrumb">
+    <a href="../index.html">Home</a><span>/</span>
+    <a href="index_11.html">Module 4</a><span>/</span>
+    <span style="color:var(--txt-sec)">Cluster Validity</span>
+  </div>
+  <h1>Intra-Cluster<br><em>Similarity & Validity</em></h1>
+  <p class="hdr-desc">You can form clusters — but are they actually good? This topic teaches you to mathematically verify clustering quality using cohesion, separation, silhouette score, and the Davies-Bouldin index.</p>
+</div>
+
+<!-- S1 -->
+<div class="section" id="s1">
+  <div class="eyebrow">01 · Motivation</div>
+  <h2>Why Cluster Validation is Needed</h2>
+  <div class="callout callout-y">📌 Suppose you run K-Means with K=2, K=3, and K=5. All produce clusters. But <strong>which clustering is actually better?</strong> Cluster validation answers this question.</div>
+  <p>Any clustering algorithm will happily produce clusters — the question is whether those clusters are <strong>meaningful, compact, and well-separated</strong>.</p>
+  <div class="grid3">
+    <div class="gcell" style="text-align:center">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:24px;color:var(--ac);font-weight:600">K=2</div>
+      <div style="font-size:12px;color:var(--txt-ph);margin-top:4px">2 clusters — good?</div>
+    </div>
+    <div class="gcell" style="text-align:center">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:24px;color:var(--ac);font-weight:600">K=3</div>
+      <div style="font-size:12px;color:var(--txt-ph);margin-top:4px">3 clusters — better?</div>
+    </div>
+    <div class="gcell" style="text-align:center">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:24px;color:var(--ac);font-weight:600">K=5</div>
+      <div style="font-size:12px;color:var(--txt-ph);margin-top:4px">5 clusters — overfitting?</div>
+    </div>
+  </div>
+  <div class="callout callout-b">🧠 <strong>Classroom Analogy:</strong> Grouping students by marks. A <em>good</em> grouping has similar students inside each group, and clearly different groups. A <em>bad</em> grouping mixes everyone up.</div>
+</div>
+
+<!-- S2 -->
+<div class="section" id="s2">
+  <div class="eyebrow">02 · Core Concepts</div>
+  <h2>Cohesion vs Separation</h2>
+  <div class="big-concept">
+    <div class="bc-half">
+      <div class="bc-icon">🔵</div>
+      <div class="bc-label">Cohesion</div>
+      <div class="bc-val">Intra-Cluster Similarity</div>
+      <div class="bc-desc">How tightly packed are points within the same cluster?</div>
+    </div>
+    <div class="bc-half" style="border-left:1px solid var(--bdr-00)">
+      <div class="bc-icon">↔️</div>
+      <div class="bc-label">Separation</div>
+      <div class="bc-val">Inter-Cluster Distance</div>
+      <div class="bc-desc">How far apart are the different clusters from each other?</div>
+    </div>
+  </div>
+  <div class="callout" style="border-left-color:var(--ac)">
+    <strong>🎯 The Goal:</strong> High Cohesion + High Separation = Good Clustering
+  </div>
+  <table class="cmp-table">
+    <thead><tr><th>Concept</th><th>What it Measures</th><th>Good Clustering Has</th></tr></thead>
+    <tbody>
+      <tr><td>Cohesion</td><td>Similarity within a cluster</td><td>Small intra-cluster distance</td></tr>
+      <tr><td>Separation</td><td>Difference between clusters</td><td>Large inter-cluster distance</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- S3 -->
+<div class="section" id="s3">
+  <div class="eyebrow">03 · Cohesion</div>
+  <h2>Measuring Tightness Inside a Cluster</h2>
+  <div class="callout" style="border-left-color:var(--ac)"><strong>📌 Definition:</strong> Cohesion measures how close data points are to each other within the same cluster. Higher cohesion = more compact, better cluster.</div>
+  <div class="grid2">
+    <div class="gcell">
+      <div class="tag t-gr">✅ High Cohesion</div>
+      <p style="margin:0;font-size:13px">Cluster A — Customer ages: 22, 23, 24, 25<br>Very similar → compact, tight group</p>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:20px;color:var(--success);margin-top:12px;letter-spacing:4px">● ● ●<br>&nbsp;● ●</div>
+    </div>
+    <div class="gcell">
+      <div class="tag t-re">❌ Low Cohesion</div>
+      <p style="margin:0;font-size:13px">Cluster B — Customer ages: 18, 40, 65, 21<br>Scattered → loose, poor group</p>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:20px;color:var(--error);margin-top:12px;letter-spacing:8px">●<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;●<br>&nbsp;&nbsp;●<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;●</div>
+    </div>
+  </div>
+  <div class="callout callout-b">🧠 <strong>Key Insight:</strong> Small internal distances = high cohesion. Measure using the average pairwise distance between all points in a cluster.</div>
+</div>
+
+<!-- S4 -->
+<div class="section" id="s4">
+  <div class="eyebrow">04 · Separation</div>
+  <h2>Measuring Distance Between Clusters</h2>
+  <div class="callout" style="border-left-color:var(--ac)"><strong>📌 Definition:</strong> Separation measures how different one cluster is from another. Larger separation = clusters that are clearly distinct from each other.</div>
+  <div class="grid2">
+    <div class="gcell">
+      <div class="tag t-gr">✅ Good Separation</div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:14px;color:var(--txt-sec);line-height:2">Cluster A &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Cluster B<br>● ● ● &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;▲ ▲ ▲<br>&nbsp;● ● &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;▲ ▲</div>
+      <p style="margin:8px 0 0;font-size:12px;color:var(--txt-ph)">Clusters are clearly apart</p>
+    </div>
+    <div class="gcell">
+      <div class="tag t-re">❌ Poor Separation</div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:14px;color:var(--txt-sec);line-height:2">● ▲ ● ▲<br>▲ ● ▲ ●<br>● ▲ ● ▲</div>
+      <p style="margin:8px 0 0;font-size:12px;color:var(--txt-ph)">Clusters overlap badly</p>
+    </div>
+  </div>
+  <div class="callout callout-b">🧠 <strong>Real-Life:</strong> E-commerce clusters — Students, Working Professionals, Senior Citizens. If buying patterns are clearly different = high separation. If they all overlap = low separation.</div>
+</div>
+
+<!-- S5 -->
+<div class="section" id="s5">
+  <div class="eyebrow">05 · Interactive</div>
+  <h2>Cohesion & Separation Explorer</h2>
+  <p style="font-size:13px;color:var(--txt-sec)">Click to place points on the canvas. Then select clusters and see cohesion & separation scores update in real time.</p>
+  <div class="interactive-wrap">
+    <div class="iw-title">Demo 1 · Cohesion & Separation Visualizer</div>
+    <canvas id="cs-canvas" class="demo-canvas" style="cursor:crosshair"></canvas>
+    <div class="km-info">
+      <span id="cs-status">Click canvas to add points · Select cluster with buttons below</span>
+    </div>
+    <div id="cs-scores" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--bdr-00);border:1px solid var(--bdr-00);margin:12px 0">
+      <div style="background:var(--layer-01);padding:14px;text-align:center">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph);text-transform:uppercase;letter-spacing:.08em">Cohesion A</div>
+        <div id="coh-a" style="font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;color:var(--ac);margin-top:4px">—</div>
+      </div>
+      <div style="background:var(--layer-01);padding:14px;text-align:center">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph);text-transform:uppercase;letter-spacing:.08em">Cohesion B</div>
+        <div id="coh-b" style="font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;color:#4589ff;margin-top:4px">—</div>
+      </div>
+      <div style="background:var(--layer-01);padding:14px;text-align:center">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph);text-transform:uppercase;letter-spacing:.08em">Separation</div>
+        <div id="sep-score" style="font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;color:var(--warn);margin-top:4px">—</div>
+      </div>
+    </div>
+    <div class="sim-controls">
+      <button class="sim-btn primary" id="btn-cluster-a" onclick="setActiveCluster('A')">🔵 Add to Cluster A</button>
+      <button class="sim-btn" id="btn-cluster-b" onclick="setActiveCluster('B')">🔷 Add to Cluster B</button>
+      <button class="sim-btn" onclick="addRandomClusters()">Random Clusters</button>
+      <button class="sim-btn" onclick="resetCS()">Reset</button>
+    </div>
+  </div>
+</div>
+
+<!-- S6 -->
+<div class="section" id="s6">
+  <div class="eyebrow">06 · Validity Metric</div>
+  <h2>Silhouette Score</h2>
+  <div class="callout" style="border-left-color:var(--ac)"><strong>📌 Most Important:</strong> The silhouette score measures how well each data point fits in its own cluster compared to other clusters.</div>
+  <h3 style="margin-top:20px">The Two Distances</h3>
+  <div class="grid2">
+    <div class="gcell">
+      <div class="tag t-cy">a — Intra distance</div>
+      <p style="margin:0;font-size:13px"><strong>a</strong> = average distance from a point to <em>all other points in its own cluster</em><br><br>Small <strong>a</strong> → point fits well in its cluster</p>
+    </div>
+    <div class="gcell">
+      <div class="tag t-pu">b — Nearest-cluster distance</div>
+      <p style="margin:0;font-size:13px"><strong>b</strong> = average distance from a point to <em>all points in the nearest other cluster</em><br><br>Large <strong>b</strong> → point is far from other clusters</p>
+    </div>
+  </div>
+  <h3 style="margin-top:20px">The Formula</h3>
+  <div class="formula">s = (b - a) / max(a, b)<br><span style="color:var(--txt-sec)">where: a = avg intra-cluster dist, b = avg nearest-cluster dist</span></div>
+  <div class="tile" style="margin-top:16px">
+    <div class="tile-title">Interpretation Range: −1 to +1</div>
+    <div class="score-bar-wrap">
+      <div class="score-bar-label"><span style="color:var(--success)">+1 (Excellent)</span><span>Points well inside correct cluster</span></div>
+      <div class="score-bar-track"><div class="score-bar-fill" style="width:100%;background:var(--success)"></div></div>
+    </div>
+    <div class="score-bar-wrap">
+      <div class="score-bar-label"><span style="color:var(--warn)">~0 (Borderline)</span><span>Point on boundary between clusters</span></div>
+      <div class="score-bar-track"><div class="score-bar-fill" style="width:50%;background:var(--warn)"></div></div>
+    </div>
+    <div class="score-bar-wrap">
+      <div class="score-bar-label"><span style="color:var(--error)">−1 (Wrong)</span><span>Point assigned to wrong cluster</span></div>
+      <div class="score-bar-track"><div class="score-bar-fill" style="width:5%;background:var(--error)"></div></div>
+    </div>
+  </div>
+  <div class="callout callout-y">⭐ <strong>Exam Key:</strong> Higher Silhouette Score = Better Clustering. Range: −1 to +1.</div>
+</div>
+
+<!-- S7 -->
+<div class="section" id="s7">
+  <div class="eyebrow">07 · Worked Examples</div>
+  <h2>Silhouette Score — 3 Cases</h2>
+  <div class="step-flow">
+    <div class="step-item">
+      <div class="step-dot" style="border-color:var(--success);color:var(--success)">1</div>
+      <div class="step-body">
+        <div class="step-title">Case 1 — Excellent Cluster (s = 0.8)</div>
+        <div class="step-desc">
+          a = 2 (close to own cluster), b = 10 (far from other cluster)<br>
+          s = (10 − 2) / max(10, 2) = 8 / 10 = <strong style="color:var(--success)">0.8</strong><br>
+          ✅ Point fits perfectly in its cluster.
+        </div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-dot" style="border-color:var(--warn);color:var(--warn)">2</div>
+      <div class="step-body">
+        <div class="step-title">Case 2 — Weak Cluster (s = 0.125)</div>
+        <div class="step-desc">
+          a = 7, b = 8 (almost equally close to another cluster)<br>
+          s = (8 − 7) / max(8, 7) = 1 / 8 = <strong style="color:var(--warn)">0.125</strong><br>
+          ⚠ Borderline — point could belong to either cluster.
+        </div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-dot" style="border-color:var(--error);color:var(--error)">3</div>
+      <div class="step-body">
+        <div class="step-title">Case 3 — Wrong Cluster (s = −0.67)</div>
+        <div class="step-desc">
+          a = 9, b = 3 (actually closer to a different cluster!)<br>
+          s = (3 − 9) / max(9, 3) = −6 / 9 = <strong style="color:var(--error)">−0.67</strong><br>
+          ❌ Point is misclassified — assigned to the wrong cluster.
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="callout callout-b">🧠 <strong>Netflix Example:</strong> Good silhouette score means anime lovers are grouped together, thriller lovers are grouped together, and different genres are clearly separated. Poor score = random users mixed everywhere.</div>
+</div>
+
+<!-- S8 -->
+<div class="section" id="s8">
+  <div class="eyebrow">08 · Interactive</div>
+  <h2>Silhouette Score Calculator</h2>
+  <p style="font-size:13px;color:var(--txt-sec)">Adjust the values of <strong>a</strong> and <strong>b</strong> using sliders and watch the silhouette score update live.</p>
+  <div class="interactive-wrap">
+    <div class="iw-title">Demo 2 · Live Silhouette Calculator</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:16px">
+      <div>
+        <label style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-sec);display:flex;justify-content:space-between;margin-bottom:6px">
+          <span>a (intra-cluster dist)</span><span id="a-val" style="color:var(--ac)">3</span>
+        </label>
+        <input type="range" id="sil-a" min="1" max="20" value="3" oninput="updateSilhouette()" style="width:100%;accent-color:var(--ac)">
+      </div>
+      <div>
+        <label style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-sec);display:flex;justify-content:space-between;margin-bottom:6px">
+          <span>b (nearest-cluster dist)</span><span id="b-val" style="color:var(--ac)">9</span>
+        </label>
+        <input type="range" id="sil-b" min="1" max="20" value="9" oninput="updateSilhouette()" style="width:100%;accent-color:var(--ac)">
+      </div>
+    </div>
+    <div style="background:var(--layer-02);border:1px solid var(--bdr-01);padding:20px;text-align:center">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-ph);margin-bottom:8px">SILHOUETTE SCORE</div>
+      <div id="sil-score" style="font-family:'IBM Plex Serif',serif;font-size:48px;font-weight:300;color:var(--ac);transition:color .3s">0.67</div>
+      <div id="sil-verdict" style="font-family:'IBM Plex Mono',monospace;font-size:12px;margin-top:8px;color:var(--txt-sec)">Good clustering</div>
+    </div>
+    <div style="margin-top:12px">
+      <div class="score-bar-label" style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-sec);margin-bottom:4px;display:flex;justify-content:space-between">
+        <span>−1 (Worst)</span><span id="sil-bar-val">+1 (Best)</span>
+      </div>
+      <div style="height:12px;background:linear-gradient(to right, var(--error), var(--warn), var(--success));border:1px solid var(--bdr-01);position:relative">
+        <div id="sil-needle" style="position:absolute;top:-4px;width:4px;height:20px;background:var(--txt-pri);transition:left .3s;transform:translateX(-50%);left:83.5%"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- S9 -->
+<div class="section" id="s9">
+  <div class="eyebrow">09 · Validity Metric</div>
+  <h2>Davies-Bouldin Index (DBI)</h2>
+  <div class="callout" style="border-left-color:var(--ac)"><strong>📌 Definition:</strong> The Davies-Bouldin Index measures how similar each cluster is to its most similar neighboring cluster. It considers both cluster scatter and inter-cluster distances.</div>
+  <h3 style="margin-top:20px">Core Formula Idea</h3>
+  <div class="formula">DBI = (1/K) × Σ max[j≠i] ( (σᵢ + σⱼ) / d(cᵢ, cⱼ) )<br><span style="color:var(--txt-sec)">σᵢ = scatter of cluster i · d(cᵢ,cⱼ) = distance between centroids</span></div>
+  <div class="callout callout-b">🧠 <strong>Intuition:</strong> DBI = (Cluster Scatter) / (Distance Between Clusters). Small scatter + large separation = small DBI = better clustering.</div>
+  <div class="big-concept">
+    <div class="bc-half">
+      <div class="bc-icon">📉</div>
+      <div class="bc-label">Lower DBI</div>
+      <div class="bc-val">Better Clustering</div>
+      <div class="bc-desc">Clusters are compact and well-separated</div>
+    </div>
+    <div class="bc-half" style="border-left:1px solid var(--bdr-00)">
+      <div class="bc-icon">📈</div>
+      <div class="bc-label">Higher DBI</div>
+      <div class="bc-val">Poor Clustering</div>
+      <div class="bc-desc">Clusters overlap or are scattered</div>
+    </div>
+  </div>
+  <div class="callout callout-r">⚠ <strong>Common Exam Mistake:</strong> Silhouette = Higher is Better. DBI = Lower is Better. Students often confuse these!</div>
+  <table class="cmp-table" style="margin-top:16px">
+    <thead><tr><th>Metric</th><th>Better Value</th><th>What it Measures</th></tr></thead>
+    <tbody>
+      <tr><td>Silhouette Score</td><td style="color:var(--success)">Higher (+1)</td><td>Individual point fit quality</td></tr>
+      <tr><td>Davies-Bouldin Index</td><td style="color:var(--success)">Lower (→ 0)</td><td>Overall cluster compactness vs separation</td></tr>
+    </tbody>
+  </table>
+  <div class="callout callout-b">🧠 <strong>Canteen Analogy:</strong> Good grouping = friends sit close together (low scatter), different friend groups sit separately (high separation). DBI mathematically measures this tendency.</div>
+</div>
+
+<!-- S10 -->
+<div class="section" id="s10">
+  <div class="eyebrow">10 · External Measures</div>
+  <h2>External Validity Measures</h2>
+  <div class="callout callout-y">📌 Internal measures use only the dataset itself. When we already know the <strong>true labels</strong>, we can compare clusters to actual classes using external measures.</div>
+  <h3 style="margin-top:20px">Example Scenario</h3>
+  <div class="tile">
+    <p style="margin:0;font-size:14px">Actual labels: <strong>Cats</strong> vs <strong>Dogs</strong><br>
+    Algorithm produces: <strong>Cluster 1</strong> vs <strong>Cluster 2</strong><br>
+    External validity compares predicted clusters to actual classes.</p>
+  </div>
+  <h3 style="margin-top:20px">Common External Measures</h3>
+  <table class="cmp-table">
+    <thead><tr><th>Measure</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td>Purity</td><td>What fraction of each cluster belongs to the dominant class?</td></tr>
+      <tr><td>Rand Index</td><td>Measures agreement between clustering and true labels (like accuracy for clustering)</td></tr>
+      <tr><td>F-Measure</td><td>Combines precision and recall — considers both false positives and negatives</td></tr>
+    </tbody>
+  </table>
+  <div class="callout callout-b">🧠 <strong>Real Tech Use:</strong> Spam email detection (actual spam/non-spam labels known), recommendation system evaluation, and customer segmentation testing.</div>
+</div>
+
+<!-- S11 -->
+<div class="section" id="s11">
+  <div class="eyebrow">11 · Comparison</div>
+  <h2>Internal vs External Validity</h2>
+  <table class="cmp-table">
+    <thead><tr><th>Feature</th><th>Internal Validity</th><th>External Validity</th></tr></thead>
+    <tbody>
+      <tr><td>Requires true labels?</td><td style="color:var(--success)">❌ No</td><td style="color:var(--warn)">✅ Yes</td></tr>
+      <tr><td>What it uses</td><td>Cohesion & Separation</td><td>Compares with actual classes</td></tr>
+      <tr><td>Examples</td><td>Silhouette, DBI</td><td>Rand Index, Purity, F-Measure</td></tr>
+      <tr><td>When to use</td><td>Exploratory clustering (no labels)</td><td>Supervised evaluation (labels available)</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- S12 -->
+<div class="section" id="s12">
+  <div class="eyebrow">12 · Evaluation Flow</div>
+  <h2>Complete Clustering Evaluation Flow</h2>
+  <div class="step-flow">
+    <div class="step-item">
+      <div class="step-dot">1</div>
+      <div class="step-body">
+        <div class="step-title">Run Clustering Algorithm</div>
+        <div class="step-desc">Apply K-Means or Hierarchical clustering to your dataset.</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-dot">2</div>
+      <div class="step-body">
+        <div class="step-title">Form Clusters</div>
+        <div class="step-desc">Assign each data point to a cluster.</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-dot">3</div>
+      <div class="step-body">
+        <div class="step-title">Measure Cohesion</div>
+        <div class="step-desc">Calculate average intra-cluster distance for each cluster.</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-dot">4</div>
+      <div class="step-body">
+        <div class="step-title">Measure Separation</div>
+        <div class="step-desc">Calculate distance between cluster centroids / borders.</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-dot">5</div>
+      <div class="step-body">
+        <div class="step-title">Apply Validation Metrics</div>
+        <div class="step-desc">Compute Silhouette Score and/or Davies-Bouldin Index.</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-dot">6</div>
+      <div class="step-body">
+        <div class="step-title">Choose Best Clustering</div>
+        <div class="step-desc">Pick the K or algorithm that gives highest silhouette / lowest DBI.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- S13 -->
+<div class="section" id="s13">
+  <div class="eyebrow">13 · Revision</div>
+  <h2>Short Exam Note</h2>
+  <div class="tile">
+    <ul style="margin:0;font-size:14px;line-height:1.8">
+      <li><strong>Cohesion</strong> = intra-cluster similarity; points within cluster should be close</li>
+      <li><strong>Separation</strong> = inter-cluster dissimilarity; different clusters should be far apart</li>
+      <li><strong>Good Clustering</strong> = High Cohesion + High Separation</li>
+      <li><strong>Silhouette Score</strong> formula: s = (b − a) / max(a, b)</li>
+      <li>Silhouette range: <strong>−1 to +1</strong>; Higher is Better</li>
+      <li><strong>Davies-Bouldin Index</strong>: ratio of scatter to separation; Lower is Better</li>
+      <li><strong>Internal measures</strong>: use dataset properties (Silhouette, DBI)</li>
+      <li><strong>External measures</strong>: use true labels (Rand Index, Purity, F-Measure)</li>
+    </ul>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div class="gcell">
+      <div class="tag t-cy">🧠 Memory Tricks</div>
+      <ul style="margin-top:8px">
+        <li><strong>Cohesion:</strong> "Same group stays close"</li>
+        <li><strong>Separation:</strong> "Different groups stay far"</li>
+        <li><strong>Silhouette:</strong> "Higher is Happier"</li>
+        <li><strong>DBI:</strong> "Lower is Better"</li>
+      </ul>
+    </div>
+    <div class="gcell">
+      <div class="tag t-ye">⭐ Viva Questions</div>
+      <ul style="margin-top:8px">
+        <li>What is cohesion? → Intra-cluster similarity</li>
+        <li>What is separation? → Inter-cluster distance</li>
+        <li>Silhouette range? → −1 to +1</li>
+        <li>Better DBI? → Lower value</li>
+        <li>Internal vs External? → No labels vs labels</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- S14 -->
+<div class="section" id="s14">
+  <div class="eyebrow">14 · Practice</div>
+  <h2>Quiz Yourself</h2>
+  <p style="font-size:13px;color:var(--txt-ph)">Score: <span id="quiz-total">0</span> / 6 correct</p>
+
+  <div class="quiz-card">
+    <div class="quiz-q">Q1. What does "cohesion" measure in cluster validation?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="checkQuiz(this,false,1,'q1fb')">A. The distance between different clusters</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,true,1,'q1fb')">B. How tightly packed points are within the same cluster</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,1,'q1fb')">C. The number of clusters in the dataset</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,1,'q1fb')">D. The accuracy of the clustering algorithm</button>
+    </div>
+    <div class="quiz-feedback" id="q1fb">Correct! <strong>Cohesion</strong> measures intra-cluster similarity — how close points within the same cluster are to each other. High cohesion = compact, tight clusters.</div>
+  </div>
+
+  <div class="quiz-card">
+    <div class="quiz-q">Q2. In the silhouette formula s = (b − a) / max(a, b), what does "a" represent?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="checkQuiz(this,false,2,'q2fb')">A. Average distance to nearest cluster</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,true,2,'q2fb')">B. Average distance to all points in the same cluster</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,2,'q2fb')">C. The number of points in the cluster</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,2,'q2fb')">D. The centroid position</button>
+    </div>
+    <div class="quiz-feedback" id="q2fb">Correct! <strong>a</strong> is the average distance from a point to all other points <em>in its own cluster</em>. Small a means the point is well placed inside its cluster.</div>
+  </div>
+
+  <div class="quiz-card">
+    <div class="quiz-q">Q3. A data point has silhouette score = −0.67. What does this indicate?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="checkQuiz(this,false,3,'q3fb')">A. The point is on the boundary between two clusters</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,3,'q3fb')">B. The clustering is excellent for this point</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,true,3,'q3fb')">C. The point is likely assigned to the wrong cluster</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,3,'q3fb')">D. The cluster has very high separation</button>
+    </div>
+    <div class="quiz-feedback" id="q3fb">Correct! A <strong>negative silhouette score</strong> means the point is closer to another cluster than its own — it has been misclassified. The score of −0.67 is a strong signal of wrong cluster assignment.</div>
+  </div>
+
+  <div class="quiz-card">
+    <div class="quiz-q">Q4. Which statement about the Davies-Bouldin Index (DBI) is correct?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="checkQuiz(this,false,4,'q4fb')">A. A higher DBI value means better clustering</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,true,4,'q4fb')">B. A lower DBI value means better clustering</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,4,'q4fb')">C. DBI range is −1 to +1</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,4,'q4fb')">D. DBI only measures within-cluster distances</button>
+    </div>
+    <div class="quiz-feedback" id="q4fb">Correct! For DBI, <strong>Lower is Better</strong>. DBI measures the ratio of cluster scatter to inter-cluster distance — a low value means compact, well-separated clusters.</div>
+  </div>
+
+  <div class="quiz-card">
+    <div class="quiz-q">Q5. When do we use External Validity Measures for clustering evaluation?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="checkQuiz(this,false,5,'q5fb')">A. When we want to compute the Silhouette score</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,5,'q5fb')">B. When we have no labeled data available</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,true,5,'q5fb')">C. When we already know the true class labels</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,5,'q5fb')">D. When using hierarchical clustering only</button>
+    </div>
+    <div class="quiz-feedback" id="q5fb">Correct! <strong>External validity measures</strong> like Rand Index, Purity, and F-Measure require true class labels. They compare the clustering output against the ground truth to evaluate quality.</div>
+  </div>
+
+  <div class="quiz-card">
+    <div class="quiz-q">Q6. What is the ideal clustering outcome in terms of cohesion and separation?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="checkQuiz(this,false,6,'q6fb')">A. Low cohesion and low separation</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,6,'q6fb')">B. High cohesion and low separation</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,6,'q6fb')">C. Low cohesion and high separation</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,true,6,'q6fb')">D. High cohesion and high separation</button>
+    </div>
+    <div class="quiz-feedback" id="q6fb">Correct! The ideal cluster has <strong>High Cohesion</strong> (points are tight within the cluster) AND <strong>High Separation</strong> (clusters are clearly far from each other). This is the gold standard of cluster validity.</div>
+  </div>
+</div>
+
+<!-- Bottom nav -->
+<div class="page-nav">
+  <a class="page-nav-btn" href="hierarchical.html">← Hierarchical Clustering</a>
+  <a class="page-nav-btn primary" href="#">Next: Outlier Detection →</a>
+</div>
+
+</main>
+</div><!-- /page-grid -->
+
+<script>
+/* ── Theme ── */
+let isLight = localStorage.getItem('theme') === 'light';
+function applyTheme() {
+  document.documentElement.classList.toggle('light', isLight);
+  const i = isLight ? '◑' : '☀', l = isLight ? 'Light' : 'Dark';
+  ['tog-icon','mob-tog'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=i;});
+  const tt=document.getElementById('tog-txt');if(tt)tt.textContent=l+' theme';
+  const tl=document.getElementById('theme-lbl');if(tl)tl.textContent=l;
+}
+applyTheme();
+function toggleTheme(){isLight=!isLight;localStorage.setItem('theme',isLight?'light':'dark');applyTheme();}
+
+/* ── Scroll active nav ── */
+const secs = Array.from(document.querySelectorAll('.section[id]'));
+let lastId='',rafP=false;
+window.addEventListener('scroll',()=>{
+  if(rafP)return;rafP=true;
+  requestAnimationFrame(()=>{
+    rafP=false;
+    const trigger=window.scrollY+window.innerHeight*.28;
+    let active=secs[0];
+    for(const s of secs){if(s.offsetTop<=trigger)active=s;else break;}
+    if(active&&active.id!==lastId){
+      lastId=active.id;
+      document.querySelectorAll('.nav-item,.drawer-nav-item').forEach(n=>{
+        n.classList.toggle('active',n.getAttribute('href')==='#'+active.id);
+      });
+    }
+  });
+},{passive:true});
+
+/* ── Drawer ── */
+function buildDrawer(){
+  const dr=document.getElementById('nav-drawer');
+  const sn=document.getElementById('sidenav');
+  if(!sn||!dr)return;
+  const cl=sn.cloneNode(true);
+  cl.removeAttribute('id');cl.removeAttribute('class');
+  cl.querySelectorAll('.nav-item').forEach(el=>{el.classList.add('drawer-nav-item');el.addEventListener('click',closeDrawer);});
+  const tog=cl.querySelector('.tog-area');if(tog)tog.remove();
+  const cb=document.createElement('button');
+  cb.textContent='✕ Close';
+  cb.style.cssText='font-family:"IBM Plex Mono",monospace;font-size:11px;background:transparent;border:none;border-bottom:1px solid var(--bdr-00);color:var(--txt-ph);padding:12px 16px;width:100%;text-align:left;cursor:pointer';
+  cb.onclick=closeDrawer;
+  dr.insertBefore(cb,dr.firstChild);
+  dr.appendChild(cl);
+}
+function toggleDrawer(){
+  const ov=document.getElementById('nav-overlay'),dr=document.getElementById('nav-drawer');
+  if(dr.classList.contains('open')){closeDrawer();}
+  else{ov.style.display='block';setTimeout(()=>ov.classList.add('open'),10);dr.classList.add('open');document.body.style.overflow='hidden';}
+}
+function closeDrawer(){
+  const ov=document.getElementById('nav-overlay'),dr=document.getElementById('nav-drawer');
+  ov.classList.remove('open');dr.classList.remove('open');document.body.style.overflow='';
+  setTimeout(()=>{ov.style.display='none';},270);
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer();});
+document.fonts.ready.then(()=>buildDrawer());
+
+/* ── Cohesion & Separation Demo ── */
+const csCanvas=document.getElementById('cs-canvas');
+const csCtx=csCanvas.getContext('2d');
+let csPoints={A:[],B:[]};
+let activeCluster='A';
+const COLORS={A:'#3ddbd9',B:'#4589ff'};
+
+function resizeCS(){
+  csCanvas.width=csCanvas.offsetWidth;
+  csCanvas.height=csCanvas.offsetHeight;
+  drawCS();
+}
+window.addEventListener('resize',resizeCS);
+setTimeout(resizeCS,100);
+
+csCanvas.addEventListener('click',e=>{
+  const r=csCanvas.getBoundingClientRect();
+  const x=(e.clientX-r.left)*(csCanvas.width/r.width);
+  const y=(e.clientY-r.top)*(csCanvas.height/r.height);
+  csPoints[activeCluster].push({x,y});
+  drawCS();updateCSScores();
+  document.getElementById('cs-status').textContent=`Added point to Cluster ${activeCluster} · A:${csPoints.A.length} pts, B:${csPoints.B.length} pts`;
+});
+
+function setActiveCluster(c){
+  activeCluster=c;
+  document.getElementById('btn-cluster-a').className='sim-btn'+(c==='A'?' primary':'');
+  document.getElementById('btn-cluster-b').className='sim-btn'+(c==='B'?' primary':'');
+}
+
+function drawCS(){
+  csCtx.clearRect(0,0,csCanvas.width,csCanvas.height);
+  ['A','B'].forEach(cl=>{
+    const pts=csPoints[cl];
+    if(pts.length===0)return;
+    // Draw convex hull fill if enough points
+    csCtx.beginPath();
+    pts.forEach((p,i)=>i===0?csCtx.moveTo(p.x,p.y):csCtx.lineTo(p.x,p.y));
+    csCtx.closePath();
+    csCtx.fillStyle=COLORS[cl]+'22';
+    csCtx.fill();
+    // Draw points
+    pts.forEach(p=>{
+      csCtx.beginPath();
+      csCtx.arc(p.x,p.y,6,0,Math.PI*2);
+      csCtx.fillStyle=COLORS[cl];
+      csCtx.fill();
+      csCtx.strokeStyle=isLight?'#fff':'#161616';
+      csCtx.lineWidth=1.5;
+      csCtx.stroke();
+    });
+    // Draw centroid
+    if(pts.length>0){
+      const cx=pts.reduce((s,p)=>s+p.x,0)/pts.length;
+      const cy=pts.reduce((s,p)=>s+p.y,0)/pts.length;
+      csCtx.beginPath();
+      csCtx.moveTo(cx-8,cy);csCtx.lineTo(cx+8,cy);
+      csCtx.moveTo(cx,cy-8);csCtx.lineTo(cx,cy+8);
+      csCtx.strokeStyle=COLORS[cl];
+      csCtx.lineWidth=3;
+      csCtx.stroke();
+    }
+  });
+  // Draw separation line between centroids
+  if(csPoints.A.length>0&&csPoints.B.length>0){
+    const cax=csPoints.A.reduce((s,p)=>s+p.x,0)/csPoints.A.length;
+    const cay=csPoints.A.reduce((s,p)=>s+p.y,0)/csPoints.A.length;
+    const cbx=csPoints.B.reduce((s,p)=>s+p.x,0)/csPoints.B.length;
+    const cby=csPoints.B.reduce((s,p)=>s+p.y,0)/csPoints.B.length;
+    csCtx.setLineDash([6,4]);
+    csCtx.beginPath();csCtx.moveTo(cax,cay);csCtx.lineTo(cbx,cby);
+    csCtx.strokeStyle='#f1c21b80';csCtx.lineWidth=1.5;csCtx.stroke();
+    csCtx.setLineDash([]);
+  }
+}
+
+function avgDist(pts){
+  if(pts.length<2)return 0;
+  let sum=0,cnt=0;
+  for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){
+    sum+=Math.hypot(pts[i].x-pts[j].x,pts[i].y-pts[j].y);cnt++;
+  }
+  return sum/cnt;
+}
+function centroid(pts){
+  if(!pts.length)return null;
+  return{x:pts.reduce((s,p)=>s+p.x,0)/pts.length,y:pts.reduce((s,p)=>s+p.y,0)/pts.length};
+}
+
+function updateCSScores(){
+  const ca=avgDist(csPoints.A);
+  const cb=avgDist(csPoints.B);
+  const cA=centroid(csPoints.A),cB=centroid(csPoints.B);
+  const sep=cA&&cB?Math.hypot(cA.x-cB.x,cA.y-cB.y):0;
+  document.getElementById('coh-a').textContent=csPoints.A.length>1?ca.toFixed(1)+'px':'—';
+  document.getElementById('coh-b').textContent=csPoints.B.length>1?cb.toFixed(1)+'px':'—';
+  document.getElementById('sep-score').textContent=sep>0?sep.toFixed(1)+'px':'—';
+}
+
+function addRandomClusters(){
+  resetCS();
+  const w=csCanvas.width||500,h=csCanvas.height||300;
+  const ax=w*.25,ay=h*.5,bx=w*.75,by=h*.4;
+  for(let i=0;i<8;i++){csPoints.A.push({x:ax+(Math.random()-.5)*w*.15,y:ay+(Math.random()-.5)*h*.2});}
+  for(let i=0;i<8;i++){csPoints.B.push({x:bx+(Math.random()-.5)*w*.15,y:by+(Math.random()-.5)*h*.2});}
+  drawCS();updateCSScores();
+  document.getElementById('cs-status').textContent='Random clusters generated — notice the high separation and cohesion!';
+}
+
+function resetCS(){
+  csPoints={A:[],B:[]};
+  drawCS();
+  document.getElementById('coh-a').textContent='—';
+  document.getElementById('coh-b').textContent='—';
+  document.getElementById('sep-score').textContent='—';
+  document.getElementById('cs-status').textContent='Click canvas to add points · Select cluster with buttons below';
+}
+
+/* ── Silhouette Demo ── */
+function updateSilhouette(){
+  const a=parseInt(document.getElementById('sil-a').value);
+  const b=parseInt(document.getElementById('sil-b').value);
+  document.getElementById('a-val').textContent=a;
+  document.getElementById('b-val').textContent=b;
+  const s=(b-a)/Math.max(a,b);
+  const scoreEl=document.getElementById('sil-score');
+  scoreEl.textContent=s.toFixed(3);
+  let col,verdict;
+  if(s>0.5){col='var(--success)';verdict='✅ Excellent clustering';}
+  else if(s>0){col='var(--warn)';verdict='⚠ Weak / borderline clustering';}
+  else{col='var(--error)';verdict='❌ Wrong cluster assignment';}
+  scoreEl.style.color=col;
+  document.getElementById('sil-verdict').textContent=verdict;
+  const pct=((s+1)/2)*100;
+  document.getElementById('sil-needle').style.left=pct+'%';
+}
+updateSilhouette();
+
+/* ── Quiz ── */
+let quizScore=0;
+const answered=new Set();
+function checkQuiz(el,isCorrect,qNum,fbId){
+  if(answered.has(qNum))return;
+  answered.add(qNum);
+  el.classList.add(isCorrect?'correct':'wrong');
+  if(isCorrect){quizScore++;document.getElementById('quiz-total').textContent=quizScore;}
+  else{el.parentElement.querySelectorAll('.quiz-opt').forEach(b=>{if(b.getAttribute('onclick').includes('true'))b.classList.add('correct');});}
+  const fb=document.getElementById(fbId);fb.style.display='block';
+  el.parentElement.querySelectorAll('.quiz-opt').forEach(b=>{b.disabled=true;b.style.cursor='default';});
+}
+
+/* ── Code Protection ── */
+(function(){
+  var _p=function(e){e.preventDefault();return false;};
+  document.addEventListener('contextmenu',_p);
+  document.addEventListener('keydown',function(e){
+    var k=(e.key||'').toUpperCase(),c=e.ctrlKey||e.metaKey,s=e.shiftKey;
+    if(e.key==='F12'||(c&&s&&['I','J','C','K'].includes(k))||(c&&['U','S','P'].includes(k))){e.preventDefault();return false;}
+  },true);
+  document.addEventListener('dragstart',_p);
+})();
+</script>
+<script src="../tony_keys.js"></script>
+<script src="../tony.js"></script>
+</body>
+</html>
