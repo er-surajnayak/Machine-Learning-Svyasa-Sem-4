@@ -1,0 +1,1351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="../machine-learning-model.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hierarchical Clustering | Module 4 · Svyasa</title>
+<meta name="description" content="Learn agglomerative and divisive hierarchical clustering, dendrograms, linkage methods, and how to choose K from a tree.">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;1,300&family=IBM+Plex+Serif:ital,wght@0,300;1,300&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#161616;--layer-01:#262626;--layer-02:#393939;--layer-03:#525252;
+  --hover-01:#333333;--bdr-00:#393939;--bdr-01:#474747;--bdr-str:#6f6f6f;
+  --txt-pri:#f4f4f4;--txt-sec:#c6c6c6;--txt-ph:#6f6f6f;
+  --blue:#4589ff;--link:#78a9ff;--success:#42be65;--warn:#f1c21b;--error:#ff8389;--teal:#3ddbd9;--purple:#d4bbff;
+  --ac:#42be65;--ac-dim:rgba(66,190,101,0.15);--ac-glow:rgba(66,190,101,0.35);
+}
+html.light{
+  --bg:#fff;--layer-01:#f4f4f4;--layer-02:#e0e0e0;--layer-03:#c6c6c6;
+  --hover-01:#e8e8e8;--bdr-00:#e0e0e0;--bdr-01:#c6c6c6;--bdr-str:#8d8d8d;
+  --txt-pri:#161616;--txt-sec:#525252;--txt-ph:#8d8d8d;
+  --blue:#0f62fe;--link:#0043ce;--success:#198038;--warn:#b28600;--error:#da1e28;--teal:#007d79;--purple:#6929c4;
+  --ac:#198038;--ac-dim:rgba(25,128,56,0.12);--ac-glow:rgba(25,128,56,0.25);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'IBM Plex Sans',sans-serif;font-size:15px;line-height:1.5;background:var(--bg);color:var(--txt-pri);-webkit-font-smoothing:antialiased;transition:background .25s,color .2s}
+a{text-decoration:none;color:inherit}
+
+.page-grid{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+
+.sidenav{background:var(--layer-01);border-right:1px solid var(--bdr-00);position:sticky;top:0;height:100vh;overflow-y:auto;padding-bottom:32px;transition:background .25s,border-color .2s}
+.nav-hdr{padding:16px;border-bottom:1px solid var(--bdr-00);margin-bottom:4px}
+.nav-back{display:flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph);letter-spacing:.06em;margin-bottom:8px;transition:color .15s}
+.nav-back:hover{color:var(--ac)}
+.nav-mod{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;color:var(--ac);text-transform:uppercase;margin-bottom:3px}
+.nav-title{font-size:13px;font-weight:600;color:var(--txt-pri);line-height:1.3}
+.nav-sec{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;color:var(--txt-ph);text-transform:uppercase;padding:12px 16px 4px}
+.nav-item{display:flex;align-items:center;gap:8px;padding:8px 16px;font-size:13px;color:var(--txt-sec);cursor:pointer;border-left:3px solid transparent;transition:background .1s,color .1s,border-color .1s;text-decoration:none}
+.nav-item:hover{background:var(--hover-01);color:var(--txt-pri)}
+.nav-item.active{background:var(--hover-01);color:var(--txt-pri);border-left-color:var(--ac);font-weight:600}
+.nav-item.active .nn{color:var(--ac)}
+.nn{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--txt-ph);min-width:16px;transition:color .15s}
+.tog-area{padding:20px 16px 0}
+.tog-btn{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding:8px 10px;background:var(--layer-02);border:1px solid var(--bdr-01);cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-sec);letter-spacing:.05em;transition:background .15s}
+.tog-btn:hover{background:var(--hover-01);color:var(--txt-pri)}
+.tog-track{width:26px;height:13px;background:var(--bdr-str);border-radius:7px;position:relative;flex-shrink:0;transition:background .25s}
+.tog-thumb{position:absolute;top:2px;left:2px;width:9px;height:9px;border-radius:50%;background:#fff;transition:transform .25s}
+html.light .tog-track{background:var(--ac)}
+html.light .tog-thumb{transform:translateX(13px)}
+
+.mob-topbar{display:none;position:fixed;top:0;left:0;right:0;z-index:200;height:52px;background:var(--layer-01);border-bottom:1px solid var(--bdr-00);align-items:center;padding:0 16px;gap:8px;transition:background .25s}
+.mob-menu-btn{width:34px;height:34px;background:transparent;border:1px solid var(--bdr-01);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-direction:column;gap:4px}
+.mob-bar{width:14px;height:1.5px;background:var(--txt-pri)}
+.mob-title{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--txt-pri);flex:1;letter-spacing:.04em}
+.mob-tog{width:34px;height:34px;background:transparent;border:1px solid var(--bdr-01);cursor:pointer;font-size:14px;color:var(--txt-sec)}
+
+.nav-overlay{display:none;position:fixed;inset:0;z-index:150;background:rgba(0,0,0,.6);opacity:0;transition:opacity .25s}
+.nav-overlay.open{opacity:1}
+.nav-drawer{position:fixed;left:0;top:0;bottom:0;z-index:160;width:260px;background:var(--layer-01);border-right:1px solid var(--bdr-00);overflow-y:auto;transform:translateX(-100%);transition:transform .3s cubic-bezier(.4,0,.2,1);padding-bottom:32px}
+.nav-drawer.open{transform:translateX(0)}
+
+.main{padding:0 48px 100px;max-width:820px;transition:background .25s}
+.page-hdr{padding:52px 0 40px;border-bottom:1px solid var(--bdr-00);margin-bottom:52px}
+.breadcrumb{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-ph);letter-spacing:.05em;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.breadcrumb a{color:var(--ac);transition:opacity .15s}.breadcrumb a:hover{opacity:.7}
+h1{font-family:'IBM Plex Serif',serif;font-size:clamp(34px,5vw,54px);font-weight:300;line-height:1.15;color:var(--txt-pri);margin-bottom:12px}
+h1 em{font-style:italic;color:var(--ac)}
+.hdr-desc{font-size:15px;font-weight:300;color:var(--txt-sec);max-width:580px;line-height:1.7}
+
+.section{margin-bottom:60px;opacity:0;transform:translateY(14px);animation:fadeUp .4s ease forwards}
+.section:nth-child(1){animation-delay:.05s}.section:nth-child(2){animation-delay:.10s}
+.section:nth-child(3){animation-delay:.15s}.section:nth-child(4){animation-delay:.20s}
+.section:nth-child(5){animation-delay:.25s}.section:nth-child(6){animation-delay:.30s}
+.section:nth-child(7){animation-delay:.35s}.section:nth-child(8){animation-delay:.40s}
+.section:nth-child(9){animation-delay:.45s}.section:nth-child(10){animation-delay:.50s}
+.section:nth-child(11){animation-delay:.55s}.section:nth-child(12){animation-delay:.60s}
+.section:nth-child(13){animation-delay:.65s}.section:nth-child(14){animation-delay:.70s}
+.section:nth-child(15){animation-delay:.75s}.section:nth-child(16){animation-delay:.80s}
+@keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
+
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;color:var(--ac);text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.eyebrow::before{content:'';display:inline-block;width:14px;height:1px;background:var(--ac)}
+h2{font-family:'IBM Plex Serif',serif;font-size:24px;font-weight:300;color:var(--txt-pri);margin-bottom:14px;line-height:1.25}
+h3{font-size:16px;font-weight:600;color:var(--txt-pri);margin-bottom:8px}
+p{font-size:14px;font-weight:300;color:var(--txt-sec);margin-bottom:12px;line-height:1.75}
+p strong{color:var(--txt-pri);font-weight:600}
+ul{padding-left:0;list-style:none}
+ul li{position:relative;padding-left:16px;margin-bottom:8px;font-size:14px;font-weight:300;color:var(--txt-sec);line-height:1.6}
+ul li::before{content:'';position:absolute;left:0;top:9px;width:5px;height:1px;background:var(--ac)}
+
+.cmp-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px;text-align:left;border:1px solid var(--bdr-01)}
+.cmp-table th{background:var(--layer-02);color:var(--ac);padding:12px 16px;font-weight:600}
+.cmp-table td{padding:12px 16px;border-top:1px solid var(--bdr-00);color:var(--txt-sec)}
+.cmp-table tr:nth-child(even) td{background:var(--layer-01)}
+.cmp-table tr:nth-child(odd) td{background:var(--bg)}
+
+.callout{border-left:3px solid var(--ac);background:var(--layer-01);padding:14px 18px;margin:14px 0;font-size:14px;font-weight:300;color:var(--txt-sec);line-height:1.75;transition:background .25s}
+.callout strong{color:var(--txt-pri);font-weight:600}
+.callout-g{border-left-color:var(--success)}
+.callout-y{border-left-color:var(--warn)}
+.callout-b{border-left-color:var(--link)}
+.callout-r{border-left-color:var(--error)}
+
+.tile{background:var(--layer-01);border:1px solid var(--bdr-00);padding:20px 24px;margin-bottom:12px;transition:background .25s,border-color .2s}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--bdr-00);border:1px solid var(--bdr-00);margin:14px 0}
+.gcell{background:var(--layer-01);padding:20px 22px;transition:background .25s}
+.kv{display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--bdr-00);font-size:13px;gap:12px}
+.kv:last-child{border-bottom:none}
+.kk{color:var(--txt-sec);font-weight:300;flex-shrink:0}
+.kv-v{color:var(--txt-pri);font-weight:400;text-align:right}
+
+.tag{display:inline-flex;align-items:center;height:22px;padding:0 10px;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.03em;margin-bottom:10px}
+.t-bl{background:#0043ce;color:#a6c8ff}
+.t-gr{background:#044317;color:#a7f0ba}
+.t-re{background:#750e13;color:#ffb3b8}
+.t-cy{background:#003a3a;color:#9ef0f0}
+.t-pu{background:#31135e;color:#e8daff}
+.t-ye{background:#044317;color:#a7f0ba}
+html.light .t-bl{background:#d0e2ff;color:#0043ce}
+html.light .t-gr{background:#a7f0ba;color:#044317}
+html.light .t-re{background:#ffd7d9;color:#750e13}
+html.light .t-cy{background:#d9fbfb;color:#005d5d}
+html.light .t-pu{background:#e8daff;color:#31135e}
+html.light .t-ye{background:#a7f0ba;color:#044317}
+
+.formula{font-family:'IBM Plex Mono',monospace;font-size:13px;background:var(--layer-02);border:1px solid var(--bdr-01);border-left:3px solid var(--ac);padding:11px 15px;margin:10px 0;line-height:2;color:var(--txt-pri)}
+
+.step-flow{display:flex;flex-direction:column;gap:0;margin:16px 0}
+.step-item{display:grid;grid-template-columns:40px 1fr;gap:0;position:relative}
+.step-item:not(:last-child)::after{content:'';position:absolute;left:19px;top:40px;bottom:0;width:1px;background:var(--bdr-01)}
+.step-dot{width:38px;height:38px;background:var(--layer-02);border:2px solid var(--ac);display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--ac);flex-shrink:0;z-index:1}
+.step-body{padding:8px 0 20px 16px}
+.step-title{font-size:14px;font-weight:600;color:var(--txt-pri);margin-bottom:4px}
+.step-desc{font-size:13px;color:var(--txt-sec);line-height:1.7}
+.step-item.warn .step-dot{border-color:var(--warn);color:var(--warn)}
+
+.interactive-wrap{background:var(--layer-01);border:1px solid var(--bdr-00);padding:24px;margin:16px 0;position:relative;overflow:hidden}
+.interactive-wrap::before{content:'INTERACTIVE';position:absolute;top:0;right:0;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.12em;color:var(--ac);background:var(--ac-dim);border-left:1px solid var(--bdr-00);border-bottom:1px solid var(--bdr-00);padding:4px 10px}
+.iw-title{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;color:var(--txt-ph);text-transform:uppercase;margin-bottom:16px;border-bottom:1px solid var(--bdr-00);padding-bottom:10px}
+
+.sim-controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.sim-btn{padding:8px 16px;font-family:'IBM Plex Mono',monospace;font-size:11px;background:transparent;border:1px solid var(--bdr-01);color:var(--txt-sec);cursor:pointer;transition:all .15s;letter-spacing:.04em;position:relative;overflow:hidden}
+.sim-btn:hover:not(:disabled){background:var(--hover-01);color:var(--txt-pri)}
+.sim-btn.primary{background:var(--ac);border-color:var(--ac);color:#000;font-weight:600}
+.sim-btn.primary:hover:not(:disabled){opacity:.85;box-shadow:0 0 16px var(--ac-glow)}
+.sim-btn:disabled{opacity:.45;cursor:not-allowed}
+.sim-btn.pulse-once{animation:btnPulse .4s ease}
+@keyframes btnPulse{0%{box-shadow:0 0 0 0 var(--ac-glow)}70%{box-shadow:0 0 0 10px transparent}100%{box-shadow:none}}
+
+.demo-canvas{width:100%;height:300px;background:var(--layer-02);border:1px solid var(--bdr-01);display:block;cursor:crosshair}
+.km-info{display:flex;justify-content:space-between;margin-top:10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-sec)}
+
+.merge-log{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-sec);height:80px;overflow:hidden;margin:10px 0;border:1px solid var(--bdr-00);padding:8px 10px;background:var(--layer-02);display:flex;flex-direction:column;gap:3px;position:relative}
+.merge-log::before{content:'';position:absolute;top:0;left:0;right:0;height:20px;background:linear-gradient(to bottom, var(--layer-02), transparent);z-index:1;pointer-events:none}
+.log-line{font-size:11px;line-height:1.5;animation:logSlide .3s ease forwards;opacity:0;transform:translateX(-6px)}
+@keyframes logSlide{to{opacity:1;transform:translateX(0)}}
+.log-step{color:var(--ac)}
+.log-pts{color:var(--txt-pri)}
+.log-dist{color:var(--warn)}
+
+.speed-row{display:flex;align-items:center;gap:10px;margin-top:10px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-ph)}
+.speed-slider{flex:1;-webkit-appearance:none;height:2px;background:var(--bdr-str);outline:none;border-radius:1px}
+.speed-slider::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:var(--ac);cursor:pointer}
+.speed-slider::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:var(--ac);cursor:pointer;border:none}
+
+#dendro-svg{background:var(--layer-02);border:1px solid var(--bdr-01);display:block;touch-action:none;user-select:none;cursor:ns-resize}
+
+.carbon-radio-group{display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap}
+.carbon-radio{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--txt-sec);transition:color .2s;font-family:'IBM Plex Mono',monospace}
+.carbon-radio:hover{color:var(--txt-pri)}
+.carbon-radio input{display:none}
+.carbon-radio-dot{width:14px;height:14px;border:1px solid var(--txt-sec);border-radius:2px;display:flex;align-items:center;justify-content:center;transition:border-color .2s,box-shadow .2s}
+.carbon-radio input:checked + .carbon-radio-dot{border-color:var(--ac);box-shadow:0 0 0 2px var(--ac-glow)}
+.carbon-radio input:checked + .carbon-radio-dot::after{content:'';width:8px;height:8px;background:var(--ac);border-radius:1px}
+.carbon-radio input:checked ~ span{color:var(--txt-pri);font-weight:500}
+
+.cluster-badge{display:inline-flex;align-items:center;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--txt-pri);margin-top:12px;padding:10px 14px;background:var(--layer-02);border:1px solid var(--bdr-00)}
+.cluster-count{font-size:24px;font-weight:600;color:var(--ac);line-height:1;transition:all .2s}
+.cluster-count.changed{animation:countPop .35s ease}
+@keyframes countPop{0%{transform:scale(1.5);color:var(--warn)}100%{transform:scale(1);color:var(--ac)}}
+
+.quiz-card{background:var(--layer-01);border:1px solid var(--bdr-00);padding:20px;margin-bottom:12px;transition:border-color .2s}
+.quiz-q{font-size:14px;font-weight:600;color:var(--txt-pri);margin-bottom:14px;line-height:1.5}
+.quiz-options{display:flex;flex-direction:column;gap:8px}
+.quiz-opt{padding:10px 14px;background:var(--layer-02);border:1px solid var(--bdr-01);font-size:13px;color:var(--txt-sec);cursor:pointer;text-align:left;transition:all .15s;font-family:'IBM Plex Sans',sans-serif;width:100%}
+.quiz-opt:hover:not(:disabled){background:var(--hover-01);color:var(--txt-pri);border-color:var(--ac)}
+.quiz-opt.correct{background:rgba(66,190,101,.15);border-color:var(--success);color:var(--success)}
+.quiz-opt.wrong{background:rgba(255,131,137,.1);border-color:var(--error);color:var(--error)}
+.quiz-feedback{font-size:13px;color:var(--txt-sec);margin-top:10px;padding:10px;border-left:3px solid var(--ac);background:var(--layer-02);display:none;line-height:1.6;animation:fadeUp .3s ease}
+
+.page-nav{display:flex;justify-content:space-between;align-items:center;padding-top:40px;border-top:1px solid var(--bdr-00);margin-top:60px}
+.page-nav-btn{display:flex;align-items:center;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-sec);padding:10px 16px;border:1px solid var(--bdr-01);background:transparent;cursor:pointer;transition:background .15s,color .15s;text-decoration:none}
+.page-nav-btn:hover{background:var(--hover-01);color:var(--txt-pri)}
+.page-nav-btn.primary{background:var(--ac);border-color:var(--ac);color:#000;font-weight:600}
+.page-nav-btn.primary:hover{opacity:.9;box-shadow:0 0 16px var(--ac-glow)}
+
+@media(max-width:767px){
+  .mob-topbar{display:flex}
+  .sidenav{display:none}
+  .page-grid{display:block}
+  .main{padding:68px 16px 80px;max-width:100%}
+  .page-hdr{padding:24px 0 20px;margin-bottom:32px}
+  h1{font-size:24px}
+  .grid2{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="mob-topbar" id="mob-topbar">
+  <button class="mob-menu-btn" onclick="toggleDrawer()" aria-label="Menu">
+    <div class="mob-bar"></div><div class="mob-bar"></div><div class="mob-bar"></div>
+  </button>
+  <span class="mob-title">Hierarchical Clustering</span>
+  <button class="mob-tog" onclick="toggleTheme()" id="mob-tog">☀</button>
+</div>
+<div class="nav-overlay" id="nav-overlay" onclick="closeDrawer()"></div>
+<nav class="nav-drawer" id="nav-drawer"></nav>
+
+<div class="page-grid">
+<nav class="sidenav" id="sidenav">
+  <div class="nav-hdr">
+    <a class="nav-back" href="index_11.html">← Module 4</a>
+    <div class="nav-mod">Topic 02</div>
+    <div class="nav-title">Hierarchical</div>
+  </div>
+  <div class="nav-sec">Sections</div>
+  <a class="nav-item active" href="#s1"><span class="nn">01</span>The Problem with K-Means</a>
+  <a class="nav-item" href="#s2"><span class="nn">02</span>Core Idea</a>
+  <a class="nav-item" href="#s3"><span class="nn">03</span>Real-Life Analogy</a>
+  <a class="nav-item" href="#s4"><span class="nn">04</span>Agglomerative Clustering</a>
+  <a class="nav-item" href="#s5"><span class="nn">05</span>Divisive Clustering</a>
+  <a class="nav-item" href="#s6"><span class="nn">06</span>Linkage Methods</a>
+  <a class="nav-item" href="#s7"><span class="nn">07</span>The Dendrogram</a>
+  <a class="nav-item" href="#s8"><span class="nn">08</span>Demo — Agglomerative</a>
+  <a class="nav-item" href="#s9"><span class="nn">09</span>Demo — Dendrogram Builder</a>
+  <a class="nav-item" href="#s10"><span class="nn">10</span>Demo — Linkage Comparator</a>
+  <a class="nav-item" href="#s11"><span class="nn">11</span>Hierarchical vs K-Means</a>
+  <a class="nav-item" href="#s12"><span class="nn">12</span>Real-Life Applications</a>
+  <a class="nav-item" href="#s13"><span class="nn">13</span>Advantages &amp; Limitations</a>
+  <a class="nav-item" href="#s14"><span class="nn">14</span>When NOT to Use</a>
+  <a class="nav-item" href="#s15"><span class="nn">15</span>Exam Note</a>
+  <a class="nav-item" href="#s16"><span class="nn">16</span>Quiz Yourself</a>
+  <div class="tog-area">
+    <button class="tog-btn" onclick="toggleTheme()">
+      <span style="display:flex;align-items:center;gap:6px"><span id="tog-icon">☀</span><span id="tog-txt">Light theme</span></span>
+      <span class="tog-track"><span class="tog-thumb"></span></span>
+    </button>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph);margin-top:10px;line-height:1.6">IBM Carbon · <span id="theme-lbl">Dark</span></div>
+  </div>
+</nav>
+
+<main class="main">
+<div class="page-hdr">
+  <div class="breadcrumb">
+    <a href="../index.html">Home</a><span>/</span>
+    <a href="index_11.html">Module 4</a><span>/</span>
+    <span style="color:var(--txt-sec)">Hierarchical Clustering</span>
+  </div>
+  <h1>Hierarchical<br><em>Clustering</em></h1>
+  <p class="hdr-desc">Build on your K-Means knowledge. Hierarchical clustering lets data reveal its own structure — no need to choose K upfront. Master dendrograms, linkage methods, and agglomerative merging step by step.</p>
+</div>
+
+<!-- S1 -->
+<div class="section" id="s1">
+  <div class="eyebrow">01 · The Problem</div>
+  <h2>Why K-Means Isn't Always Enough</h2>
+  <div class="callout callout-y">📌 You've already mastered K-Means. But it has one silent assumption baked in — you must already know K before you start.</div>
+  <table class="cmp-table">
+    <thead><tr><th>K-Means Problem</th><th>Hierarchical Solution</th></tr></thead>
+    <tbody>
+      <tr><td>Need to specify K upfront</td><td>K revealed by the dendrogram</td></tr>
+      <tr><td>Sensitive to centroid placement</td><td>No centroids — distance-based</td></tr>
+      <tr><td>Assumes spherical clusters only</td><td>Captures complex shapes</td></tr>
+      <tr><td>No visual of cluster relationships</td><td>Dendrogram shows full hierarchy</td></tr>
+    </tbody>
+  </table>
+  <div class="callout callout-b"><strong>🧠 One-Line Intuition:</strong> Hierarchical clustering lets the data naturally reveal relationships — step by step.</div>
+</div>
+
+<!-- S2 -->
+<div class="section" id="s2">
+  <div class="eyebrow">02 · Core Idea</div>
+  <h2>What is Hierarchical Clustering?</h2>
+  <div class="callout" style="border-left-color:var(--ac)"><strong>📌 Definition:</strong> Hierarchical clustering builds a tree-like structure called a dendrogram, showing how data points group together at different levels of similarity — without needing K specified upfront.</div>
+  <div style="margin:16px 0;display:flex;gap:8px;flex-wrap:wrap">
+    <div class="tag t-gr">⬆ Agglomerative — Bottom-Up</div>
+    <div class="tag t-bl">⬇ Divisive — Top-Down</div>
+  </div>
+  <div class="callout callout-b"><strong>🧠 Intuition:</strong> Think of organizing a college fest. First you find students with similar interests, then friend circles, then full departments. You build groups gradually — that's hierarchical clustering.</div>
+</div>
+
+<!-- S3 -->
+<div class="section" id="s3">
+  <div class="eyebrow">03 · Real-Life Analogy</div>
+  <h2>Cybersecurity: Clustering Suspicious IPs</h2>
+  <div class="callout" style="border-left-color:var(--ac)">A SOC analyst has 5 suspicious IPs flagged by the SIEM. Instead of manually reviewing each, hierarchical clustering groups them by attack behavior similarity.</div>
+  <table class="cmp-table">
+    <thead><tr><th>IP Address</th><th>Observed Behavior</th><th>Threat Type</th></tr></thead>
+    <tbody>
+      <tr><td>IP-A</td><td>Port scanning attempts</td><td>Reconnaissance</td></tr>
+      <tr><td>IP-B</td><td>Port scanning attempts</td><td>Reconnaissance</td></tr>
+      <tr><td>IP-C</td><td>SQL injection payloads</td><td>Web Attack</td></tr>
+      <tr><td>IP-D</td><td>SQL injection payloads</td><td>Web Attack</td></tr>
+      <tr><td>IP-E</td><td>High-volume UDP flood</td><td>DDoS</td></tr>
+    </tbody>
+  </table>
+  <div class="step-flow">
+    <div class="step-item"><div class="step-dot">1</div><div class="step-body"><div class="step-title">IP-A + IP-B merge</div><div class="step-desc">Both port scanners — distance: 0.8</div></div></div>
+    <div class="step-item"><div class="step-dot">2</div><div class="step-body"><div class="step-title">IP-C + IP-D merge</div><div class="step-desc">Both SQL injection — distance: 1.1</div></div></div>
+    <div class="step-item"><div class="step-dot">3</div><div class="step-body"><div class="step-title">(IP-A,B) + (IP-C,D) merge</div><div class="step-desc">Both recon/web attacks — distance: 2.4</div></div></div>
+    <div class="step-item"><div class="step-dot">4</div><div class="step-body"><div class="step-title">IP-E remains isolated</div><div class="step-desc">DDoS is very different — distance: 4.7</div></div></div>
+    <div class="step-item"><div class="step-dot">5</div><div class="step-body"><div class="step-title">Final merge — all into one root cluster</div><div class="step-desc">Forced merge at distance: 4.7</div></div></div>
+  </div>
+  <div class="callout callout-b">💡 IP-E (DDoS) merges last at the highest distance — exactly what a threat analyst would expect. The algorithm discovered the threat categories without any labels.</div>
+  <div class="grid2">
+    <div class="gcell"><div class="tag t-ye">Spotify</div><p style="margin:0;font-size:13px">Groups songs by audio features without genre labels</p></div>
+    <div class="gcell"><div class="tag t-ye">Google Photos</div><p style="margin:0;font-size:13px">Clusters similar faces across your library</p></div>
+    <div class="gcell"><div class="tag t-ye">Amazon</div><p style="margin:0;font-size:13px">Groups products by purchase co-occurrence</p></div>
+    <div class="gcell"><div class="tag t-ye">XCloak / SIEM</div><p style="margin:0;font-size:13px">Clusters malware samples by behavioral signatures</p></div>
+  </div>
+</div>
+
+<!-- S4 -->
+<div class="section" id="s4">
+  <div class="eyebrow">04 · Agglomerative</div>
+  <h2>Bottom-Up Clustering</h2>
+  <div class="callout" style="border-left-color:var(--ac)"><strong>📌 Definition:</strong> Start with every point as its own cluster. Repeatedly merge the two closest clusters until only one cluster remains.</div>
+  <div class="step-flow">
+    <div class="step-item"><div class="step-dot">1</div><div class="step-body"><div class="step-title">Treat every data point as its own individual cluster</div></div></div>
+    <div class="step-item"><div class="step-dot">2</div><div class="step-body"><div class="step-title">Compute pairwise distances between all clusters</div></div></div>
+    <div class="step-item"><div class="step-dot">3</div><div class="step-body"><div class="step-title">Merge the two closest clusters into one</div></div></div>
+    <div class="step-item"><div class="step-dot">4</div><div class="step-body"><div class="step-title">Recompute distances from the new merged cluster to all others</div></div></div>
+    <div class="step-item"><div class="step-dot">5</div><div class="step-body"><div class="step-title">Repeat steps 2–4 until all points belong to one cluster</div></div></div>
+  </div>
+  <div class="callout callout-b"><strong>🧠 Visual Intuition:</strong> Like water drops joining together. Small drops → bigger drops → one large drop. Each merge is permanent.</div>
+<pre style="font-family:'IBM Plex Mono',monospace;background:var(--layer-02);border-left:3px solid var(--ac);padding:16px;color:var(--txt-sec);font-size:13px;overflow-x:auto;line-height:1.8;margin:16px 0;">Initial:   [IP-A]  [IP-B]  [IP-C]  [IP-D]  [IP-E]
+Step 1:    [IP-A, IP-B]    [IP-C]  [IP-D]  [IP-E]
+Step 2:    [IP-A, IP-B]    [IP-C, IP-D]    [IP-E]
+Step 3:    [IP-A, IP-B, IP-C, IP-D]        [IP-E]
+Step 4:    [IP-A, IP-B, IP-C, IP-D, IP-E]</pre>
+</div>
+
+<!-- S5 -->
+<div class="section" id="s5">
+  <div class="eyebrow">05 · Divisive</div>
+  <h2>Top-Down Clustering</h2>
+  <div class="grid2">
+    <div class="gcell">
+      <div class="tag t-gr">⬆ Agglomerative</div>
+      <ul style="margin-top:8px"><li>Starts with N individual clusters</li><li>Merges the closest two each step</li><li>Builds tree bottom-up</li><li>More common, simpler, in scikit-learn</li></ul>
+    </div>
+    <div class="gcell">
+      <div class="tag t-bl">⬇ Divisive</div>
+      <ul style="margin-top:8px"><li>Starts with 1 cluster (all points)</li><li>Splits the most dissimilar each step</li><li>Builds tree top-down</li><li>Computationally expensive, rare</li></ul>
+    </div>
+  </div>
+  <div class="callout callout-b"><strong>🧠 Analogy:</strong> Think of a company org chart. You start with the entire company, then divide into departments, then teams, then sub-teams.</div>
+  <div class="tile"><div class="tile-title">Netflix divisive split:</div><p style="margin:0;font-size:14px">All users → Action lovers / Romance lovers / Anime watchers / Documentary viewers → further sub-splits per category</p></div>
+  <div class="callout callout-y">⚠ <strong>Why Agglomerative wins:</strong> Divisive requires evaluating all possible splits at each step — computationally explosive. Scikit-learn's AgglomerativeClustering is the standard choice in practice.</div>
+</div>
+
+<!-- S6 -->
+<div class="section" id="s6">
+  <div class="eyebrow">06 · Linkage Methods</div>
+  <h2>How Do We Measure Cluster Distance?</h2>
+  <div class="tag t-ye">⭐ Exam Important</div>
+  <p>Once we have two clusters, how do we define the distance between them? Your choice dramatically changes the shape of clusters you get.</p>
+  <div class="tile" style="border-left:3px solid var(--ac);margin-bottom:16px">
+    <div class="tag t-cy">Single Linkage</div>
+    <div class="formula">D(A, B) = min( d(aᵢ, bⱼ) )<br><span style="color:var(--txt-sec)">→ Distance = closest pair of points between the two clusters</span></div>
+    <div class="callout callout-b">🧠 <strong>Analogy:</strong> Two friend groups connect if even ONE person from each group knows each other closely.</div>
+    <div class="callout callout-r">⚠ <strong>Chaining Effect:</strong> Single linkage creates long, stretched chains. One nearby point keeps pulling clusters together even if the overall groups are very different.</div>
+    <p style="margin:0"><strong>Use case:</strong> Network analysis, biological sequence grouping, social graphs</p>
+  </div>
+  <div class="tile" style="border-left:3px solid var(--ac);margin-bottom:16px">
+    <div class="tag t-pu">Complete Linkage</div>
+    <div class="formula">D(A, B) = max( d(aᵢ, bⱼ) )<br><span style="color:var(--txt-sec)">→ Distance = farthest pair of points between the two clusters</span></div>
+    <div class="callout callout-b">🧠 <strong>Analogy:</strong> Two teams can only merge if EVERYONE is reasonably close — even one outlier increases the distance.</div>
+    <div class="callout callout-g">✅ Creates compact, tight, well-separated clusters. Preferred when you need clean boundaries.</div>
+    <p style="margin:0"><strong>Use case:</strong> Customer segmentation in banking, medical diagnosis grouping</p>
+  </div>
+  <div class="tile" style="border-left:3px solid var(--ac)">
+    <div class="tag t-ye">Average Linkage</div>
+    <div class="formula">D(A, B) = (1 / n·m) × Σ d(aᵢ, bⱼ)<br><span style="color:var(--txt-sec)">→ Distance = average of all pairwise distances between clusters</span></div>
+    <div class="callout callout-b">🧠 <strong>Analogy:</strong> Instead of closest or farthest, consider the overall average relationship between groups.</div>
+    <div class="callout callout-g">✅ Balance between Single and Complete. Generally more stable — often the safest default choice.</div>
+    <p style="margin:0"><strong>Use case:</strong> General-purpose clustering, document grouping, gene expression</p>
+  </div>
+</div>
+
+<!-- S7 -->
+<div class="section" id="s7">
+  <div class="eyebrow">07 · The Dendrogram</div>
+  <h2>Reading the Tree</h2>
+  <div class="callout" style="border-left-color:var(--ac)"><strong>📌 Definition:</strong> A dendrogram is a tree diagram that records every cluster merge in sequence. The X-axis shows data points; the Y-axis shows the distance at which each merge occurred.</div>
+  <div class="tile">
+    <div class="kv"><span class="kk">X-axis</span><span class="kv-v">Individual data points (leaves of the tree)</span></div>
+    <div class="kv"><span class="kk">Y-axis</span><span class="kv-v">Merge distance — how dissimilar the clusters were when joined</span></div>
+    <div class="kv"><span class="kk">Height</span><span class="kv-v">Taller bar = more different the two clusters were before merging</span></div>
+    <div class="kv"><span class="kk">Cutting</span><span class="kv-v">Draw a horizontal line to decide the number of clusters</span></div>
+  </div>
+  <div class="callout callout-r">⚠ <strong>Most Common Mistake:</strong> Students think the Y-axis counts points or shows frequency. It does not. Y-axis = dissimilarity distance at the moment of merge. Always.</div>
+  <div class="callout callout-g">💡 <strong>How to find the optimal cut:</strong> Look for the largest vertical gap. Cut there. That gap is where natural groupings end and forced merging begins.</div>
+
+  <!-- FIX 1: viewBox expanded to 0 0 520 282 so bracket labels at y≈270 are never clipped -->
+  <svg width="100%" viewBox="0 0 520 282" style="background:var(--layer-02);border:1px solid var(--bdr-01);display:block;margin:16px 0;overflow:visible">
+    <!-- Y axis -->
+    <line x1="55" y1="15" x2="55" y2="215" stroke="var(--bdr-str)" stroke-width="1"/>
+    <!-- Y ticks -->
+    <line x1="50" y1="215" x2="55" y2="215" stroke="var(--bdr-str)" stroke-width="1"/><text x="44" y="219" font-family="monospace" font-size="10" fill="var(--txt-ph)" text-anchor="end">0</text>
+    <line x1="50" y1="175" x2="55" y2="175" stroke="var(--bdr-str)" stroke-width="1"/><text x="44" y="179" font-family="monospace" font-size="10" fill="var(--txt-ph)" text-anchor="end">1</text>
+    <line x1="50" y1="135" x2="55" y2="135" stroke="var(--bdr-str)" stroke-width="1"/><text x="44" y="139" font-family="monospace" font-size="10" fill="var(--txt-ph)" text-anchor="end">2</text>
+    <line x1="50" y1="95" x2="55" y2="95" stroke="var(--bdr-str)" stroke-width="1"/><text x="44" y="99" font-family="monospace" font-size="10" fill="var(--txt-ph)" text-anchor="end">3</text>
+    <line x1="50" y1="55" x2="55" y2="55" stroke="var(--bdr-str)" stroke-width="1"/><text x="44" y="59" font-family="monospace" font-size="10" fill="var(--txt-ph)" text-anchor="end">4</text>
+    <line x1="50" y1="15" x2="55" y2="15" stroke="var(--bdr-str)" stroke-width="1"/><text x="44" y="19" font-family="monospace" font-size="10" fill="var(--txt-ph)" text-anchor="end">5</text>
+    <!-- FIX: Y-axis label rotated around centre of the axis, clear of edge -->
+    <text x="14" y="115" font-family="monospace" font-size="10" fill="var(--txt-ph)" text-anchor="middle" transform="rotate(-90,14,115)">Merge Distance</text>
+    <!-- X axis -->
+    <line x1="55" y1="215" x2="500" y2="215" stroke="var(--bdr-str)" stroke-width="1"/>
+    <!-- Point labels -->
+    <text x="100" y="232" font-family="monospace" font-size="11" fill="var(--txt-sec)" text-anchor="middle">IP-A</text>
+    <text x="170" y="232" font-family="monospace" font-size="11" fill="var(--txt-sec)" text-anchor="middle">IP-B</text>
+    <text x="250" y="232" font-family="monospace" font-size="11" fill="var(--txt-sec)" text-anchor="middle">IP-C</text>
+    <text x="320" y="232" font-family="monospace" font-size="11" fill="var(--txt-sec)" text-anchor="middle">IP-D</text>
+    <text x="430" y="232" font-family="monospace" font-size="11" fill="var(--txt-sec)" text-anchor="middle">IP-E</text>
+    <!-- Merge 1: IP-A + IP-B at d=0.8 → y=183 -->
+    <path d="M100,215 V183 H170 V215" fill="none" stroke="var(--ac)" stroke-width="2"/>
+    <!-- Merge 2: IP-C + IP-D at d=1.1 → y=171 -->
+    <path d="M250,215 V171 H320 V215" fill="none" stroke="var(--ac)" stroke-width="2"/>
+    <!-- Merge 3: (A,B)+(C,D) at d=2.4 → y=119 -->
+    <path d="M135,183 V119 H285 V171" fill="none" stroke="var(--ac)" stroke-width="2"/>
+    <!-- Merge 4: all + IP-E at d=4.7 → y=27 -->
+    <path d="M210,119 V27 H430 V215" fill="none" stroke="var(--ac)" stroke-width="2"/>
+    <!-- Cut line at d=2.8 → y=103 -->
+    <line x1="60" y1="103" x2="495" y2="103" stroke="#ff8389" stroke-width="2" stroke-dasharray="5,4"/>
+    <text x="490" y="98" font-family="monospace" font-size="10" fill="#ff8389" text-anchor="end">Cut → 3 clusters</text>
+    <!-- FIX: Cluster brackets — all y-coords shifted down 12px so labels sit at y=270 (inside expanded viewBox) -->
+    <path d="M80,242 V250 H190 V242" fill="none" stroke="#4589ff" stroke-width="2"/>
+    <text x="135" y="265" font-family="monospace" font-size="10" fill="#4589ff" text-anchor="middle">Recon</text>
+    <path d="M230,242 V250 H340 V242" fill="none" stroke="#ee5396" stroke-width="2"/>
+    <text x="285" y="265" font-family="monospace" font-size="10" fill="#ee5396" text-anchor="middle">Web Attack</text>
+    <path d="M410,242 V250 H450 V242" fill="none" stroke="#ff832b" stroke-width="2"/>
+    <text x="430" y="265" font-family="monospace" font-size="10" fill="#ff832b" text-anchor="middle">DDoS</text>
+  </svg>
+</div>
+
+<!-- S8 -->
+<div class="section" id="s8">
+  <div class="eyebrow">08 · Interactive</div>
+  <h2>Agglomerative Step-by-Step</h2>
+  <p style="font-size:13px;color:var(--txt-sec)">Watch clusters form one merge at a time. Each step shows which two groups joined and how far apart they were.</p>
+  <div class="interactive-wrap">
+    <div class="iw-title">Demo 1 · Agglomerative clustering on 8 points</div>
+    <canvas id="agg-canvas" class="demo-canvas"></canvas>
+    <div class="km-info" id="agg-info"><span id="agg-step-lbl">Step: 0 / 7</span><span id="agg-clust-lbl">Clusters remaining: 8</span></div>
+    <div class="merge-log" id="agg-log"><div style="color:var(--txt-ph);font-size:11px;padding-top:2px">// merge history will appear here</div></div>
+    <div class="speed-row">
+      <span>Speed</span>
+      <input type="range" class="speed-slider" id="agg-speed" min="100" max="900" value="500" title="Animation speed">
+      <span id="agg-speed-lbl">medium</span>
+    </div>
+    <div class="sim-controls">
+      <button class="sim-btn primary" id="agg-btn" onclick="aggNext()">Next Merge →</button>
+      <button class="sim-btn" id="agg-auto-btn" onclick="aggAuto()">▶ Auto Play</button>
+      <button class="sim-btn" onclick="initAgg()">↺ Reset</button>
+    </div>
+  </div>
+</div>
+
+<!-- S9 -->
+<div class="section" id="s9">
+  <div class="eyebrow">09 · Interactive</div>
+  <h2>Build the Dendrogram</h2>
+  <p style="font-size:13px;color:var(--txt-sec)">Complete Demo 08 to unlock this. Drag the red threshold line up or down to choose your number of clusters in real time.</p>
+  <div class="interactive-wrap">
+    <div class="iw-title">Demo 2 · Dendrogram with draggable threshold</div>
+    <div id="demo9-locked" style="padding:20px 0;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--warn)">
+      ⚠ Complete Demo 08 first (merge all steps)
+    </div>
+    <div id="demo9-content" style="display:none">
+      <svg id="dendro-svg" width="100%" height="320" viewBox="0 0 600 320" style="background:var(--layer-02);border:1px solid var(--bdr-01);display:block;touch-action:none;user-select:none;cursor:ns-resize"></svg>
+      <div class="cluster-badge">
+        <span>Clusters at threshold:</span>
+        <span class="cluster-count" id="demo9-count">-</span>
+        <span style="font-size:11px;color:var(--txt-ph)">(drag the red line)</span>
+      </div>
+      <div id="demo9-legend" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;font-family:'IBM Plex Mono',monospace;font-size:11px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- S10 -->
+<div class="section" id="s10">
+  <div class="eyebrow">10 · Interactive</div>
+  <h2>How Linkage Changes Everything</h2>
+  <p style="font-size:13px;color:var(--txt-sec)">Same 14 points, three different linkage rules. Adjust K and watch how boundaries shift — especially the chaining effect in Single Linkage.</p>
+  <div class="interactive-wrap">
+    <div class="iw-title">Demo 3 · Linkage method comparator</div>
+    <div class="carbon-radio-group">
+      <label class="carbon-radio"><input type="radio" name="linkage" value="single" onchange="drawLinkage()"><div class="carbon-radio-dot"></div><span>Single Linkage</span></label>
+      <label class="carbon-radio"><input type="radio" name="linkage" value="complete" onchange="drawLinkage()"><div class="carbon-radio-dot"></div><span>Complete Linkage</span></label>
+      <label class="carbon-radio"><input type="radio" name="linkage" value="average" onchange="drawLinkage()" checked><div class="carbon-radio-dot"></div><span>Average Linkage</span></label>
+    </div>
+    <!-- FIX 2: K slider — replaces hardcoded k=3 -->
+    <div class="speed-row" style="margin-bottom:14px">
+      <span>K =</span>
+      <input type="range" class="speed-slider" id="link-k" min="2" max="5" value="3" oninput="drawLinkage()">
+      <span id="link-k-lbl">3 clusters</span>
+    </div>
+    <canvas id="linkage-canvas" class="demo-canvas"></canvas>
+    <div id="linkage-exp" class="callout" style="border-left-color:var(--ac);margin-top:16px;transition:all .3s"></div>
+  </div>
+</div>
+
+<!-- S11 -->
+<div class="section" id="s11">
+  <div class="eyebrow">11 · Comparison</div>
+  <h2>Hierarchical vs K-Means</h2>
+  <table class="cmp-table">
+    <thead><tr><th>Feature</th><th>K-Means</th><th>Hierarchical</th></tr></thead>
+    <tbody>
+      <tr><td>Need K upfront</td><td>✅ Required</td><td>❌ Not required</td></tr>
+      <tr><td>Uses centroid</td><td>✅ Yes</td><td>❌ No</td></tr>
+      <tr><td>Output</td><td>Flat clusters</td><td>Dendrogram (tree)</td></tr>
+      <tr><td>Speed</td><td>Fast — O(n)</td><td>Slow — O(n²)</td></tr>
+      <tr><td>Large datasets</td><td>✅ Scales well</td><td>⚠ Expensive &gt;50k rows</td></tr>
+      <tr><td>Visualization</td><td>❌ Weak</td><td>✅ Strong (dendrogram)</td></tr>
+      <tr><td>Cluster shape</td><td>Spherical only</td><td>Flexible</td></tr>
+      <tr><td>Reversibility</td><td>Can re-run freely</td><td>⚠ Merges are permanent</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- S12 -->
+<div class="section" id="s12">
+  <div class="eyebrow">12 · Use Cases</div>
+  <h2>Real-Life Tech Applications</h2>
+  <div class="grid2">
+    <div class="gcell"><div class="tag t-re">🏦 Customer Segmentation</div><p style="margin:0;font-size:13px">Banks group customers by transaction similarity — no need to pre-define segment count.</p></div>
+    <div class="gcell"><div class="tag t-ye">📰 Document Clustering</div><p style="margin:0;font-size:13px">News platforms group similar articles into topics without labeling every article first.</p></div>
+    <div class="gcell"><div class="tag t-bl">🧬 Bioinformatics</div><p style="margin:0;font-size:13px">DNA and protein sequences clustered to discover evolutionary relationships. Dendrograms are standard output.</p></div>
+    <div class="gcell" style="border:2px solid var(--ac)"><div class="tag t-cy">🔐 Cybersecurity</div><p style="margin:0;font-size:13px">SIEM platforms cluster malware samples and attack patterns by behavioral signatures — no labeled training data needed.</p></div>
+    <div class="gcell"><div class="tag t-pu">🎬 Recommendation Systems</div><p style="margin:0;font-size:13px">Streaming platforms group users with similar taste profiles to drive collaborative filtering.</p></div>
+    <div class="gcell"><div class="tag t-gr">📸 Google Photos</div><p style="margin:0;font-size:13px">Face recognition clustering — your photos grouped by person without you labeling anyone.</p></div>
+  </div>
+</div>
+
+<!-- S13 -->
+<div class="section" id="s13">
+  <div class="eyebrow">13 · Evaluation</div>
+  <h2>Advantages &amp; Limitations</h2>
+  <div class="grid2">
+    <div class="gcell">
+      <div class="tag t-gr">✅ Advantages</div>
+      <ul style="margin-top:8px">
+        <li>No need to specify K upfront — dendrogram reveals it</li>
+        <li>Full visual hierarchy of relationships</li>
+        <li>Flexible cluster shapes — not limited to spherical</li>
+        <li>Great for exploratory analysis</li>
+        <li>Single run gives ALL possible clusterings at every K</li>
+      </ul>
+    </div>
+    <div class="gcell">
+      <div class="tag t-re">❌ Limitations</div>
+      <ul style="margin-top:8px">
+        <li>O(n²) — painful beyond ~50,000 rows</li>
+        <li>Sensitive to outliers — one noisy point distorts merges</li>
+        <li>Early merges are permanent — mistakes cannot be corrected</li>
+        <li>Single linkage chaining can destroy cluster quality</li>
+        <li>No built-in score like WCSS to evaluate quality</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- S14 -->
+<div class="section" id="s14">
+  <div class="eyebrow">14 · Caution</div>
+  <h2>When NOT to Use Hierarchical Clustering</h2>
+  <div class="callout callout-y">⚠ Hierarchical clustering is powerful, but the wrong tool in several common situations.</div>
+  <div class="step-flow">
+    <div class="step-item warn"><div class="step-dot">1</div><div class="step-body"><div class="step-title">Dataset has &gt; 50,000 rows</div><div class="step-desc">Use K-Means or DBSCAN instead. O(n²) will be too slow and memory-intensive at this scale.</div></div></div>
+    <div class="step-item warn"><div class="step-dot">2</div><div class="step-body"><div class="step-title">You already know K and clusters are spherical</div><div class="step-desc">K-Means is faster and simpler. Don't use a sledgehammer for a nail.</div></div></div>
+    <div class="step-item warn"><div class="step-dot">3</div><div class="step-body"><div class="step-title">Real-time or streaming clustering required</div><div class="step-desc">Hierarchical clustering recomputes from scratch — no incremental updates. Use online K-Means instead.</div></div></div>
+    <div class="step-item warn"><div class="step-dot">4</div><div class="step-body"><div class="step-title">Data has many outliers</div><div class="step-desc">Single linkage will chain outliers into legitimate clusters. Consider DBSCAN, which explicitly handles noise points.</div></div></div>
+  </div>
+</div>
+
+<!-- S15 -->
+<div class="section" id="s15">
+  <div class="eyebrow">15 · Revision</div>
+  <h2>Short Exam Note</h2>
+  <div class="tile">
+    <ul style="margin:0;font-size:14px;line-height:1.8">
+      <li><strong>Agglomerative</strong> = Bottom-Up; <strong>Divisive</strong> = Top-Down</li>
+      <li>Agglomerative is more commonly used (simpler, in scikit-learn)</li>
+      <li><strong>Single Linkage</strong> = minimum pairwise distance (causes chaining)</li>
+      <li><strong>Complete Linkage</strong> = maximum pairwise distance (compact clusters)</li>
+      <li><strong>Average Linkage</strong> = mean pairwise distance (most stable)</li>
+      <li><strong>Dendrogram Y-axis</strong> = merge DISTANCE — not frequency, not count</li>
+      <li>Cut at the <strong>largest vertical gap</strong> for the natural number of clusters</li>
+      <li>Time complexity ≈ <strong>O(n²)</strong> — not suitable for very large datasets</li>
+      <li>Does <strong>NOT</strong> require K to be specified before running</li>
+      <li>Early merges in agglomerative are <strong>irreversible</strong></li>
+    </ul>
+  </div>
+</div>
+
+<!-- S16 -->
+<div class="section" id="s16">
+  <div class="eyebrow">16 · Practice</div>
+  <h2>Quiz Yourself</h2>
+  <p style="font-size:13px;color:var(--txt-ph)">Score: <span id="quiz-total">0</span> / 6 correct</p>
+
+  <div class="quiz-card">
+    <div class="quiz-q">Q1. What is the main advantage of hierarchical clustering over K-Means?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="checkQuiz(this,false,1,'q1fb')">A. It is faster on large datasets</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,true,1,'q1fb')">B. It does not require K to be specified in advance</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,1,'q1fb')">C. It uses centroids for cluster assignment</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,1,'q1fb')">D. It only works on numerical data</button>
+    </div>
+    <div class="quiz-feedback" id="q1fb">Correct! Hierarchical clustering builds a dendrogram and lets you choose K after the fact by cutting the tree — no upfront K needed.</div>
+  </div>
+  <div class="quiz-card">
+    <div class="quiz-q">Q2. In agglomerative clustering, what happens at each step?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="checkQuiz(this,false,2,'q2fb')">A. The largest cluster is split into two</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,2,'q2fb')">B. A random point is removed from a cluster</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,true,2,'q2fb')">C. The two closest clusters are merged</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,2,'q2fb')">D. Centroids are recalculated for all clusters</button>
+    </div>
+    <div class="quiz-feedback" id="q2fb">Correct! Agglomerative = bottom-up. At every step, the two most similar (closest) clusters merge into one.</div>
+  </div>
+  <div class="quiz-card">
+    <div class="quiz-q">Q3. Which linkage method uses the MAXIMUM pairwise distance?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="checkQuiz(this,false,3,'q3fb')">A. Single Linkage</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,3,'q3fb')">B. Average Linkage</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,3,'q3fb')">C. Ward Linkage</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,true,3,'q3fb')">D. Complete Linkage</button>
+    </div>
+    <div class="quiz-feedback" id="q3fb">Correct! Complete Linkage uses the farthest two points between clusters — this keeps clusters compact and well-separated.</div>
+  </div>
+  <div class="quiz-card">
+    <div class="quiz-q">Q4. What does the Y-axis of a dendrogram represent?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="checkQuiz(this,false,4,'q4fb')">A. Number of data points in each cluster</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,4,'q4fb')">B. The cluster index or label</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,true,4,'q4fb')">C. The distance at which clusters were merged</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,4,'q4fb')">D. The probability of cluster membership</button>
+    </div>
+    <div class="quiz-feedback" id="q4fb">Correct! The height (Y-axis) shows dissimilarity at merge time. Taller bars = more different clusters joining.</div>
+  </div>
+  <div class="quiz-card">
+    <div class="quiz-q">Q5. Where should you cut a dendrogram to find the optimal clusters?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="checkQuiz(this,false,5,'q5fb')">A. At the very bottom (lowest height)</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,5,'q5fb')">B. At the top (one cluster)</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,true,5,'q5fb')">C. At the point where the largest vertical gap exists</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,5,'q5fb')">D. Exactly halfway up the tree</button>
+    </div>
+    <div class="quiz-feedback" id="q5fb">Correct! The largest vertical gap represents the biggest jump in dissimilarity — cutting there gives the most natural grouping.</div>
+  </div>
+  <div class="quiz-card">
+    <div class="quiz-q">Q6. Which linkage method is most likely to suffer from the chaining effect?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="checkQuiz(this,false,6,'q6fb')">A. Complete Linkage</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,6,'q6fb')">B. Average Linkage</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,6,'q6fb')">C. Ward Linkage</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,true,6,'q6fb')">D. Single Linkage</button>
+    </div>
+    <div class="quiz-feedback" id="q6fb">Correct! Single linkage connects clusters if even one point is close — this causes long chains where loosely related points keep merging.</div>
+  </div>
+</div>
+
+<div class="page-nav">
+  <a class="page-nav-btn" href="kmeans.html">← K-Means</a>
+  <a class="page-nav-btn primary" href="#">Next: Intra-Cluster Similarity →</a>
+</div>
+</main>
+</div>
+
+<script>
+/* ════════════════════════════════════════════
+   THEME
+════════════════════════════════════════════ */
+let isLight = localStorage.getItem('theme') === 'light';
+function applyTheme() {
+  document.documentElement.classList.toggle('light', isLight);
+  const i = isLight ? '◑' : '☀', l = isLight ? 'Light' : 'Dark';
+  ['tog-icon','mob-tog'].forEach(id => { const el = document.getElementById(id); if(el) el.textContent = i; });
+  ['tog-txt'].forEach(id => { const el = document.getElementById(id); if(el) el.textContent = l + ' theme'; });
+  ['theme-lbl'].forEach(id => { const el = document.getElementById(id); if(el) el.textContent = l; });
+  try {
+    if(aggClusters.length) drawAgg();
+    drawLinkage();
+  } catch(e) {}
+}
+applyTheme();
+function toggleTheme() { isLight = !isLight; localStorage.setItem('theme', isLight?'light':'dark'); applyTheme(); }
+
+/* ════════════════════════════════════════════
+   GLOBALS
+════════════════════════════════════════════ */
+const CLUSTER_COLORS = ['#42be65','#4589ff','#ee5396','#ff832b','#d4bbff','#3ddbd9','#f1c21b','#fa4d56'];
+function getCSS(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+
+/* ════════════════════════════════════════════
+   DEMO 8 — AGGLOMERATIVE STEP-BY-STEP
+════════════════════════════════════════════ */
+const AGG_PTS = [
+  {name:'P1',x:.14,y:.20},{name:'P2',x:.21,y:.37},{name:'P3',x:.16,y:.55},
+  {name:'P4',x:.50,y:.14},{name:'P5',x:.57,y:.27},
+  {name:'P6',x:.74,y:.58},{name:'P7',x:.86,y:.52},{name:'P8',x:.80,y:.76}
+];
+
+let aggClusters = [];
+let aggStep = 0;
+let aggDone = false;
+let aggAutoTimer = null;
+let aggAnimFrame = null;
+let aggAnimProgress = 0;
+let aggAnimTarget = null;
+let aggMergeHistory = [];
+
+function computeAllMerges() {
+  aggMergeHistory = [];
+  let clusters = AGG_PTS.map((p,i) => ({ pts: [p], id: i }));
+  while (clusters.length > 1) {
+    let minD = Infinity, mi = -1, mj = -1;
+    for (let i = 0; i < clusters.length; i++) {
+      for (let j = i+1; j < clusters.length; j++) {
+        let maxD = 0;
+        for (let a of clusters[i].pts)
+          for (let b of clusters[j].pts)
+            maxD = Math.max(maxD, Math.hypot(a.x-b.x, a.y-b.y));
+        if (maxD < minD) { minD = maxD; mi = i; mj = j; }
+      }
+    }
+    const c1 = clusters[mi], c2 = clusters[mj];
+    aggMergeHistory.push({
+      pts1: [...c1.pts], pts2: [...c2.pts], dist: minD,
+      names1: c1.pts.map(p=>p.name), names2: c2.pts.map(p=>p.name)
+    });
+    clusters.splice(mj,1); clusters.splice(mi,1);
+    clusters.push({ pts: [...c1.pts,...c2.pts], id: c1.id });
+  }
+}
+
+function initAgg() {
+  clearTimeout(aggAutoTimer);
+  cancelAnimationFrame(aggAnimFrame);
+  computeAllMerges();
+  aggClusters = AGG_PTS.map((p,i) => ({ pts:[p], id:i, colorIdx:-1 }));
+  aggStep = 0; aggDone = false;
+  document.getElementById('agg-log').innerHTML = '<div style="color:var(--txt-ph);font-size:11px;padding-top:2px">// merge history will appear here</div>';
+  document.getElementById('agg-btn').textContent = 'Next Merge →';
+  document.getElementById('agg-btn').disabled = false;
+  document.getElementById('agg-auto-btn').textContent = '▶ Auto Play';
+  document.getElementById('agg-step-lbl').textContent = `Step: 0 / ${AGG_PTS.length - 1}`;
+  document.getElementById('agg-clust-lbl').textContent = `Clusters remaining: ${AGG_PTS.length}`;
+  resizeCanvases(); drawAgg();
+}
+
+function aggNext() {
+  if (aggStep >= AGG_PTS.length - 1 || aggDone) return;
+  const merge = aggMergeHistory[aggStep];
+  let mi = -1, mj = -1;
+  for (let i = 0; i < aggClusters.length; i++) {
+    for (let j = i+1; j < aggClusters.length; j++) {
+      const allPts = new Set([...aggClusters[i].pts.map(p=>p.name),...aggClusters[j].pts.map(p=>p.name)]);
+      const target = new Set([...merge.names1,...merge.names2]);
+      if (allPts.size === target.size && [...allPts].every(n => target.has(n))) { mi = i; mj = j; }
+    }
+  }
+  if (mi === -1) { mi = 0; mj = 1; }
+  const c1 = aggClusters[mi], c2 = aggClusters[mj];
+  const merged = { pts: [...c1.pts,...c2.pts], id: c1.id, colorIdx: aggStep };
+  aggClusters.splice(mj,1); aggClusters.splice(mi,1); aggClusters.push(merged);
+  aggStep++;
+
+  const logC = document.getElementById('agg-log');
+  if (aggStep === 1) logC.innerHTML = '';
+  const line = document.createElement('div');
+  line.className = 'log-line';
+  line.innerHTML = `<span class="log-step">step ${aggStep}:</span> <span class="log-pts">[${merge.names1.join(',')}] + [${merge.names2.join(',')}]</span> <span class="log-dist">dist=${(merge.dist*10).toFixed(2)}</span>`;
+  logC.insertBefore(line, logC.firstChild);
+
+  document.getElementById('agg-step-lbl').textContent = `Step: ${aggStep} / ${AGG_PTS.length - 1}`;
+  document.getElementById('agg-clust-lbl').textContent = `Clusters remaining: ${aggClusters.length}`;
+
+  aggAnimProgress = 0; aggAnimTarget = merged;
+  animateAggStep();
+
+  if (aggStep >= AGG_PTS.length - 1) {
+    aggDone = true;
+    const btn = document.getElementById('agg-btn');
+    btn.textContent = 'Complete ✓'; btn.disabled = true;
+    clearTimeout(aggAutoTimer);
+    document.getElementById('agg-auto-btn').textContent = '▶ Auto Play';
+    unlockDemo9();
+  } else {
+    const btn = document.getElementById('agg-btn');
+    btn.classList.remove('pulse-once'); void btn.offsetWidth; btn.classList.add('pulse-once');
+  }
+}
+
+function animateAggStep() {
+  const speed = 1100 - parseInt(document.getElementById('agg-speed').value);
+  aggAnimProgress = Math.min(aggAnimProgress + 16/speed, 1);
+  drawAgg(aggAnimProgress);
+  if (aggAnimProgress < 1) aggAnimFrame = requestAnimationFrame(animateAggStep);
+}
+
+function aggAuto() {
+  if (aggDone) { initAgg(); return; }
+  const autoBtn = document.getElementById('agg-auto-btn');
+  if (aggAutoTimer) { clearTimeout(aggAutoTimer); aggAutoTimer = null; autoBtn.textContent = '▶ Auto Play'; return; }
+  autoBtn.textContent = '⏸ Pause';
+  function step() {
+    if (aggStep < AGG_PTS.length - 1 && !aggDone) {
+      aggNext();
+      const speed = 1100 - parseInt(document.getElementById('agg-speed').value);
+      aggAutoTimer = setTimeout(step, speed + 400);
+    } else { autoBtn.textContent = '↺ Replay'; aggAutoTimer = null; }
+  }
+  step();
+}
+
+document.getElementById('agg-speed').addEventListener('input', function() {
+  const v = parseInt(this.value);
+  const labels = ['very slow','slow','medium','fast','very fast'];
+  document.getElementById('agg-speed-lbl').textContent = labels[Math.min(Math.round((v-100)/200), 4)];
+});
+
+function drawAgg(alpha = 1) {
+  const cvs = document.getElementById('agg-canvas');
+  if (!cvs || !cvs.width) return;
+  const ctx = cvs.getContext('2d');
+  const cw = cvs.width, ch = cvs.height;
+
+  ctx.clearRect(0, 0, cw, ch);
+  ctx.fillStyle = isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.03)';
+  for (let gx = 20; gx < cw; gx += 30)
+    for (let gy = 20; gy < ch; gy += 30) {
+      ctx.beginPath(); ctx.arc(gx, gy, 1, 0, Math.PI*2); ctx.fill();
+    }
+
+  aggClusters.forEach(c => {
+    if (c.pts.length < 2) return;
+    const col = CLUSTER_COLORS[c.colorIdx % CLUSTER_COLORS.length];
+    const isNew = (aggAnimTarget && aggAnimTarget.pts === c.pts);
+    const envAlpha = isNew ? alpha : 1;
+    const xs = c.pts.map(p => p.x * cw), ys = c.pts.map(p => p.y * ch);
+    const minX = Math.min(...xs)-22, maxX = Math.max(...xs)+22;
+    const minY = Math.min(...ys)-22, maxY = Math.max(...ys)+22;
+    const cx2 = (minX+maxX)/2, cy2 = (minY+maxY)/2;
+    const rx = (maxX-minX)/2, ry = (maxY-minY)/2;
+
+    ctx.save();
+    ctx.globalAlpha = envAlpha * 0.18;
+    ctx.fillStyle = col;
+    ctx.beginPath(); ctx.ellipse(cx2, cy2, rx, ry, 0, 0, Math.PI*2); ctx.fill();
+    ctx.globalAlpha = envAlpha;
+    ctx.strokeStyle = col; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.ellipse(cx2, cy2, rx, ry, 0, 0, Math.PI*2); ctx.stroke();
+    if (isNew && alpha > 0.5) {
+      ctx.globalAlpha = envAlpha * 0.3;
+      ctx.shadowColor = col; ctx.shadowBlur = 18;
+      ctx.beginPath(); ctx.ellipse(cx2, cy2, rx, ry, 0, 0, Math.PI*2); ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
+    ctx.restore();
+  });
+
+  if (aggAnimTarget && aggAnimProgress < 1 && aggStep > 0) {
+    const step = aggMergeHistory[aggStep - 1];
+    if (step) {
+      const col = CLUSTER_COLORS[(aggStep-1) % CLUSTER_COLORS.length];
+      const cx1 = step.pts1.reduce((s,p)=>s+p.x,0)/step.pts1.length*cw;
+      const cy1 = step.pts1.reduce((s,p)=>s+p.y,0)/step.pts1.length*ch;
+      const cx2 = step.pts2.reduce((s,p)=>s+p.x,0)/step.pts2.length*cw;
+      const cy2 = step.pts2.reduce((s,p)=>s+p.y,0)/step.pts2.length*ch;
+      ctx.save();
+      ctx.globalAlpha = (1-aggAnimProgress)*0.7;
+      ctx.strokeStyle = col; ctx.lineWidth = 1.5; ctx.setLineDash([4,4]);
+      ctx.beginPath(); ctx.moveTo(cx1,cy1); ctx.lineTo(cx2,cy2); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.restore();
+    }
+  }
+
+  aggClusters.forEach(c => {
+    const col = c.colorIdx === -1 ? getCSS('--ac') : CLUSTER_COLORS[c.colorIdx % CLUSTER_COLORS.length];
+    c.pts.forEach(p => {
+      const px = p.x*cw, py = p.y*ch;
+      ctx.save();
+      ctx.shadowColor = col; ctx.shadowBlur = 8;
+      ctx.beginPath(); ctx.arc(px, py, 7, 0, Math.PI*2);
+      ctx.fillStyle = col; ctx.fill(); ctx.shadowBlur = 0;
+      ctx.beginPath(); ctx.arc(px, py, 7, 0, Math.PI*2);
+      ctx.strokeStyle = isLight ? 'rgba(255,255,255,0.8)' : 'rgba(22,22,22,0.6)';
+      ctx.lineWidth = 1.5; ctx.stroke();
+      ctx.restore();
+      ctx.fillStyle = getCSS('--txt-sec');
+      ctx.font = "11px 'IBM Plex Mono',monospace";
+      ctx.fillText(p.name, px+10, py+4);
+    });
+  });
+}
+
+/* ════════════════════════════════════════════
+   DEMO 9 — DENDROGRAM BUILDER
+════════════════════════════════════════════ */
+let d9Root = null, d9MaxH = 1, d9ThreshY = 160, d9Dragging = false, d9Built = false;
+
+function unlockDemo9() {
+  document.getElementById('demo9-locked').style.display = 'none';
+  document.getElementById('demo9-content').style.display = 'block';
+  buildDendro();
+}
+
+function buildDendro() {
+  let clusters = AGG_PTS.map((p,i) => ({ pts:[p], id:i, label:p.name, height:0, leaf:true, children:[], svgX:0, svgY:0 }));
+  let nid = 100;
+  while (clusters.length > 1) {
+    let minD = Infinity, mi = -1, mj = -1;
+    for (let i = 0; i < clusters.length; i++)
+      for (let j = i+1; j < clusters.length; j++) {
+        let maxD = 0;
+        for (let a of clusters[i].pts) for (let b of clusters[j].pts) maxD = Math.max(maxD, Math.hypot(a.x-b.x, a.y-b.y));
+        if (maxD < minD) { minD = maxD; mi = i; mj = j; }
+      }
+    const c1 = clusters[mi], c2 = clusters[mj];
+    clusters.splice(mj,1); clusters.splice(mi,1);
+    clusters.push({ pts:[...c1.pts,...c2.pts], id:nid++, height:minD, leaf:false, children:[c1,c2], svgX:0, svgY:0 });
+  }
+  d9Root = clusters[0]; d9MaxH = d9Root.height;
+  const PAD_L=60, PAD_T=30, PAD_B=50, W=600, H=320;
+  const drawW=W-PAD_L-20, drawH=H-PAD_T-PAD_B;
+  let leafIdx=0;
+  const xStep = drawW/(AGG_PTS.length+1);
+  function layoutTree(node) {
+    if (node.leaf) { leafIdx++; node.svgX=PAD_L+leafIdx*xStep; node.svgY=PAD_T+drawH; return; }
+    layoutTree(node.children[0]); layoutTree(node.children[1]);
+    node.svgX=(node.children[0].svgX+node.children[1].svgX)/2;
+    node.svgY=PAD_T+drawH*(1-node.height/d9MaxH);
+  }
+  layoutTree(d9Root);
+  d9ThreshY = PAD_T + drawH*0.4;
+  renderDendro(); d9Built = true;
+
+  const svg = document.getElementById('dendro-svg');
+  function startDrag(e) { if(!d9Built) return; d9Dragging=true; moveDrag(e); }
+  function moveDrag(e) {
+    if(!d9Dragging) return;
+    const rect=svg.getBoundingClientRect();
+    const clientY=e.touches?e.touches[0].clientY:e.clientY;
+    const fracY=(clientY-rect.top)/rect.height;
+    const PAD_L2=60,PAD_T2=30,PAD_B2=50,H2=320,drawH2=H2-PAD_T2-PAD_B2;
+    d9ThreshY=Math.max(PAD_T2+5, Math.min(PAD_T2+drawH2-5, fracY*H2));
+    renderDendro();
+  }
+  svg.addEventListener('mousedown', startDrag);
+  window.addEventListener('mousemove', e => { if(d9Dragging) moveDrag(e); });
+  window.addEventListener('mouseup', () => { d9Dragging=false; });
+  svg.addEventListener('touchstart', startDrag, {passive:true});
+  window.addEventListener('touchmove', e => { if(d9Dragging) moveDrag(e); }, {passive:true});
+  window.addEventListener('touchend', () => { d9Dragging=false; });
+}
+
+function renderDendro() {
+  const svg = document.getElementById('dendro-svg');
+  if (!svg || !d9Root) return;
+  const PAD_L=60, PAD_R=20, PAD_T=30, PAD_B=50, W=600, H=320;
+  const drawW=W-PAD_L-PAD_R, drawH=H-PAD_T-PAD_B;
+  const cutClusters=[];
+  function findClusters(node) {
+    if(node.svgY>=d9ThreshY){cutClusters.push(node);return;}
+    if(node.leaf){cutClusters.push(node);return;}
+    findClusters(node.children[0]); findClusters(node.children[1]);
+  }
+  findClusters(d9Root);
+  const colorMap=new Map();
+  cutClusters.forEach((c,idx) => {
+    function mark(n){colorMap.set(n.id,idx);if(!n.leaf){mark(n.children[0]);mark(n.children[1]);}}
+    mark(c);
+  });
+  let html='<style>@keyframes drawLine{to{stroke-dashoffset:0}}</style>';
+  html+=`<line x1="${PAD_L}" y1="${PAD_T}" x2="${PAD_L}" y2="${PAD_T+drawH}" stroke="var(--bdr-str)" stroke-width="1"/>`;
+  for(let i=0;i<=5;i++){
+    const dist=(d9MaxH*i/5), ty=PAD_T+drawH*(1-i/5);
+    html+=`<line x1="${PAD_L-4}" y1="${ty}" x2="${PAD_L}" y2="${ty}" stroke="var(--bdr-str)" stroke-width="1"/>`;
+    html+=`<text x="${PAD_L-8}" y="${ty+4}" font-family="monospace" font-size="10" fill="var(--txt-ph)" text-anchor="end">${dist.toFixed(2)}</text>`;
+  }
+  html+=`<text x="11" y="${PAD_T+drawH/2}" font-family="monospace" font-size="10" fill="var(--txt-ph)" text-anchor="middle" transform="rotate(-90,11,${PAD_T+drawH/2})">Merge Distance</text>`;
+  function drawBranch(node){
+    if(node.leaf) return;
+    const cIdx=colorMap.get(node.id), aboveThresh=node.svgY<d9ThreshY;
+    const col=aboveThresh?getCSS('--ac'):CLUSTER_COLORS[cIdx%CLUSTER_COLORS.length];
+    const c1=node.children[0],c2=node.children[1];
+    html+=`<path d="M${c1.svgX},${c1.svgY} V${node.svgY} H${c2.svgX} V${c2.svgY}" fill="none" stroke="${col}" stroke-width="2.5"/>`;
+    drawBranch(c1); drawBranch(c2);
+  }
+  drawBranch(d9Root);
+  function drawLeaf(node){
+    if(node.leaf){
+      const cIdx=colorMap.get(node.id), col=CLUSTER_COLORS[cIdx%CLUSTER_COLORS.length];
+      html+=`<circle cx="${node.svgX}" cy="${node.svgY}" r="5" fill="${col}"/>`;
+      html+=`<text x="${node.svgX}" y="${PAD_T+drawH+16}" font-family="monospace" font-size="11" fill="var(--txt-sec)" text-anchor="middle">${node.label}</text>`;
+    } else { drawLeaf(node.children[0]); drawLeaf(node.children[1]); }
+  }
+  drawLeaf(d9Root);
+  const distAtThresh=d9MaxH*(1-(d9ThreshY-PAD_T)/drawH);
+  html+=`<line x1="${PAD_L}" y1="${d9ThreshY}" x2="${W-PAD_R}" y2="${d9ThreshY}" stroke="#ff8389" stroke-width="2" stroke-dasharray="5,3"/>`;
+  html+=`<rect x="${W-PAD_R-62}" y="${d9ThreshY-18}" width="60" height="14" fill="var(--layer-01)" rx="2"/>`;
+  html+=`<text x="${W-PAD_R-32}" y="${d9ThreshY-7}" font-family="monospace" font-size="10" fill="#ff8389" text-anchor="middle">d=${distAtThresh.toFixed(2)}</text>`;
+  html+=`<rect x="${PAD_L}" y="${d9ThreshY-8}" width="${W-PAD_L-PAD_R}" height="16" fill="transparent" style="cursor:ns-resize"/>`;
+  svg.innerHTML=html;
+  const countEl=document.getElementById('demo9-count');
+  const prev=countEl.textContent, cur=String(cutClusters.length);
+  countEl.textContent=cur;
+  if(prev!==cur){countEl.classList.remove('changed');void countEl.offsetWidth;countEl.classList.add('changed');}
+  const legend=document.getElementById('demo9-legend');
+  legend.innerHTML=cutClusters.map((c,idx)=>{
+    const pts=[];
+    function collect(n){if(n.leaf)pts.push(n.label);else{collect(n.children[0]);collect(n.children[1]);}}
+    collect(c);
+    return `<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:${CLUSTER_COLORS[idx%CLUSTER_COLORS.length]}">
+      <span style="width:8px;height:8px;border-radius:50%;background:${CLUSTER_COLORS[idx%CLUSTER_COLORS.length]};display:inline-block"></span>
+      [${pts.join(', ')}]</span>`;
+  }).join('');
+}
+
+/* ════════════════════════════════════════════
+   DEMO 10 — LINKAGE COMPARATOR
+   FIX 3: k from slider; MST edges for single; convex hull for cluster shape
+════════════════════════════════════════════ */
+const LINK_PTS = [
+  {x:.07,y:.42},{x:.13,y:.30},{x:.19,y:.54},{x:.25,y:.38},{x:.31,y:.48},
+  {x:.60,y:.28},{x:.67,y:.22},{x:.64,y:.36},{x:.71,y:.30},{x:.69,y:.40},
+  {x:.44,y:.42},
+  {x:.86,y:.72},{x:.89,y:.60},{x:.83,y:.78}
+];
+
+/* Graham-scan convex hull on 2-D points [[x,y],...] */
+function convexHull(pts) {
+  if (pts.length < 3) return pts;
+  const sorted = [...pts].sort((a,b) => a[0]-b[0] || a[1]-b[1]);
+  const cross = (O,A,B) => (A[0]-O[0])*(B[1]-O[1])-(A[1]-O[1])*(B[0]-O[0]);
+  const lower=[], upper=[];
+  for (const p of sorted) {
+    while(lower.length>=2 && cross(lower[lower.length-2],lower[lower.length-1],p)<=0) lower.pop();
+    lower.push(p);
+  }
+  for (let i=sorted.length-1;i>=0;i--) {
+    const p=sorted[i];
+    while(upper.length>=2 && cross(upper[upper.length-2],upper[upper.length-1],p)<=0) upper.pop();
+    upper.push(p);
+  }
+  upper.pop(); lower.pop();
+  return lower.concat(upper);
+}
+
+/* Expand hull outward from its centroid by `pad` pixels */
+function expandHull(hull, pad) {
+  const cx=hull.reduce((s,p)=>s+p[0],0)/hull.length;
+  const cy=hull.reduce((s,p)=>s+p[1],0)/hull.length;
+  return hull.map(p=>{
+    const dx=p[0]-cx, dy=p[1]-cy, len=Math.hypot(dx,dy)||1;
+    return [p[0]+dx/len*pad, p[1]+dy/len*pad];
+  });
+}
+
+/* Build MST via Prim's — returns array of [ptA, ptB] pairs */
+function buildMST(pts) {
+  if (pts.length < 2) return [];
+  const inMST=new Set([0]), edges=[];
+  while(inMST.size < pts.length) {
+    let bestD=Infinity, bi=-1, bj=-1;
+    for(const i of inMST)
+      for(let j=0;j<pts.length;j++){
+        if(inMST.has(j)) continue;
+        const d=Math.hypot(pts[i].x-pts[j].x, pts[i].y-pts[j].y);
+        if(d<bestD){bestD=d;bi=i;bj=j;}
+      }
+    if(bj===-1) break;
+    edges.push([pts[bi], pts[bj]]);
+    inMST.add(bj);
+  }
+  return edges;
+}
+
+/* Run linkage clustering to k clusters, returns {clusters} */
+function runLinkageClustering(type, k) {
+  let clusters = LINK_PTS.map((p,i) => ({ pts:[p], id:i }));
+  while(clusters.length > k) {
+    let minD=Infinity, mi=-1, mj=-1;
+    for(let i=0;i<clusters.length;i++)
+      for(let j=i+1;j<clusters.length;j++){
+        let d=0;
+        if(type==='single'){
+          d=Infinity;
+          for(let a of clusters[i].pts) for(let b of clusters[j].pts) d=Math.min(d,Math.hypot(a.x-b.x,a.y-b.y));
+        } else if(type==='complete'){
+          for(let a of clusters[i].pts) for(let b of clusters[j].pts) d=Math.max(d,Math.hypot(a.x-b.x,a.y-b.y));
+        } else {
+          let sum=0,cnt=0;
+          for(let a of clusters[i].pts) for(let b of clusters[j].pts){sum+=Math.hypot(a.x-b.x,a.y-b.y);cnt++;}
+          d=sum/cnt;
+        }
+        if(d<minD){minD=d;mi=i;mj=j;}
+      }
+    const merged={pts:[...clusters[mi].pts,...clusters[mj].pts],id:clusters[mi].id};
+    clusters.splice(mj,1); clusters.splice(mi,1); clusters.push(merged);
+  }
+  return clusters;
+}
+
+function drawLinkage() {
+  const cvs = document.getElementById('linkage-canvas');
+  if (!cvs || !cvs.width) return;
+  const ctx = cvs.getContext('2d');
+  const cw = cvs.width, ch = cvs.height;
+  const type = (document.querySelector('input[name="linkage"]:checked') || {value:'average'}).value;
+
+  // Read k from the slider
+  const kEl = document.getElementById('link-k');
+  const k = kEl ? parseInt(kEl.value) : 3;
+  if (document.getElementById('link-k-lbl'))
+    document.getElementById('link-k-lbl').textContent = k + ' cluster' + (k !== 1 ? 's' : '');
+
+  ctx.clearRect(0,0,cw,ch);
+  ctx.fillStyle = isLight ? 'rgba(0,0,0,0.04)' : 'rgba(255,255,255,0.03)';
+  for(let gx=20;gx<cw;gx+=30)
+    for(let gy=20;gy<ch;gy+=30){ctx.beginPath();ctx.arc(gx,gy,1,0,Math.PI*2);ctx.fill();}
+
+  const clusters = runLinkageClustering(type, k);
+
+  // Draw cluster shapes
+  clusters.forEach((c, idx) => {
+    const col = CLUSTER_COLORS[idx % CLUSTER_COLORS.length];
+
+    if (type === 'single' && c.pts.length >= 3) {
+      // FIX 3: Use proper convex hull + expansion for single linkage to show elongated chains
+      const raw = c.pts.map(p => [p.x*cw, p.y*ch]);
+      const hull = expandHull(convexHull(raw), 22);
+      ctx.save();
+      ctx.globalAlpha = 0.11; ctx.fillStyle = col;
+      ctx.beginPath();
+      hull.forEach((p,i) => i===0 ? ctx.moveTo(p[0],p[1]) : ctx.lineTo(p[0],p[1]));
+      ctx.closePath(); ctx.fill();
+      ctx.globalAlpha = 0.65; ctx.strokeStyle = col; ctx.lineWidth = 1.5;
+      ctx.setLineDash([5,3]);
+      ctx.beginPath();
+      hull.forEach((p,i) => i===0 ? ctx.moveTo(p[0],p[1]) : ctx.lineTo(p[0],p[1]));
+      ctx.closePath(); ctx.stroke(); ctx.setLineDash([]);
+      ctx.restore();
+
+      // FIX 3: Draw actual MST edges (not x-sorted polyline)
+      const mst = buildMST(c.pts);
+      ctx.save();
+      ctx.strokeStyle = col; ctx.lineWidth = 1.5; ctx.globalAlpha = 0.75;
+      mst.forEach(([a,b]) => {
+        ctx.beginPath();
+        ctx.moveTo(a.x*cw, a.y*ch);
+        ctx.lineTo(b.x*cw, b.y*ch);
+        ctx.stroke();
+      });
+      ctx.restore();
+
+    } else {
+      // Ellipse for complete / average (clean boundary)
+      const xs=c.pts.map(p=>p.x*cw), ys=c.pts.map(p=>p.y*ch);
+      const minX=Math.min(...xs)-20, maxX=Math.max(...xs)+20;
+      const minY=Math.min(...ys)-20, maxY=Math.max(...ys)+20;
+      const rcx=(minX+maxX)/2, rcy=(minY+maxY)/2;
+      const rrx=Math.max((maxX-minX)/2,18), rry=Math.max((maxY-minY)/2,18);
+      ctx.save();
+      ctx.globalAlpha=0.14; ctx.fillStyle=col;
+      ctx.beginPath(); ctx.ellipse(rcx,rcy,rrx,rry,0,0,Math.PI*2); ctx.fill();
+      ctx.globalAlpha=1; ctx.strokeStyle=col; ctx.lineWidth=2;
+      ctx.beginPath(); ctx.ellipse(rcx,rcy,rrx,rry,0,0,Math.PI*2); ctx.stroke();
+      ctx.restore();
+    }
+
+    // Cluster label
+    const xs=c.pts.map(p=>p.x*cw), ys=c.pts.map(p=>p.y*ch);
+    ctx.fillStyle=col;
+    ctx.font="bold 12px 'IBM Plex Mono',monospace";
+    ctx.fillText(`C${idx+1}`, Math.min(...xs)-16, Math.min(...ys)-10);
+  });
+
+  // Draw all points
+  LINK_PTS.forEach(p => {
+    const cIdx = clusters.findIndex(c => c.pts.includes(p));
+    const col = CLUSTER_COLORS[cIdx % CLUSTER_COLORS.length];
+    const px=p.x*cw, py=p.y*ch;
+    ctx.save();
+    ctx.shadowColor=col; ctx.shadowBlur=6;
+    ctx.beginPath(); ctx.arc(px,py,6,0,Math.PI*2);
+    ctx.fillStyle=col; ctx.fill(); ctx.shadowBlur=0;
+    ctx.strokeStyle=isLight?'rgba(255,255,255,0.9)':'rgba(22,22,22,0.7)';
+    ctx.lineWidth=1.5; ctx.stroke();
+    ctx.restore();
+  });
+
+  // Bridge point annotation
+  const bp = LINK_PTS[10];
+  ctx.fillStyle = getCSS('--warn');
+  ctx.font = "10px 'IBM Plex Mono',monospace";
+  ctx.fillText('bridge', bp.x*cw+9, bp.y*ch-6);
+
+  const expMap = {
+    single: `<strong>Single linkage</strong> uses the <em>closest pair</em> between clusters — solid lines show the actual MST edges that stitched points together. The bridge point (labelled) pulled both groups into one elongated chain. This is the <strong>Chaining Effect</strong> you need to recognise in an exam.`,
+    complete: `<strong>Complete linkage</strong> uses the <em>farthest pair</em> — even one distant outlier inflates the merge distance. Clusters stay compact and well-separated because the maximum distance between groups is large. No chaining possible.`,
+    average: `<strong>Average linkage</strong> uses the <em>mean of all pairwise distances</em> — a stable middle ground. The bridge point joined whichever group had the lower average distance. This is generally the safest default choice.`
+  };
+  document.getElementById('linkage-exp').innerHTML = expMap[type];
+}
+
+/* ════════════════════════════════════════════
+   CANVAS RESIZE
+════════════════════════════════════════════ */
+function resizeCanvases() {
+  ['agg-canvas','linkage-canvas'].forEach(id => {
+    const cvs = document.getElementById(id);
+    if (!cvs) return;
+    const rect = cvs.getBoundingClientRect();
+    cvs.width = rect.width; cvs.height = rect.height || 300;
+  });
+}
+
+window.addEventListener('resize', () => {
+  resizeCanvases(); drawAgg(); drawLinkage();
+  if(d9Built) renderDendro();
+});
+
+window.addEventListener('DOMContentLoaded', () => {
+  resizeCanvases(); initAgg(); drawLinkage();
+  document.getElementById('linkage-exp').innerHTML =
+    `<strong>Average linkage</strong> uses the <em>mean of all pairwise distances</em> — a stable middle ground. The bridge point joined whichever group had the lower average distance. This is generally the safest default choice.`;
+  const aggCvs = document.getElementById('agg-canvas');
+  if (aggCvs) {
+    aggCvs.addEventListener('click', e => {
+      const rect = aggCvs.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / aggCvs.width;
+      const y = (e.clientY - rect.top) / aggCvs.height;
+      AGG_PTS.push({name: 'P'+(AGG_PTS.length+1), x, y});
+      document.getElementById('demo9-locked').style.display = 'block';
+      document.getElementById('demo9-content').style.display = 'none';
+      d9Built = false;
+      initAgg();
+    });
+  }
+
+  const linkCvs = document.getElementById('linkage-canvas');
+  if (linkCvs) {
+    linkCvs.addEventListener('click', e => {
+      const rect = linkCvs.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / linkCvs.width;
+      const y = (e.clientY - rect.top) / linkCvs.height;
+      LINK_PTS.push({x, y});
+      drawLinkage();
+    });
+  }
+});
+
+/* ════════════════════════════════════════════
+   SCROLL SPY
+════════════════════════════════════════════ */
+const sections = Array.from(document.querySelectorAll('.section[id]'));
+let rafPending = false;
+window.addEventListener('scroll', () => {
+  if(rafPending) return; rafPending=true;
+  requestAnimationFrame(()=>{
+    rafPending=false;
+    const trigger=window.scrollY+window.innerHeight*.28;
+    let active=sections[0];
+    for(const s of sections){if(s.offsetTop<=trigger) active=s; else break;}
+    if(active) document.querySelectorAll('.nav-item,.drawer-nav-item').forEach(n=>{
+      n.classList.toggle('active', n.getAttribute('href')==='#'+active.id);
+    });
+  });
+},{passive:true});
+
+/* ════════════════════════════════════════════
+   MOBILE DRAWER
+════════════════════════════════════════════ */
+function buildDrawer(){
+  const dr=document.getElementById('nav-drawer'), sn=document.getElementById('sidenav');
+  if(!sn||!dr) return;
+  const cl=sn.cloneNode(true); cl.removeAttribute('id'); cl.removeAttribute('class');
+  cl.querySelectorAll('.nav-item').forEach(el=>{el.classList.add('drawer-nav-item');el.addEventListener('click',closeDrawer);});
+  const tog=cl.querySelector('.tog-area'); if(tog) tog.remove();
+  const cb=document.createElement('button');
+  cb.textContent='✕ Close';
+  cb.style.cssText='font-family:"IBM Plex Mono",monospace;font-size:11px;background:transparent;border:none;border-bottom:1px solid var(--bdr-00);color:var(--txt-ph);padding:12px 16px;width:100%;text-align:left;cursor:pointer';
+  cb.onclick=closeDrawer; dr.innerHTML=''; dr.insertBefore(cb,dr.firstChild); dr.appendChild(cl);
+}
+function toggleDrawer(){
+  const ov=document.getElementById('nav-overlay'),dr=document.getElementById('nav-drawer');
+  if(dr.classList.contains('open')){closeDrawer();return;}
+  ov.style.display='block'; setTimeout(()=>ov.classList.add('open'),10);
+  dr.classList.add('open'); document.body.style.overflow='hidden';
+}
+function closeDrawer(){
+  const ov=document.getElementById('nav-overlay'),dr=document.getElementById('nav-drawer');
+  ov.classList.remove('open'); dr.classList.remove('open'); document.body.style.overflow='';
+  setTimeout(()=>{ov.style.display='none';},270);
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape') closeDrawer();});
+document.fonts.ready.then(()=>buildDrawer());
+
+/* ════════════════════════════════════════════
+   QUIZ
+════════════════════════════════════════════ */
+let quizScore=0;
+const quizAnswered=new Set();
+function checkQuiz(el,isCorrect,qNum,fbId){
+  if(quizAnswered.has(qNum)) return;
+  quizAnswered.add(qNum);
+  el.classList.add(isCorrect?'correct':'wrong');
+  if(isCorrect){quizScore++;document.getElementById('quiz-total').textContent=quizScore;}
+  else el.closest('.quiz-options').querySelectorAll('.quiz-opt').forEach(b=>{
+    if(b.getAttribute('onclick')&&b.getAttribute('onclick').includes('true')) b.classList.add('correct');
+  });
+  document.getElementById(fbId).style.display='block';
+  el.closest('.quiz-options').querySelectorAll('.quiz-opt').forEach(b=>{b.disabled=true;b.style.cursor='default';});
+}
+
+/* ════════════════════════════════════════════
+   CODE PROTECTION
+════════════════════════════════════════════ */
+(function(){
+  var _p=function(e){e.preventDefault();return false;};
+  document.addEventListener('contextmenu',_p);
+  document.addEventListener('keydown',function(e){
+    var k=(e.key||'').toUpperCase(),c=e.ctrlKey||e.metaKey,s=e.shiftKey;
+    if(e.key==='F12'||(c&&s&&['I','J','C','K'].includes(k))||(c&&['U','S','P'].includes(k))){e.preventDefault();return false;}
+  },true);
+  document.addEventListener('dragstart',_p);
+})();
+</script>
+<script src="../tony_keys.js"></script>
+<script src="../tony.js"></script>
+</body>
+</html>
