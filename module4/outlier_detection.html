@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="../machine-learning-model.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Introduction to Outlier Detection | Module 4 · Svyasa</title>
+<meta name="description" content="Learn about outlier detection, why outliers are important, types of outliers, and methods to detect them including Z-Score, IQR, Distance-based, and DBSCAN.">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;1,300&family=IBM+Plex+Serif:ital,wght@0,300;1,300&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#161616;--layer-01:#262626;--layer-02:#393939;--layer-03:#525252;
+  --hover-01:#333333;--bdr-00:#393939;--bdr-01:#474747;--bdr-str:#6f6f6f;
+  --txt-pri:#f4f4f4;--txt-sec:#c6c6c6;--txt-ph:#6f6f6f;
+  --blue:#4589ff;--link:#78a9ff;--success:#42be65;--warn:#f1c21b;--error:#ff8389;--teal:#3ddbd9;--purple:#d4bbff;
+  --ac:#3ddbd9;--ac-dim:rgba(61,219,217,0.12);--ac-glow:rgba(61,219,217,0.3);
+}
+html.light{
+  --bg:#fff;--layer-01:#f4f4f4;--layer-02:#e0e0e0;--layer-03:#c6c6c6;
+  --hover-01:#e8e8e8;--bdr-00:#e0e0e0;--bdr-01:#c6c6c6;--bdr-str:#8d8d8d;
+  --txt-pri:#161616;--txt-sec:#525252;--txt-ph:#8d8d8d;
+  --blue:#0f62fe;--link:#0043ce;--success:#198038;--warn:#b28600;--error:#da1e28;--teal:#007d79;--purple:#6929c4;
+  --ac:#007d79;--ac-dim:rgba(0,125,121,0.1);--ac-glow:rgba(0,125,121,0.25);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'IBM Plex Sans',sans-serif;font-size:15px;line-height:1.5;background:var(--bg);color:var(--txt-pri);-webkit-font-smoothing:antialiased;transition:background .25s,color .2s}
+a{text-decoration:none;color:inherit}
+.page-grid{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+.sidenav{background:var(--layer-01);border-right:1px solid var(--bdr-00);position:sticky;top:0;height:100vh;overflow-y:auto;padding-bottom:32px;transition:background .25s,border-color .2s}
+.nav-hdr{padding:16px;border-bottom:1px solid var(--bdr-00);margin-bottom:4px}
+.nav-back{display:flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph);letter-spacing:.06em;margin-bottom:8px;transition:color .15s}
+.nav-back:hover{color:var(--ac)}
+.nav-mod{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;color:var(--ac);text-transform:uppercase;margin-bottom:3px}
+.nav-title{font-size:13px;font-weight:600;color:var(--txt-pri);line-height:1.3}
+.nav-sec{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;color:var(--txt-ph);text-transform:uppercase;padding:12px 16px 4px}
+.nav-item{display:flex;align-items:center;gap:8px;padding:8px 16px;font-size:13px;color:var(--txt-sec);cursor:pointer;border-left:3px solid transparent;transition:background .1s,color .1s,border-color .1s;text-decoration:none}
+.nav-item:hover{background:var(--hover-01);color:var(--txt-pri)}
+.nav-item.active{background:var(--hover-01);color:var(--txt-pri);border-left-color:var(--ac);font-weight:600}
+.nav-item.active .nn{color:var(--ac)}
+.nn{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--txt-ph);min-width:16px;transition:color .15s}
+.tog-area{padding:20px 16px 0}
+.tog-btn{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding:8px 10px;background:var(--layer-02);border:1px solid var(--bdr-01);cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-sec);letter-spacing:.05em;transition:background .15s}
+.tog-btn:hover{background:var(--hover-01);color:var(--txt-pri)}
+.tog-track{width:26px;height:13px;background:var(--bdr-str);border-radius:7px;position:relative;flex-shrink:0;transition:background .25s}
+.tog-thumb{position:absolute;top:2px;left:2px;width:9px;height:9px;border-radius:50%;background:#fff;transition:transform .25s}
+html.light .tog-track{background:var(--ac)}
+html.light .tog-thumb{transform:translateX(13px)}
+.mob-topbar{display:none;position:fixed;top:0;left:0;right:0;z-index:200;height:52px;background:var(--layer-01);border-bottom:1px solid var(--bdr-00);align-items:center;padding:0 16px;gap:8px;transition:background .25s}
+.mob-menu-btn{width:34px;height:34px;background:transparent;border:1px solid var(--bdr-01);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-direction:column;gap:4px}
+.mob-bar{width:14px;height:1.5px;background:var(--txt-pri)}
+.mob-title{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--txt-pri);flex:1;letter-spacing:.04em}
+.mob-tog{width:34px;height:34px;background:transparent;border:1px solid var(--bdr-01);cursor:pointer;font-size:14px;color:var(--txt-sec)}
+.nav-overlay{display:none;position:fixed;inset:0;z-index:150;background:rgba(0,0,0,.6);opacity:0;transition:opacity .25s}
+.nav-overlay.open{opacity:1}
+.nav-drawer{position:fixed;left:0;top:0;bottom:0;z-index:160;width:260px;background:var(--layer-01);border-right:1px solid var(--bdr-00);overflow-y:auto;transform:translateX(-100%);transition:transform .3s cubic-bezier(.4,0,.2,1);padding-bottom:32px}
+.nav-drawer.open{transform:translateX(0)}
+.main{padding:0 48px 100px;max-width:820px;transition:background .25s}
+.page-hdr{padding:52px 0 40px;border-bottom:1px solid var(--bdr-00);margin-bottom:52px}
+.breadcrumb{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-ph);letter-spacing:.05em;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.breadcrumb a{color:var(--ac);transition:opacity .15s}.breadcrumb a:hover{opacity:.7}
+h1{font-family:'IBM Plex Serif',serif;font-size:clamp(34px,5vw,54px);font-weight:300;line-height:1.15;color:var(--txt-pri);margin-bottom:12px}
+h1 em{font-style:italic;color:var(--ac)}
+.hdr-desc{font-size:15px;font-weight:300;color:var(--txt-sec);max-width:580px;line-height:1.7}
+.section{margin-bottom:60px;opacity:0;transform:translateY(14px);animation:fadeUp .4s ease forwards}
+.section:nth-child(1){animation-delay:.05s}.section:nth-child(2){animation-delay:.10s}
+.section:nth-child(3){animation-delay:.15s}.section:nth-child(4){animation-delay:.20s}
+.section:nth-child(5){animation-delay:.25s}.section:nth-child(6){animation-delay:.30s}
+.section:nth-child(7){animation-delay:.35s}.section:nth-child(8){animation-delay:.40s}
+.section:nth-child(9){animation-delay:.45s}.section:nth-child(10){animation-delay:.50s}
+.section:nth-child(11){animation-delay:.55s}.section:nth-child(12){animation-delay:.60s}
+.section:nth-child(13){animation-delay:.65s}.section:nth-child(14){animation-delay:.70s}
+.section:nth-child(15){animation-delay:.75s}.section:nth-child(16){animation-delay:.80s}
+@keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;color:var(--ac);text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.eyebrow::before{content:'';display:inline-block;width:14px;height:1px;background:var(--ac)}
+h2{font-family:'IBM Plex Serif',serif;font-size:24px;font-weight:300;color:var(--txt-pri);margin-bottom:14px;line-height:1.25}
+h3{font-size:16px;font-weight:600;color:var(--txt-pri);margin-bottom:8px}
+p{font-size:14px;font-weight:300;color:var(--txt-sec);margin-bottom:12px;line-height:1.75}
+p strong{color:var(--txt-pri);font-weight:600}
+ul{padding-left:0;list-style:none}
+ul li{position:relative;padding-left:16px;margin-bottom:8px;font-size:14px;font-weight:300;color:var(--txt-sec);line-height:1.6}
+ul li::before{content:'';position:absolute;left:0;top:9px;width:5px;height:1px;background:var(--ac)}
+.callout{border-left:3px solid var(--ac);background:var(--layer-01);padding:14px 18px;margin:14px 0;font-size:14px;font-weight:300;color:var(--txt-sec);line-height:1.75;transition:background .25s}
+.callout strong{color:var(--txt-pri);font-weight:600}
+.callout-g{border-left-color:var(--success)}
+.callout-y{border-left-color:var(--warn)}
+.callout-p{border-left-color:var(--purple)}
+.callout-b{border-left-color:var(--link)}
+.callout-r{border-left-color:var(--error)}
+.tile{background:var(--layer-01);border:1px solid var(--bdr-00);padding:20px 24px;margin-bottom:12px;transition:background .25s,border-color .2s}
+.tile-title{font-size:13px;font-weight:600;color:var(--txt-pri);margin-bottom:12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--bdr-00);border:1px solid var(--bdr-00);margin:14px 0}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--bdr-00);border:1px solid var(--bdr-00);margin:14px 0}
+.gcell{background:var(--layer-01);padding:20px 22px;transition:background .25s}
+.kv{display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--bdr-00);font-size:13px;gap:12px}
+.kv:last-child{border-bottom:none}
+.kk{color:var(--txt-sec);font-weight:300;flex-shrink:0}
+.kv-v{color:var(--txt-pri);font-weight:400;text-align:right}
+.tag{display:inline-flex;align-items:center;height:22px;padding:0 10px;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.03em;margin-bottom:10px}
+.t-bl{background:#0043ce;color:#a6c8ff}
+.t-gr{background:#044317;color:#a7f0ba}
+.t-re{background:#750e13;color:#ffb3b8}
+.t-cy{background:#003a3a;color:#9ef0f0}
+.t-pu{background:#31135e;color:#e8daff}
+.t-ye{background:#8e6a00;color:#f1c21b}
+html.light .t-bl{background:#d0e2ff;color:#0043ce}
+html.light .t-gr{background:#a7f0ba;color:#044317}
+html.light .t-re{background:#ffd7d9;color:#750e13}
+html.light .t-cy{background:#d9fbfb;color:#005d5d}
+html.light .t-pu{background:#e8daff;color:#31135e}
+html.light .t-ye{background:#f1c21b;color:#8e6a00}
+.formula{font-family:'IBM Plex Mono',monospace;font-size:13px;background:var(--layer-02);border:1px solid var(--bdr-01);border-left:3px solid var(--ac);padding:11px 15px;margin:10px 0;line-height:2;color:var(--txt-pri)}
+.step-flow{display:flex;flex-direction:column;gap:0;margin:16px 0}
+.step-item{display:grid;grid-template-columns:40px 1fr;gap:0;position:relative}
+.step-item:not(:last-child)::after{content:'';position:absolute;left:19px;top:40px;bottom:0;width:1px;background:var(--bdr-01)}
+.step-dot{width:38px;height:38px;background:var(--layer-02);border:2px solid var(--ac);display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--ac);flex-shrink:0;z-index:1}
+.step-body{padding:8px 0 20px 16px}
+.step-title{font-size:14px;font-weight:600;color:var(--txt-pri);margin-bottom:4px}
+.step-desc{font-size:13px;color:var(--txt-sec);line-height:1.7}
+.cmp-table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px;text-align:left;border:1px solid var(--bdr-01)}
+.cmp-table th{background:var(--layer-02);color:var(--ac);padding:12px 16px;font-weight:600}
+.cmp-table td{padding:12px 16px;border-top:1px solid var(--bdr-00);color:var(--txt-sec)}
+.cmp-table tr:nth-child(even) td{background:var(--layer-01)}
+.cmp-table tr:nth-child(odd) td{background:var(--bg)}
+.interactive-wrap{background:var(--layer-01);border:1px solid var(--bdr-00);padding:24px;margin:16px 0;position:relative;overflow:hidden}
+.interactive-wrap::before{content:'INTERACTIVE';position:absolute;top:0;right:0;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.12em;color:var(--ac);background:var(--ac-dim);border-left:1px solid var(--bdr-00);border-bottom:1px solid var(--bdr-00);padding:4px 10px}
+.iw-title{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;color:var(--txt-ph);text-transform:uppercase;margin-bottom:16px;border-bottom:1px solid var(--bdr-00);padding-bottom:10px}
+.sim-controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.sim-btn{padding:8px 16px;font-family:'IBM Plex Mono',monospace;font-size:11px;background:transparent;border:1px solid var(--bdr-01);color:var(--txt-sec);cursor:pointer;transition:all .15s;letter-spacing:.04em}
+.sim-btn:hover:not(:disabled){background:var(--hover-01);color:var(--txt-pri)}
+.sim-btn.primary{background:var(--ac);border-color:var(--ac);color:#000;font-weight:600}
+.sim-btn.primary:hover:not(:disabled){opacity:.85;box-shadow:0 0 16px var(--ac-glow)}
+.sim-btn:disabled{opacity:.45;cursor:not-allowed}
+.quiz-card{background:var(--layer-01);border:1px solid var(--bdr-00);padding:20px;margin-bottom:12px;transition:border-color .2s}
+.quiz-q{font-size:14px;font-weight:600;color:var(--txt-pri);margin-bottom:14px;line-height:1.5}
+.quiz-options{display:flex;flex-direction:column;gap:8px}
+.quiz-opt{padding:10px 14px;background:var(--layer-02);border:1px solid var(--bdr-01);font-size:13px;color:var(--txt-sec);cursor:pointer;text-align:left;transition:all .15s;font-family:'IBM Plex Sans',sans-serif;width:100%}
+.quiz-opt:hover:not(:disabled){background:var(--hover-01);color:var(--txt-pri);border-color:var(--ac)}
+.quiz-opt.correct{background:rgba(66,190,101,.15);border-color:var(--success);color:var(--success)}
+.quiz-opt.wrong{background:rgba(255,131,137,.1);border-color:var(--error);color:var(--error)}
+.quiz-feedback{font-size:13px;color:var(--txt-sec);margin-top:10px;padding:10px;border-left:3px solid var(--ac);background:var(--layer-02);display:none;line-height:1.6;animation:fadeUp .3s ease}
+.page-nav{display:flex;justify-content:space-between;align-items:center;padding-top:40px;border-top:1px solid var(--bdr-00);margin-top:60px}
+.page-nav-btn{display:flex;align-items:center;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-sec);padding:10px 16px;border:1px solid var(--bdr-01);background:transparent;cursor:pointer;transition:background .15s,color .15s;text-decoration:none}
+.page-nav-btn:hover{background:var(--hover-01);color:var(--txt-pri)}
+.page-nav-btn.primary{background:var(--ac);border-color:var(--ac);color:#000;font-weight:600}
+.page-nav-btn.primary:hover{opacity:.9;box-shadow:0 0 16px var(--ac-glow)}
+.big-concept{display:flex;gap:1px;background:var(--bdr-00);border:1px solid var(--bdr-00);margin:20px 0}
+.bc-half{background:var(--layer-01);padding:24px;flex:1;text-align:center}
+.bc-icon{font-size:32px;margin-bottom:8px}
+.bc-label{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;color:var(--ac);text-transform:uppercase;margin-bottom:6px}
+.bc-val{font-family:'IBM Plex Serif',serif;font-size:20px;font-weight:300;color:var(--txt-pri);line-height:1.3}
+.bc-desc{font-size:12px;color:var(--txt-sec);margin-top:6px}
+@media(max-width:767px){
+  .mob-topbar{display:flex}
+  .sidenav{display:none}
+  .page-grid{display:block}
+  .main{padding:68px 16px 80px;max-width:100%}
+  .page-hdr{padding:24px 0 20px;margin-bottom:32px}
+  h1{font-size:24px}
+  .grid2,.grid3{grid-template-columns:1fr}
+  .big-concept{flex-direction:column}
+}
+
+/* Custom for Outlier demo */
+.val-input{background:var(--layer-02);border:1px solid var(--bdr-01);color:var(--txt-pri);padding:8px;font-family:'IBM Plex Mono',monospace;width:60px;text-align:center;margin-right:8px}
+.outlier-tag{display:inline-block;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;margin-left:8px;background:var(--error);color:#fff}
+</style>
+</head>
+<body>
+
+<div class="mob-topbar" id="mob-topbar">
+  <button class="mob-menu-btn" onclick="toggleDrawer()" aria-label="Menu">
+    <div class="mob-bar"></div><div class="mob-bar"></div><div class="mob-bar"></div>
+  </button>
+  <span class="mob-title">Outlier Detection</span>
+  <button class="mob-tog" onclick="toggleTheme()" id="mob-tog">☀</button>
+</div>
+<div class="nav-overlay" id="nav-overlay" onclick="closeDrawer()"></div>
+<nav class="nav-drawer" id="nav-drawer"></nav>
+
+<div class="page-grid">
+<nav class="sidenav" id="sidenav">
+  <div class="nav-hdr">
+    <a class="nav-back" href="index_11.html">← Module 4</a>
+    <div class="nav-mod">Topic 04</div>
+    <div class="nav-title">Outlier Detection</div>
+  </div>
+  <div class="nav-sec">Sections</div>
+  <a class="nav-item active" href="#s1"><span class="nn">01</span>What is an Outlier?</a>
+  <a class="nav-item" href="#s2"><span class="nn">02</span>Why Important?</a>
+  <a class="nav-item" href="#s3"><span class="nn">03</span>Types of Outliers</a>
+  <a class="nav-item" href="#s4"><span class="nn">04</span>Causes</a>
+  <a class="nav-item" href="#s5"><span class="nn">05</span>Z-Score Method</a>
+  <a class="nav-item" href="#s6"><span class="nn">06</span>IQR Method</a>
+  <a class="nav-item" href="#s7"><span class="nn">07</span>Interactive Demo</a>
+  <a class="nav-item" href="#s8"><span class="nn">08</span>Distance-Based</a>
+  <a class="nav-item" href="#s9"><span class="nn">09</span>DBSCAN Algorithm</a>
+  <a class="nav-item" href="#s10"><span class="nn">10</span>Comparisons & Notes</a>
+  <a class="nav-item" href="#s11"><span class="nn">11</span>Quiz Yourself</a>
+  <div class="tog-area">
+    <button class="tog-btn" onclick="toggleTheme()">
+      <span style="display:flex;align-items:center;gap:6px"><span id="tog-icon">☀</span><span id="tog-txt">Light theme</span></span>
+      <span class="tog-track"><span class="tog-thumb"></span></span>
+    </button>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph);margin-top:10px;line-height:1.6">IBM Carbon · <span id="theme-lbl">Dark</span></div>
+  </div>
+</nav>
+
+<main class="main">
+<div class="page-hdr">
+  <div class="breadcrumb">
+    <a href="../index.html">Home</a><span>/</span>
+    <a href="index_11.html">Module 4</a><span>/</span>
+    <span style="color:var(--txt-sec)">Outlier Detection</span>
+  </div>
+  <h1>Introduction to<br><em>Outlier Detection</em></h1>
+  <p class="hdr-desc">"Not every data point follows the crowd." Learn how to identify, analyze, and handle data points that behave very differently from the rest of the data.</p>
+</div>
+
+<!-- S1 -->
+<div class="section" id="s1">
+  <div class="eyebrow">01 · Concept</div>
+  <h2>What is an Outlier?</h2>
+  <div class="callout callout-y">📌 An outlier is a data point that <strong>behaves very differently</strong> from the rest of the data. It does not follow the normal pattern.</div>
+  
+  <h3 style="margin-top:20px">Easy Real-Life Example</h3>
+  <div class="tile">
+    <p>Suppose marks of students are: <strong>70, 72, 75, 71, 74, 73, 98</strong></p>
+    <p>Most students scored around 70–75. But one student scored 98.<br>That 98 behaves differently. Hence, <strong style="color:var(--success)">98 is an outlier</strong>.</p>
+  </div>
+
+  <h3 style="margin-top:20px">Relatable Analogy</h3>
+  <div class="grid2">
+    <div class="gcell" style="text-align:center">
+      <div style="font-size:32px">🏍️ 🏍️ 🏍️ 🏍️ 🏍️</div>
+      <div style="font-size:12px;color:var(--txt-ph);margin-top:8px">Normal Pattern: A parking lot full of bikes</div>
+    </div>
+    <div class="gcell" style="text-align:center;border-left:1px solid var(--bdr-00)">
+      <div style="font-size:32px">🚁</div>
+      <div style="font-size:12px;color:var(--txt-ph);margin-top:8px">The Outlier: A helicopter lands there</div>
+    </div>
+  </div>
+  
+  <div class="callout callout-b">🧠 <strong>Important Understanding:</strong> Outliers are NOT always bad. Sometimes they represent mistakes or fraud, but sometimes they represent rare events or <strong>important discoveries</strong> (like a patient recovering unusually fast).</div>
+</div>
+
+<!-- S2 -->
+<div class="section" id="s2">
+  <div class="eyebrow">02 · Motivation</div>
+  <h2>Why are Outliers Important?</h2>
+  <p>Outliers are extremely important because they often indicate crucial anomalies in real-world systems.</p>
+  
+  <table class="cmp-table">
+    <thead><tr><th>Area</th><th>Meaning of Outlier</th></tr></thead>
+    <tbody>
+      <tr><td>Banking</td><td>Fraud transaction</td></tr>
+      <tr><td>Cybersecurity</td><td>Hacking attempt</td></tr>
+      <tr><td>Healthcare</td><td>Disease anomaly</td></tr>
+      <tr><td>Manufacturing</td><td>Defective product</td></tr>
+      <tr><td>Social Media</td><td>Viral abnormal activity</td></tr>
+      <tr><td>E-commerce</td><td>Suspicious purchase</td></tr>
+      <tr><td>AI systems</td><td>Abnormal behavior</td></tr>
+    </tbody>
+  </table>
+
+  <h3 style="margin-top:20px">Tech Example: Credit Card Fraud</h3>
+  <div class="grid2">
+    <div class="gcell">
+      <div class="tag t-gr">✅ Normal Pattern</div>
+      <p style="margin:0;font-size:13px">A person normally spends:<br>₹500, ₹800, ₹1200.</p>
+    </div>
+    <div class="gcell">
+      <div class="tag t-re">❌ Outlier Detected</div>
+      <p style="margin:0;font-size:13px">Suddenly: 💳 <strong>₹2,50,000</strong> transaction from another country.<br>Banks immediately flag this.</p>
+    </div>
+  </div>
+
+  <h3 style="margin-top:20px">Tech Example: Server Monitoring</h3>
+  <div class="tile">
+    <p>Normal CPU usage is <strong>40%, 45%, 50%</strong>. Suddenly, it spikes to 🔥 <strong>99%</strong>.<br>
+    Possible reasons: malware, cyberattack, infinite loop, heavy traffic.</p>
+  </div>
+</div>
+
+<!-- S3 -->
+<div class="section" id="s3">
+  <div class="eyebrow">03 · Categories</div>
+  <h2>Types of Outliers</h2>
+  <p>There are mainly 3 types of outliers:</p>
+  
+  <div class="step-flow">
+    <div class="step-item">
+      <div class="step-dot">A</div>
+      <div class="step-body">
+        <div class="step-title">Global Outlier</div>
+        <div class="step-desc">A point far away from ALL other points.<br>
+        <em>Example:</em> Employee salaries are ₹25k, ₹30k, ₹28k, ₹27k. Suddenly someone earns <strong>₹50 crore</strong>. That's a global outlier.</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-dot">B</div>
+      <div class="step-body">
+        <div class="step-title">Contextual Outlier</div>
+        <div class="step-desc">Depends on the context.<br>
+        <em>Example:</em> 40°C temperature is normal in summer, but highly abnormal in winter. Same value, different context.</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-dot">C</div>
+      <div class="step-body">
+        <div class="step-title">Collective Outlier</div>
+        <div class="step-desc">A group behaving abnormally together.<br>
+        <em>Example:</em> One failed login is normal. <strong>1000 failed logins</strong> in 1 minute is highly suspicious. Together they form collective outliers.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- S4 -->
+<div class="section" id="s4">
+  <div class="eyebrow">04 · Origins</div>
+  <h2>Causes of Outliers</h2>
+  <table class="cmp-table">
+    <thead><tr><th>Cause</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td>Human error</td><td>Wrong data entry</td></tr>
+      <tr><td>Machine error</td><td>Faulty sensor</td></tr>
+      <tr><td>Fraud</td><td>Fake transaction</td></tr>
+      <tr><td>Rare behavior</td><td>Viral trend</td></tr>
+      <tr><td>Experimental error</td><td>Wrong measurements</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- S5 -->
+<div class="section" id="s5">
+  <div class="eyebrow">05 · Statistics</div>
+  <h2>Z-Score Method</h2>
+  <div class="callout" style="border-left-color:var(--ac)"><strong>📌 Main Idea:</strong> Z-score measures <em>"How far a point is from the mean,"</em> calculated using the standard deviation.</div>
+  
+  <div class="formula">Z = (X - &mu;) / &sigma;<br><span style="color:var(--txt-sec)">where: X = data point, &mu; = mean, &sigma; = standard deviation</span></div>
+
+  <table class="cmp-table">
+    <thead><tr><th>Z-score</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td>0</td><td>Exactly at mean</td></tr>
+      <tr><td>1</td><td>Slightly away</td></tr>
+      <tr><td>2</td><td>Far</td></tr>
+      <tr><td>> 3</td><td style="color:var(--error);font-weight:600">Possible outlier</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout callout-r">⚠ <strong>Rule:</strong> If <strong>|Z| > 3</strong>, the point is usually considered an outlier.</div>
+
+  <h3 style="margin-top:20px">Limitation of Z-Score</h3>
+  <p>Z-score works best when data follows a <strong>normal distribution</strong>.</p>
+  <div class="tile">
+    <p><strong>Problem:</strong> Extreme values affect the mean itself.<br>
+    Hence, Z-score may fail for <em>skewed datasets</em>.</p>
+  </div>
+</div>
+
+<!-- S6 -->
+<div class="section" id="s6">
+  <div class="eyebrow">06 · Statistics</div>
+  <h2>IQR (Interquartile Range) Method</h2>
+  <div class="callout callout-y">⭐ <strong>VERY IMPORTANT for exams!</strong> Also very practical.</div>
+  
+  <div class="callout" style="border-left-color:var(--ac)"><strong>📌 Main Idea:</strong> Instead of mean, IQR uses <strong>quartiles</strong> and <strong>median</strong>. Because median is more stable and less affected by extreme values.</div>
+
+  <h3 style="margin-top:20px">Quartiles & Formula</h3>
+  <div class="grid3">
+    <div class="gcell" style="text-align:center">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:24px;color:var(--ac);font-weight:600">Q1</div>
+      <div style="font-size:12px;color:var(--txt-ph);margin-top:4px">25% position</div>
+    </div>
+    <div class="gcell" style="text-align:center">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:24px;color:var(--ac);font-weight:600">Q2</div>
+      <div style="font-size:12px;color:var(--txt-ph);margin-top:4px">Median (50%)</div>
+    </div>
+    <div class="gcell" style="text-align:center">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:24px;color:var(--ac);font-weight:600">Q3</div>
+      <div style="font-size:12px;color:var(--txt-ph);margin-top:4px">75% position</div>
+    </div>
+  </div>
+
+  <div class="formula">IQR = Q3 - Q1</div>
+  <div class="formula">
+    Lower limit = Q1 - 1.5 * IQR<br>
+    Upper limit = Q3 + 1.5 * IQR<br>
+    <span style="color:var(--txt-sec)">Any value outside this range becomes an outlier.</span>
+  </div>
+
+  <h3 style="margin-top:20px">Example</h3>
+  <div class="tile">
+    <p>Dataset: <strong>2, 3, 4, 5, 6, 7, 100</strong></p>
+    <ul>
+      <li>Suppose Q1 = 3 and Q3 = 7.</li>
+      <li>IQR = 7 - 3 = <strong>4</strong></li>
+      <li>Upper limit = 7 + 1.5(4) = <strong>13</strong></li>
+    </ul>
+    <p>Since 100 > 13, <strong>100 is an outlier</strong>.</p>
+  </div>
+</div>
+
+<!-- S7 -->
+<div class="section" id="s7">
+  <div class="eyebrow">07 · Interactive</div>
+  <h2>Z-Score & IQR Outlier Detector</h2>
+  <p style="font-size:13px;color:var(--txt-sec)">Enter comma-separated numbers. See how Z-Score and IQR identify outliers differently.</p>
+  <div class="interactive-wrap">
+    <div class="iw-title">Demo 1 · Live Outlier Calculator</div>
+    <input type="text" id="data-input" value="10, 12, 11, 15, 14, 13, 110" style="width:100%;padding:10px;background:var(--layer-02);border:1px solid var(--bdr-01);color:var(--txt-pri);font-family:'IBM Plex Mono',monospace;margin-bottom:12px" oninput="calculateOutliers()">
+    
+    <div class="grid2">
+      <div class="gcell">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-ph);margin-bottom:8px">Z-SCORE METHOD</div>
+        <div id="z-stats" style="font-size:13px;color:var(--txt-sec);margin-bottom:8px">Mean: -, StdDev: -</div>
+        <div id="z-outliers" style="font-family:'IBM Plex Serif',serif;font-size:24px;color:var(--error)">-</div>
+      </div>
+      <div class="gcell">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-ph);margin-bottom:8px">IQR METHOD</div>
+        <div id="iqr-stats" style="font-size:13px;color:var(--txt-sec);margin-bottom:8px">Q1: -, Q3: -, IQR: -</div>
+        <div id="iqr-outliers" style="font-family:'IBM Plex Serif',serif;font-size:24px;color:var(--error)">-</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- S8 -->
+<div class="section" id="s8">
+  <div class="eyebrow">08 · Clustering Concepts</div>
+  <h2>Distance-Based Outlier Detection</h2>
+  <div class="callout" style="border-left-color:var(--ac)"><strong>📌 Main Idea:</strong> If a point is <strong>very far from other points</strong>, then it may be an outlier.</div>
+  
+  <div class="grid2" style="margin-top:20px">
+    <div class="gcell" style="text-align:center">
+      <div style="font-size:32px">👨👨👨👨👨</div>
+      <div style="font-size:12px;color:var(--txt-ph);margin-top:8px">Normal Crowd</div>
+    </div>
+    <div class="gcell" style="text-align:center;border-left:1px solid var(--bdr-00)">
+      <div style="font-size:32px">🧍</div>
+      <div style="font-size:12px;color:var(--txt-ph);margin-top:8px">The Lonely Outlier</div>
+    </div>
+  </div>
+
+  <h3 style="margin-top:20px">Distance Formula</h3>
+  <p>Usually Euclidean distance is used.</p>
+  <div class="formula">d = &radic;((x₂ - x₁)² + (y₂ - y₁)²)</div>
+
+  <h3 style="margin-top:20px">Connection with Clustering</h3>
+  <div class="tile">
+    <p>Clustering groups similar nearby points. Outliers do not belong strongly to any cluster and remain isolated.</p>
+    <p><strong>Example in K-Means:</strong> Sometimes one point lies very far from centroid. That point distorts the centroid and reduces clustering quality. Hence, outlier removal is often done <em>before</em> clustering.</p>
+  </div>
+</div>
+
+<!-- S9 -->
+<div class="section" id="s9">
+  <div class="eyebrow">09 · Advanced Algorithm</div>
+  <h2>DBSCAN — Density-Based Clustering</h2>
+  <p>Full form: <strong>Density-Based Spatial Clustering of Applications with Noise</strong></p>
+  
+  <div class="callout callout-b">🧠 <strong>Why DBSCAN?</strong> K-Means needs K beforehand, is sensitive to outliers, and assumes circular clusters. DBSCAN solves these issues.</div>
+
+  <h3 style="margin-top:20px">Main Idea</h3>
+  <p>Instead of asking "Which centroid is closest?", DBSCAN asks <strong>"Where are points densely packed together?"</strong></p>
+  <ul>
+    <li>Dense regions become: <strong>✅ Clusters</strong></li>
+    <li>Sparse isolated regions become: <strong>✅ Noise / Outliers</strong></li>
+  </ul>
+
+  <h3 style="margin-top:20px">Core Concepts in DBSCAN</h3>
+  <div class="step-flow">
+    <div class="step-item">
+      <div class="step-dot">1</div>
+      <div class="step-body">
+        <div class="step-title">Epsilon (ε)</div>
+        <div class="step-desc">Neighborhood radius. "How far should we search around a point?"<br><em>Analogy:</em> WiFi range. Inside range = connected, outside = disconnected.</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-dot">2</div>
+      <div class="step-body">
+        <div class="step-title">MinPts</div>
+        <div class="step-desc">Minimum nearby points required to form a dense region.</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-dot">3</div>
+      <div class="step-body">
+        <div class="step-title">Core Point</div>
+        <div class="step-desc">A point having <strong>≥ MinPts neighbors</strong> within ε distance. Forms the center of clusters.</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-dot">4</div>
+      <div class="step-body">
+        <div class="step-title">Border Point</div>
+        <div class="step-desc">A point having < MinPts neighbors but lies near a core point. Edge members of cluster.</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-dot">5</div>
+      <div class="step-body">
+        <div class="step-title">Noise Point</div>
+        <div class="step-desc">A point not near a dense region; isolated. <strong style="color:var(--error)">✅ Outlier / Noise</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <table class="cmp-table">
+    <thead><tr><th>Point Type</th><th>Condition</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Core Point</strong></td><td style="color:var(--success)">≥ MinPts neighbors</td></tr>
+      <tr><td><strong>Border Point</strong></td><td style="color:var(--warn)">< MinPts but near core</td></tr>
+      <tr><td><strong>Noise Point</strong></td><td style="color:var(--error)">Isolated (Outlier)</td></tr>
+    </tbody>
+  </table>
+  
+  <div class="interactive-wrap" style="margin-top:24px">
+    <div class="iw-title">Demo 2 · DBSCAN Simulator</div>
+    <div style="display:flex;gap:16px;margin-bottom:12px;align-items:center;flex-wrap:wrap">
+      <div style="flex:1;min-width:140px">
+        <label style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-sec);display:flex;justify-content:space-between;margin-bottom:6px">
+          <span>Epsilon (ε) radius</span><span id="eps-val" style="color:var(--ac)">40</span>
+        </label>
+        <input type="range" id="sim-eps" min="10" max="100" value="40" style="width:100%;accent-color:var(--ac)">
+      </div>
+      <div style="flex:1;min-width:140px">
+        <label style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-sec);display:flex;justify-content:space-between;margin-bottom:6px">
+          <span>MinPts (density)</span><span id="minpts-val" style="color:var(--ac)">3</span>
+        </label>
+        <input type="range" id="sim-minpts" min="1" max="10" value="3" style="width:100%;accent-color:var(--ac)">
+      </div>
+      <button class="sim-btn" onclick="clearDbscan()" style="margin-top:14px">Clear</button>
+      <button class="sim-btn primary" onclick="addRandomDbscan()" style="margin-top:14px">Randomize</button>
+    </div>
+    <canvas id="dbscan-canvas" class="demo-canvas" style="cursor:crosshair"></canvas>
+    <div class="km-info">
+      <span>Click canvas to add points</span>
+      <span>
+        <span style="color:var(--success)">● Core</span>
+        <span style="color:var(--warn);margin-left:8px">● Border</span>
+        <span style="color:var(--error);margin-left:8px">● Noise</span>
+      </span>
+    </div>
+  </div>
+
+  <div class="callout callout-y">⭐ <strong>Biggest Strength of DBSCAN:</strong> Automatic Outlier Detection. It naturally identifies noise and anomalies without specifying K.</div>
+</div>
+
+<!-- S10 -->
+<div class="section" id="s10">
+  <div class="eyebrow">10 · Revision</div>
+  <h2>Exam Comparisons & Notes</h2>
+  
+  <h3 style="margin-top:20px">Z-Score vs IQR</h3>
+  <table class="cmp-table">
+    <thead><tr><th>Feature</th><th>Z-Score</th><th>IQR</th></tr></thead>
+    <tbody>
+      <tr><td>Metric Used</td><td>Mean and Standard Deviation</td><td>Quartiles and Median</td></tr>
+      <tr><td>Sensitivity</td><td>Sensitive to extreme outliers</td><td>Robust (Not sensitive)</td></tr>
+      <tr><td>Best For</td><td>Normal Distribution</td><td>Skewed Data</td></tr>
+    </tbody>
+  </table>
+
+  <h3 style="margin-top:20px">K-Means vs DBSCAN</h3>
+  <table class="cmp-table">
+    <thead><tr><th>Feature</th><th>K-Means</th><th>DBSCAN</th></tr></thead>
+    <tbody>
+      <tr><td>Base logic</td><td>Centroid-based</td><td>Density-based</td></tr>
+      <tr><td>Parameters</td><td>Needs K beforehand</td><td>Needs ε and MinPts (No need for K)</td></tr>
+      <tr><td>Outlier Handling</td><td style="color:var(--error)">Poor (distorts centroids)</td><td style="color:var(--success)">Excellent (detects as noise)</td></tr>
+      <tr><td>Shapes</td><td>Circular / Spherical</td><td>Arbitrary / Irregular shapes</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- S11 -->
+<div class="section" id="s11">
+  <div class="eyebrow">11 · Practice</div>
+  <h2>Quiz Yourself</h2>
+  <p style="font-size:13px;color:var(--txt-ph)">Score: <span id="quiz-total">0</span> / 6 correct</p>
+
+  <div class="quiz-card">
+    <div class="quiz-q">Q1. Why are outliers removed before K-Means clustering?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="checkQuiz(this,false,1,'q1fb')">A. To increase dataset size</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,1,'q1fb')">B. To make the clusters perfectly circular</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,true,1,'q1fb')">C. Because they may distort the mean (centroid) and reduce clustering accuracy</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,1,'q1fb')">D. Because all outliers are bad</button>
+    </div>
+    <div class="quiz-feedback" id="q1fb">Correct! Outliers significantly affect the mean, pulling centroids away from the actual dense areas, leading to poor clusters.</div>
+  </div>
+
+  <div class="quiz-card">
+    <div class="quiz-q">Q2. Are all outliers bad data points?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="checkQuiz(this,false,2,'q2fb')">A. Yes, they always represent mistakes</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,true,2,'q2fb')">B. No, some may contain useful insights or important discoveries</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,2,'q2fb')">C. Yes, they should always be removed</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,2,'q2fb')">D. No, they never affect machine learning models</button>
+    </div>
+    <div class="quiz-feedback" id="q2fb">Correct! While they can be mistakes, outliers in areas like healthcare or fraud detection are exactly the important events we want to find.</div>
+  </div>
+
+  <div class="quiz-card">
+    <div class="quiz-q">Q3. Why is DBSCAN a powerful clustering algorithm?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="checkQuiz(this,false,3,'q3fb')">A. Because it requires K beforehand</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,3,'q3fb')">B. Because it only forms circular clusters</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,true,3,'q3fb')">C. Because it detects arbitrary shapes and automatically detects noise</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,3,'q3fb')">D. Because it is highly sensitive to outliers</button>
+    </div>
+    <div class="quiz-feedback" id="q3fb">Correct! DBSCAN is density-based, allowing it to find irregularly shaped clusters and isolate noise naturally.</div>
+  </div>
+
+  <div class="quiz-card">
+    <div class="quiz-q">Q4. Why is IQR preferred over Z-score for skewed data?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="checkQuiz(this,false,4,'q4fb')">A. Because IQR uses the mean</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,true,4,'q4fb')">B. Because quartiles and medians are less affected by extreme values</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,4,'q4fb')">C. Because IQR requires a normal distribution</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,4,'q4fb')">D. Because IQR is a distance-based method</button>
+    </div>
+    <div class="quiz-feedback" id="q4fb">Correct! The median and quartiles are robust statistics, making IQR reliable even when extreme outliers are present.</div>
+  </div>
+
+  <div class="quiz-card">
+    <div class="quiz-q">Q5. What is a Global Outlier?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="checkQuiz(this,false,5,'q5fb')">A. A group behaving abnormally together</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,5,'q5fb')">B. An outlier depending on the context</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,true,5,'q5fb')">C. A point far away from ALL other points</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,5,'q5fb')">D. A point lying inside a dense cluster</button>
+    </div>
+    <div class="quiz-feedback" id="q5fb">Correct! A global outlier is universally distant from all other observations across the entire dataset.</div>
+  </div>
+
+  <div class="quiz-card">
+    <div class="quiz-q">Q6. In the DBSCAN algorithm, what characterizes a "Noise Point"?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="checkQuiz(this,false,6,'q6fb')">A. A point with >= MinPts neighbors</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,6,'q6fb')">B. A point near a core point but with fewer than MinPts neighbors</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,true,6,'q6fb')">C. An isolated point not near any dense region</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,6,'q6fb')">D. A point that forms the center of a cluster</button>
+    </div>
+    <div class="quiz-feedback" id="q6fb">Correct! Noise points do not meet the MinPts requirement and are not reachable from any core point. They are the outliers.</div>
+  </div>
+</div>
+
+<div class="page-nav">
+  <a class="page-nav-btn" href="cluster_validity.html">← Cluster Validity</a>
+  <a class="page-nav-btn primary" href="#">Finish Module 4 🎉</a>
+</div>
+
+</main>
+</div><!-- /page-grid -->
+
+<script>
+/* ── Theme ── */
+let isLight = localStorage.getItem('theme') === 'light';
+function applyTheme() {
+  document.documentElement.classList.toggle('light', isLight);
+  const i = isLight ? '◑' : '☀', l = isLight ? 'Light' : 'Dark';
+  ['tog-icon','mob-tog'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=i;});
+  const tt=document.getElementById('tog-txt');if(tt)tt.textContent=l+' theme';
+  const tl=document.getElementById('theme-lbl');if(tl)tl.textContent=l;
+}
+applyTheme();
+function toggleTheme(){isLight=!isLight;localStorage.setItem('theme',isLight?'light':'dark');applyTheme();}
+
+/* ── Scroll active nav ── */
+const secs = Array.from(document.querySelectorAll('.section[id]'));
+let lastId='',rafP=false;
+window.addEventListener('scroll',()=>{
+  if(rafP)return;rafP=true;
+  requestAnimationFrame(()=>{
+    rafP=false;
+    const trigger=window.scrollY+window.innerHeight*.28;
+    let active=secs[0];
+    for(const s of secs){if(s.offsetTop<=trigger)active=s;else break;}
+    if(active&&active.id!==lastId){
+      lastId=active.id;
+      document.querySelectorAll('.nav-item,.drawer-nav-item').forEach(n=>{
+        n.classList.toggle('active',n.getAttribute('href')==='#'+active.id);
+      });
+    }
+  });
+},{passive:true});
+
+/* ── Drawer ── */
+function buildDrawer(){
+  const dr=document.getElementById('nav-drawer');
+  const sn=document.getElementById('sidenav');
+  if(!sn||!dr)return;
+  const cl=sn.cloneNode(true);
+  cl.removeAttribute('id');cl.removeAttribute('class');
+  cl.querySelectorAll('.nav-item').forEach(el=>{el.classList.add('drawer-nav-item');el.addEventListener('click',closeDrawer);});
+  const tog=cl.querySelector('.tog-area');if(tog)tog.remove();
+  const cb=document.createElement('button');
+  cb.textContent='✕ Close';
+  cb.style.cssText='font-family:"IBM Plex Mono",monospace;font-size:11px;background:transparent;border:none;border-bottom:1px solid var(--bdr-00);color:var(--txt-ph);padding:12px 16px;width:100%;text-align:left;cursor:pointer';
+  cb.onclick=closeDrawer;
+  dr.insertBefore(cb,dr.firstChild);
+  dr.appendChild(cl);
+}
+function toggleDrawer(){
+  const ov=document.getElementById('nav-overlay'),dr=document.getElementById('nav-drawer');
+  if(dr.classList.contains('open')){closeDrawer();}
+  else{ov.style.display='block';setTimeout(()=>ov.classList.add('open'),10);dr.classList.add('open');document.body.style.overflow='hidden';}
+}
+function closeDrawer(){
+  const ov=document.getElementById('nav-overlay'),dr=document.getElementById('nav-drawer');
+  ov.classList.remove('open');dr.classList.remove('open');document.body.style.overflow='';
+  setTimeout(()=>{ov.style.display='none';},270);
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer();});
+document.fonts.ready.then(()=>buildDrawer());
+
+/* ── Outlier Calc ── */
+function calculateOutliers() {
+  let valStr = document.getElementById('data-input').value;
+  let arr = valStr.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
+  if (arr.length < 4) {
+    document.getElementById('z-stats').textContent = "Need at least 4 numbers";
+    document.getElementById('iqr-stats').textContent = "Need at least 4 numbers";
+    document.getElementById('z-outliers').textContent = "-";
+    document.getElementById('iqr-outliers').textContent = "-";
+    return;
+  }
+  
+  // Z-Score calculation
+  let sum = arr.reduce((a, b) => a + b, 0);
+  let mean = sum / arr.length;
+  let variance = arr.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / arr.length;
+  let stdDev = Math.sqrt(variance);
+  
+  let zOutliers = arr.filter(n => Math.abs((n - mean) / stdDev) > 2.5); // using 2.5 for easier demo trigger
+  document.getElementById('z-stats').textContent = `Mean: ${mean.toFixed(2)}, StdDev: ${stdDev.toFixed(2)}`;
+  document.getElementById('z-outliers').innerHTML = zOutliers.length ? zOutliers.join(', ') : '<span style="color:var(--success)">No Outliers (Z > 2.5)</span>';
+  
+  // IQR calculation
+  let sorted = [...arr].sort((a, b) => a - b);
+  let q1Idx = Math.floor(sorted.length * 0.25);
+  let q3Idx = Math.floor(sorted.length * 0.75);
+  let q1 = sorted[q1Idx];
+  let q3 = sorted[q3Idx];
+  let iqr = q3 - q1;
+  let lower = q1 - 1.5 * iqr;
+  let upper = q3 + 1.5 * iqr;
+  
+  let iqrOutliers = arr.filter(n => n < lower || n > upper);
+  document.getElementById('iqr-stats').textContent = `Q1: ${q1}, Q3: ${q3}, IQR: ${iqr}`;
+  document.getElementById('iqr-outliers').innerHTML = iqrOutliers.length ? iqrOutliers.join(', ') : '<span style="color:var(--success)">No Outliers</span>';
+}
+calculateOutliers();
+
+/* ── DBSCAN Demo ── */
+const dbCanvas = document.getElementById('dbscan-canvas');
+const dbCtx = dbCanvas ? dbCanvas.getContext('2d') : null;
+let dbPoints = [];
+let eps = 40;
+let minPts = 3;
+
+if (dbCanvas) {
+  function resizeDbscan(){
+    dbCanvas.width = dbCanvas.offsetWidth;
+    dbCanvas.height = dbCanvas.offsetHeight;
+    drawDbscan();
+  }
+  window.addEventListener('resize', resizeDbscan);
+  setTimeout(resizeDbscan, 100);
+
+  document.getElementById('sim-eps').addEventListener('input', e => {
+    eps = parseInt(e.target.value);
+    document.getElementById('eps-val').textContent = eps;
+    drawDbscan();
+  });
+  document.getElementById('sim-minpts').addEventListener('input', e => {
+    minPts = parseInt(e.target.value);
+    document.getElementById('minpts-val').textContent = minPts;
+    drawDbscan();
+  });
+
+  dbCanvas.addEventListener('click', e => {
+    const r = dbCanvas.getBoundingClientRect();
+    const x = (e.clientX - r.left) * (dbCanvas.width / r.width);
+    const y = (e.clientY - r.top) * (dbCanvas.height / r.height);
+    dbPoints.push({x, y, type: 'noise'});
+    drawDbscan();
+  });
+}
+
+function clearDbscan() { dbPoints = []; drawDbscan(); }
+function addRandomDbscan() {
+  clearDbscan();
+  const w = dbCanvas.width || 500, h = dbCanvas.height || 300;
+  for(let i=0;i<15;i++){ dbPoints.push({x: w*0.3 + (Math.random()-0.5)*w*0.15, y: h*0.4 + (Math.random()-0.5)*h*0.25, type:'noise'}); }
+  for(let i=0;i<12;i++){ dbPoints.push({x: w*0.7 + (Math.random()-0.5)*w*0.15, y: h*0.6 + (Math.random()-0.5)*h*0.25, type:'noise'}); }
+  for(let i=0;i<5;i++){ dbPoints.push({x: Math.random()*w, y: Math.random()*h, type:'noise'}); }
+  drawDbscan();
+}
+
+function computeDbscan() {
+  if(!dbPoints.length) return;
+  dbPoints.forEach(p => p.type = 'noise');
+  dbPoints.forEach((p, i) => {
+    p.neighbors = [];
+    dbPoints.forEach((other, j) => {
+      if (i !== j && Math.hypot(p.x - other.x, p.y - other.y) <= eps) p.neighbors.push(j);
+    });
+    if (p.neighbors.length >= minPts - 1) p.type = 'core';
+  });
+  dbPoints.forEach(p => {
+    if (p.type !== 'core') {
+      let nearCore = false;
+      p.neighbors.forEach(nIdx => { if (dbPoints[nIdx].type === 'core') nearCore = true; });
+      if (nearCore) p.type = 'border';
+    }
+  });
+}
+
+function drawDbscan() {
+  if(!dbCtx) return;
+  dbCtx.clearRect(0,0,dbCanvas.width,dbCanvas.height);
+  computeDbscan();
+  dbPoints.forEach(p => {
+    if (p.type === 'core') {
+      dbCtx.beginPath();
+      dbCtx.arc(p.x, p.y, eps, 0, Math.PI*2);
+      dbCtx.fillStyle = 'rgba(66, 190, 101, 0.05)';
+      dbCtx.fill();
+      dbCtx.strokeStyle = 'rgba(66, 190, 101, 0.2)';
+      dbCtx.stroke();
+    }
+  });
+  dbPoints.forEach(p => {
+    dbCtx.beginPath();
+    dbCtx.arc(p.x, p.y, 6, 0, Math.PI*2);
+    if (p.type === 'core') dbCtx.fillStyle = 'var(--success)';
+    else if (p.type === 'border') dbCtx.fillStyle = 'var(--warn)';
+    else dbCtx.fillStyle = 'var(--error)';
+    dbCtx.fill();
+    dbCtx.strokeStyle = document.documentElement.classList.contains('light') ? '#fff' : '#161616';
+    dbCtx.lineWidth = 1.5;
+    dbCtx.stroke();
+  });
+}
+if (dbCanvas) setTimeout(addRandomDbscan, 200);
+
+/* ── Quiz ── */
+let quizScore=0;
+const answered=new Set();
+function checkQuiz(el,isCorrect,qNum,fbId){
+  if(answered.has(qNum))return;
+  answered.add(qNum);
+  el.classList.add(isCorrect?'correct':'wrong');
+  if(isCorrect){quizScore++;document.getElementById('quiz-total').textContent=quizScore;}
+  else{el.parentElement.querySelectorAll('.quiz-opt').forEach(b=>{if(b.getAttribute('onclick').includes('true'))b.classList.add('correct');});}
+  const fb=document.getElementById(fbId);fb.style.display='block';
+  el.parentElement.querySelectorAll('.quiz-opt').forEach(b=>{b.disabled=true;b.style.cursor='default';});
+}
+
+/* ── Code Protection ── */
+(function(){
+  var _p=function(e){e.preventDefault();return false;};
+  document.addEventListener('contextmenu',_p);
+  document.addEventListener('keydown',function(e){
+    var k=(e.key||'').toUpperCase(),c=e.ctrlKey||e.metaKey,s=e.shiftKey;
+    if(e.key==='F12'||(c&&s&&['I','J','C','K'].includes(k))||(c&&['U','S','P'].includes(k))){e.preventDefault();return false;}
+  },true);
+  document.addEventListener('dragstart',_p);
+})();
+</script>
+<script src="../tony_keys.js"></script>
+<script src="../tony.js"></script>
+</body>
+</html>
