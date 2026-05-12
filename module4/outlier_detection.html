@@ -13,14 +13,14 @@
   --hover-01:#333333;--bdr-00:#393939;--bdr-01:#474747;--bdr-str:#6f6f6f;
   --txt-pri:#f4f4f4;--txt-sec:#c6c6c6;--txt-ph:#6f6f6f;
   --blue:#4589ff;--link:#78a9ff;--success:#42be65;--warn:#f1c21b;--error:#ff8389;--teal:#3ddbd9;--purple:#d4bbff;
-  --ac:#3ddbd9;--ac-dim:rgba(61,219,217,0.12);--ac-glow:rgba(61,219,217,0.3);
+  --ac:#be95ff;--ac-dim:rgba(190,149,255,0.12);--ac-glow:rgba(190,149,255,0.3);
 }
 html.light{
   --bg:#fff;--layer-01:#f4f4f4;--layer-02:#e0e0e0;--layer-03:#c6c6c6;
   --hover-01:#e8e8e8;--bdr-00:#e0e0e0;--bdr-01:#c6c6c6;--bdr-str:#8d8d8d;
   --txt-pri:#161616;--txt-sec:#525252;--txt-ph:#8d8d8d;
   --blue:#0f62fe;--link:#0043ce;--success:#198038;--warn:#b28600;--error:#da1e28;--teal:#007d79;--purple:#6929c4;
-  --ac:#007d79;--ac-dim:rgba(0,125,121,0.1);--ac-glow:rgba(0,125,121,0.25);
+  --ac:#6929c4;--ac-dim:rgba(105,41,196,0.1);--ac-glow:rgba(105,41,196,0.25);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
@@ -806,18 +806,29 @@ function addRandomDbscan() {
 
 function computeDbscan() {
   if(!dbPoints.length) return;
-  dbPoints.forEach(p => p.type = 'noise');
-  dbPoints.forEach((p, i) => {
+  // Reset
+  dbPoints.forEach(p => {
+    p.type = 'noise';
     p.neighbors = [];
-    dbPoints.forEach((other, j) => {
-      if (i !== j && Math.hypot(p.x - other.x, p.y - other.y) <= eps) p.neighbors.push(j);
-    });
-    if (p.neighbors.length >= minPts - 1) p.type = 'core';
   });
+  
+  // 1. Identify Core Points
+  dbPoints.forEach((p, i) => {
+    dbPoints.forEach((other, j) => {
+      // Standard DBSCAN: include the point itself in the count
+      if (Math.hypot(p.x - other.x, p.y - other.y) <= eps) {
+        p.neighbors.push(j);
+      }
+    });
+    if (p.neighbors.length >= minPts) {
+      p.type = 'core';
+    }
+  });
+
+  // 2. Identify Border Points (near a core but not core themselves)
   dbPoints.forEach(p => {
     if (p.type !== 'core') {
-      let nearCore = false;
-      p.neighbors.forEach(nIdx => { if (dbPoints[nIdx].type === 'core') nearCore = true; });
+      const nearCore = p.neighbors.some(nIdx => dbPoints[nIdx].type === 'core');
       if (nearCore) p.type = 'border';
     }
   });
@@ -827,24 +838,29 @@ function drawDbscan() {
   if(!dbCtx) return;
   dbCtx.clearRect(0,0,dbCanvas.width,dbCanvas.height);
   computeDbscan();
+  
+  // Draw epsilon radius for core points (Purple Aura)
   dbPoints.forEach(p => {
     if (p.type === 'core') {
       dbCtx.beginPath();
       dbCtx.arc(p.x, p.y, eps, 0, Math.PI*2);
-      dbCtx.fillStyle = 'rgba(66, 190, 101, 0.05)';
+      dbCtx.fillStyle = 'rgba(168, 130, 255, 0.06)';
       dbCtx.fill();
-      dbCtx.strokeStyle = 'rgba(66, 190, 101, 0.2)';
+      dbCtx.strokeStyle = 'rgba(168, 130, 255, 0.15)';
       dbCtx.stroke();
     }
   });
+
+  // Draw points
+  const isLight = document.documentElement.classList.contains('light');
   dbPoints.forEach(p => {
     dbCtx.beginPath();
     dbCtx.arc(p.x, p.y, 6, 0, Math.PI*2);
-    if (p.type === 'core') dbCtx.fillStyle = 'var(--success)';
-    else if (p.type === 'border') dbCtx.fillStyle = 'var(--warn)';
-    else dbCtx.fillStyle = 'var(--error)';
+    if (p.type === 'core') dbCtx.fillStyle = isLight ? '#198038' : '#42be65';
+    else if (p.type === 'border') dbCtx.fillStyle = isLight ? '#b28600' : '#f1c21b';
+    else dbCtx.fillStyle = isLight ? '#da1e28' : '#ff8389';
     dbCtx.fill();
-    dbCtx.strokeStyle = document.documentElement.classList.contains('light') ? '#fff' : '#161616';
+    dbCtx.strokeStyle = isLight ? '#fff' : '#161616';
     dbCtx.lineWidth = 1.5;
     dbCtx.stroke();
   });

@@ -792,7 +792,7 @@ h1 em{font-style:italic;color:var(--link)}
     <div class="qb-open" style="color:var(--txt-ph)">Not available yet</div>
   </div>
 
-  <div class="qb-card locked" data-mod="4" style="grid-column:span 1">
+  <div class="qb-card" data-mod="4" onclick="openQB(4)" style="grid-column:span 1">
     <div class="qb-top">
       <span class="qb-badge" style="background:var(--m4);color:var(--bg)">4</span>
       <span class="qb-lock">🔒</span>
@@ -800,9 +800,11 @@ h1 em{font-style:italic;color:var(--link)}
     <div class="qb-title">Module 04 Questions</div>
     <div class="qb-sub">Clustering & Outlier Detection</div>
     <div class="qb-meta">
-      <span class="qb-chip qb-chip-dim">Coming soon</span>
+      <span class="qb-chip" style="background:var(--tag-amb-bg);color:var(--tag-amb-tx)">MCQ</span>
+      <span class="qb-chip" style="background:var(--tag-amb-bg);color:var(--tag-amb-tx)">Short answer</span>
+      <span class="qb-chip" style="background:var(--tag-amb-bg);color:var(--tag-amb-tx)">Long answer</span>
     </div>
-    <div class="qb-open" style="color:var(--txt-ph)">Not available yet</div>
+    <div class="qb-open" style="color:var(--m4)">Access bank →</div>
   </div>
 
   <div class="qb-card locked" data-mod="5">
@@ -1074,7 +1076,7 @@ const US_INDEX = [
   { module:3, accentVar:'--m3', title:'Ensemble Learning — Boosting',
     desc:'AdaBoost · Gradient boosting · XGBoost · Bias reduction',
     tags:['boosting','adaboost','gradient boosting','xgboost','ensemble'], url:'module3/boosting.html', live:true },
-  // ── Module 4 (Coming soon) ──
+  // ── Module 4 (Live) ──
   { module:4, accentVar:'--m4', title:'Clustering — K-Means',
     desc:'Partitional clustering · K-means algorithm · Inertia · Elbow method',
     tags:['clustering','k-means','partitional','centroid','inertia','elbow'], url:'module4/kmeans.html', live:true },
