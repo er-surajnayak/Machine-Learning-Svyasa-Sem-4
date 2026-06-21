@@ -68,14 +68,18 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: { message: 'Query is required.' } });
   }
 
+  // Pick up every env var named tony1, tony2, ... tonyN (any count),
+  // ordered numerically, plus an optional comma-separated TONY_API_KEYS.
   const apiKeys = [
-    process.env.tony1, process.env.tony2, process.env.tony3,
-    process.env.tony4, process.env.tony5,
+    ...Object.keys(process.env)
+      .filter(n => /^tony\d+$/i.test(n))
+      .sort((a, b) => parseInt(a.slice(4), 10) - parseInt(b.slice(4), 10))
+      .map(n => process.env[n]),
     ...((process.env.TONY_API_KEYS || '').split(',')),
   ].map(k => (k || '').trim()).filter(Boolean);
 
   if (apiKeys.length === 0) {
-    return res.status(500).json({ error: { message: 'No API keys configured. Set tony1..tony5 in Vercel Environment Variables.' } });
+    return res.status(500).json({ error: { message: 'No API keys configured. Set tony1, tony2, ... in Vercel Environment Variables.' } });
   }
 
   // 1) Retrieve relevant course content.
