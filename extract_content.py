@@ -66,18 +66,22 @@ def extract_from_file(file_path, base_dir):
 def main():
     base_dir = os.getcwd()
     knowledge_base = []
-    
-    # Modules to scan
-    modules = ["module1", "module2", "module3", "."]
-    
+
+    # Auto-discover every module folder (module1, module2, ...) plus the root.
+    modules = ["."] + sorted(
+        d for d in os.listdir(base_dir)
+        if d.startswith("module") and os.path.isdir(os.path.join(base_dir, d))
+    )
+    print(f"Scanning: {modules}")
+
     for module in modules:
         module_path = os.path.join(base_dir, module)
         if not os.path.exists(module_path):
             continue
-            
+
         for file in os.listdir(module_path):
-            # Include all .html files except index.html (which is just a menu)
-            if file.endswith(".html") and file != "index.html":
+            # Include all .html files except menu/index pages.
+            if file.endswith(".html") and not file.startswith("index"):
                 file_path = os.path.join(module_path, file)
                 print(f"Processing {file_path}...")
                 try:

@@ -1,0 +1,6 @@
+{
+  "name": "ml-svyasa-notes",
+  "private": true,
+  "type": "module",
+  "description": "ML course notes site with Tony, a RAG study assistant (Vercel serverless + Gemini)."
+}
