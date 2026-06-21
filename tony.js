@@ -97,15 +97,25 @@ class TonyChat {
         const typing = this.showTyping();
 
         try {
-            const res = await fetch(this.rootPath + 'api/tony', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ query: text, history: this.history.slice(-6) }),
-            });
-            const data = await res.json();
+            // Retry transient rate limits (429) silently — Gemini's free tier
+            // throttles per-minute but recovers in seconds. Up to 3 attempts.
+            let data, res, lastBusy = '';
+            for (let attempt = 0; attempt < 3; attempt++) {
+                res = await fetch(this.rootPath + 'api/tony', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: text, history: this.history.slice(-6) }),
+                });
+                data = await res.json();
+                if (res.status !== 429) break;
+                lastBusy = data?.error?.message || '';
+                await new Promise(r => setTimeout(r, 2500 * (attempt + 1))); // 2.5s, 5s
+            }
             typing.remove();
 
-            if (!res.ok || data.error) {
+            if (res.status === 429) {
+                this.addMessage('bot', lastBusy || 'Tony is busy right now — please try again in a moment.');
+            } else if (!res.ok || data.error) {
                 this.addMessage('bot', data?.error?.message || 'Sorry, something went wrong. Please try again.');
             } else {
                 const answer = data.answer || "I couldn't find anything on that in the notes.";
