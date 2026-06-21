@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="../machine-learning-model.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ML Applications Across Industries | Module 5 · Svyasa</title>
+<meta name="description" content="Explore real-world ML applications: healthcare disease prediction, customer segmentation, targeted marketing, fraud detection, churn prediction, and text classification.">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;1,300&family=IBM+Plex+Serif:ital,wght@0,300;1,300&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#161616;--layer-01:#262626;--layer-02:#393939;--layer-03:#525252;
+  --hover-01:#333333;--bdr-00:#393939;--bdr-01:#474747;--bdr-str:#6f6f6f;
+  --txt-pri:#f4f4f4;--txt-sec:#c6c6c6;--txt-ph:#6f6f6f;
+  --blue:#4589ff;--link:#78a9ff;--success:#42be65;--warn:#f1c21b;--error:#ff8389;--teal:#3ddbd9;--purple:#d4bbff;
+  --ac:#3ddbd9;
+}
+html.light{
+  --bg:#fff;--layer-01:#f4f4f4;--layer-02:#e0e0e0;--layer-03:#c6c6c6;
+  --hover-01:#e8e8e8;--bdr-00:#e0e0e0;--bdr-01:#c6c6c6;--bdr-str:#8d8d8d;
+  --txt-pri:#161616;--txt-sec:#525252;--txt-ph:#8d8d8d;
+  --blue:#0f62fe;--link:#0043ce;--success:#198038;--warn:#b28600;--error:#da1e28;--teal:#007d79;--purple:#6929c4;
+  --ac:#007d79;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'IBM Plex Sans',sans-serif;font-size:15px;line-height:1.5;background:var(--bg);color:var(--txt-pri);-webkit-font-smoothing:antialiased;transition:background .25s,color .2s}
+a{text-decoration:none;color:inherit}
+
+/* ── Layout ── */
+.page-grid{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+
+/* ── Sidenav ── */
+.sidenav{background:var(--layer-01);border-right:1px solid var(--bdr-00);position:sticky;top:0;height:100vh;overflow-y:auto;padding-bottom:32px;transition:background .25s,border-color .2s}
+.nav-hdr{padding:16px;border-bottom:1px solid var(--bdr-00);margin-bottom:4px}
+.nav-back{display:flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph);letter-spacing:.06em;margin-bottom:8px;transition:color .15s}
+.nav-back:hover{color:var(--ac)}
+.nav-mod{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;color:var(--ac);text-transform:uppercase;margin-bottom:3px}
+.nav-title{font-size:13px;font-weight:600;color:var(--txt-pri);line-height:1.3}
+.nav-sec{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.1em;color:var(--txt-ph);text-transform:uppercase;padding:12px 16px 4px}
+.nav-item{display:flex;align-items:center;gap:8px;padding:8px 16px;font-size:13px;color:var(--txt-sec);cursor:pointer;border-left:3px solid transparent;transition:background .1s,color .1s,border-color .1s;text-decoration:none}
+.nav-item:hover{background:var(--hover-01);color:var(--txt-pri)}
+.nav-item.active{background:var(--hover-01);color:var(--txt-pri);border-left-color:var(--ac);font-weight:600}
+.nav-item.active .nn{color:var(--ac)}
+.nn{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--txt-ph);min-width:16px;transition:color .15s}
+.tog-area{padding:20px 16px 0}
+.tog-btn{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding:8px 10px;background:var(--layer-02);border:1px solid var(--bdr-01);cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-sec);letter-spacing:.05em;transition:background .15s}
+.tog-btn:hover{background:var(--hover-01);color:var(--txt-pri)}
+.tog-track{width:26px;height:13px;background:var(--bdr-str);border-radius:7px;position:relative;flex-shrink:0;transition:background .25s}
+.tog-thumb{position:absolute;top:2px;left:2px;width:9px;height:9px;border-radius:50%;background:#fff;transition:transform .25s}
+html.light .tog-track{background:var(--ac)}
+html.light .tog-thumb{transform:translateX(13px)}
+
+/* ── Mobile topbar ── */
+.mob-topbar{display:none;position:fixed;top:0;left:0;right:0;z-index:200;height:52px;background:var(--layer-01);border-bottom:1px solid var(--bdr-00);align-items:center;padding:0 16px;gap:8px;transition:background .25s}
+.mob-menu-btn{width:34px;height:34px;background:transparent;border:1px solid var(--bdr-01);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-direction:column;gap:4px}
+.mob-bar{width:14px;height:1.5px;background:var(--txt-pri)}
+.mob-title{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--txt-pri);flex:1;letter-spacing:.04em}
+.mob-tog{width:34px;height:34px;background:transparent;border:1px solid var(--bdr-01);cursor:pointer;font-size:14px;color:var(--txt-sec)}
+
+/* ── Drawer ── */
+.nav-overlay{display:none;position:fixed;inset:0;z-index:150;background:rgba(0,0,0,.6);opacity:0;transition:opacity .25s}
+.nav-overlay.open{opacity:1}
+.nav-drawer{position:fixed;left:0;top:0;bottom:0;z-index:160;width:260px;background:var(--layer-01);border-right:1px solid var(--bdr-00);overflow-y:auto;transform:translateX(-100%);transition:transform .3s cubic-bezier(.4,0,.2,1);padding-bottom:32px}
+.nav-drawer.open{transform:translateX(0)}
+
+/* ── Main ── */
+.main{padding:0 48px 100px;max-width:820px;transition:background .25s}
+.page-hdr{padding:52px 0 40px;border-bottom:1px solid var(--bdr-00);margin-bottom:52px}
+.breadcrumb{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-ph);letter-spacing:.05em;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.breadcrumb a{color:var(--ac);transition:opacity .15s}.breadcrumb a:hover{opacity:.7}
+h1{font-family:'IBM Plex Serif',serif;font-size:clamp(34px,5vw,54px);font-weight:300;line-height:1.15;color:var(--txt-pri);margin-bottom:12px}
+h1 em{font-style:italic;color:var(--ac)}
+.hdr-desc{font-size:15px;font-weight:300;color:var(--txt-sec);max-width:580px;line-height:1.7}
+
+/* ── Sections ── */
+.section{margin-bottom:60px;opacity:0;transform:translateY(14px);animation:fadeUp .4s ease forwards}
+.section:nth-child(1){animation-delay:.05s}.section:nth-child(2){animation-delay:.10s}
+.section:nth-child(3){animation-delay:.15s}.section:nth-child(4){animation-delay:.20s}
+.section:nth-child(5){animation-delay:.25s}.section:nth-child(6){animation-delay:.30s}
+.section:nth-child(7){animation-delay:.35s}.section:nth-child(8){animation-delay:.40s}
+.section:nth-child(9){animation-delay:.45s}.section:nth-child(10){animation-delay:.50s}
+.section:nth-child(11){animation-delay:.55s}.section:nth-child(12){animation-delay:.60s}
+@keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
+
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;color:var(--ac);text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.eyebrow::before{content:'';display:inline-block;width:14px;height:1px;background:var(--ac)}
+h2{font-family:'IBM Plex Serif',serif;font-size:24px;font-weight:300;color:var(--txt-pri);margin-bottom:14px;line-height:1.25}
+h3{font-size:16px;font-weight:600;color:var(--txt-pri);margin-bottom:8px}
+p{font-size:14px;font-weight:300;color:var(--txt-sec);margin-bottom:12px;line-height:1.75}
+p strong{color:var(--txt-pri);font-weight:600}
+ul{padding-left:0;list-style:none}
+ul li{position:relative;padding-left:16px;margin-bottom:8px;font-size:14px;font-weight:300;color:var(--txt-sec);line-height:1.6}
+ul li::before{content:'';position:absolute;left:0;top:9px;width:5px;height:1px;background:var(--ac)}
+.hl{color:var(--ac);font-weight:600}
+
+/* ── Callout ── */
+.callout{border-left:3px solid var(--ac);background:var(--layer-01);padding:14px 18px;margin:14px 0;font-size:14px;font-weight:300;color:var(--txt-sec);line-height:1.75;transition:background .25s}
+.callout strong{color:var(--txt-pri);font-weight:600}
+.callout-g{border-left-color:var(--success)}
+.callout-y{border-left-color:var(--warn)}
+.callout-p{border-left-color:var(--purple)}
+.callout-b{border-left-color:var(--link)}
+.callout-r{border-left-color:var(--error)}
+
+/* ── Tile & Grids ── */
+.tile{background:var(--layer-01);border:1px solid var(--bdr-00);padding:20px 24px;margin-bottom:12px;transition:background .25s,border-color .2s}
+.tile-title{font-size:13px;font-weight:600;color:var(--txt-pri);margin-bottom:12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--bdr-00);border:1px solid var(--bdr-00);margin:14px 0}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--bdr-00);border:1px solid var(--bdr-00);margin:14px 0}
+.gcell{background:var(--layer-01);padding:20px 22px;transition:background .25s}
+.kv{display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--bdr-00);font-size:13px;gap:12px;transition:border-color .2s}
+.kv:last-child{border-bottom:none}
+.kk{color:var(--txt-sec);font-weight:300;flex-shrink:0}
+.kv-v{color:var(--txt-pri);font-weight:400;text-align:right}
+
+/* ── Tags ── */
+.tag{display:inline-flex;align-items:center;height:22px;padding:0 10px;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.03em;margin-bottom:10px}
+.t-bl{background:#0043ce;color:#a6c8ff}
+.t-gr{background:#044317;color:#a7f0ba}
+.t-re{background:#750e13;color:#ffb3b8}
+.t-cy{background:#003a3a;color:#9ef0f0}
+.t-pu{background:#31135e;color:#e8daff}
+.t-ye{background:#8e6a00;color:#f1c21b}
+html.light .t-bl{background:#d0e2ff;color:#0043ce}
+html.light .t-gr{background:#a7f0ba;color:#044317}
+html.light .t-re{background:#ffd7d9;color:#750e13}
+html.light .t-cy{background:#d9fbfb;color:#005d5d}
+html.light .t-pu{background:#e8daff;color:#31135e}
+html.light .t-ye{background:#f1c21b;color:#8e6a00}
+
+/* ── Step flow ── */
+.step-flow{display:flex;flex-direction:column;gap:0;margin:16px 0}
+.step-item{display:grid;grid-template-columns:40px 1fr;gap:0;position:relative}
+.step-item:not(:last-child)::after{content:'';position:absolute;left:19px;top:40px;bottom:0;width:1px;background:var(--bdr-01)}
+.step-dot{width:38px;height:38px;background:var(--layer-02);border:2px solid var(--ac);display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--ac);flex-shrink:0;z-index:1}
+.step-body{padding:8px 0 20px 16px}
+.step-title{font-size:14px;font-weight:600;color:var(--txt-pri);margin-bottom:4px}
+.step-desc{font-size:13px;color:var(--txt-sec);line-height:1.7}
+
+/* ── Table ── */
+.data-table{width:100%;border-collapse:collapse;border:1px solid var(--bdr-00);margin:14px 0;font-size:13px}
+.data-table th{background:var(--layer-02);font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--txt-pri);text-align:left;padding:10px 14px;border:1px solid var(--bdr-00);letter-spacing:.04em}
+.data-table td{background:var(--layer-01);padding:10px 14px;border:1px solid var(--bdr-00);color:var(--txt-sec);font-weight:300;transition:background .25s}
+
+/* ── Quiz ── */
+.quiz-card{background:var(--layer-01);border:1px solid var(--bdr-00);padding:20px;margin-bottom:12px}
+.quiz-q{font-size:14px;font-weight:600;color:var(--txt-pri);margin-bottom:14px;line-height:1.5}
+.quiz-options{display:flex;flex-direction:column;gap:8px}
+.quiz-opt{padding:10px 14px;background:var(--layer-02);border:1px solid var(--bdr-01);font-size:13px;color:var(--txt-sec);cursor:pointer;text-align:left;transition:all .15s;font-family:'IBM Plex Sans',sans-serif;width:100%}
+.quiz-opt:hover{background:var(--hover-01);color:var(--txt-pri)}
+.quiz-opt.correct{background:rgba(66,190,101,.15);border-color:var(--success);color:var(--success)}
+.quiz-opt.wrong{background:rgba(255,131,137,.1);border-color:var(--error);color:var(--error)}
+.quiz-feedback{font-size:13px;color:var(--txt-sec);margin-top:10px;padding:10px;border-left:3px solid var(--ac);background:var(--layer-02);display:none;line-height:1.6}
+.quiz-score{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--txt-ph);margin-top:8px}
+
+/* ── Bottom nav ── */
+.page-nav{display:flex;justify-content:space-between;align-items:center;padding-top:40px;border-top:1px solid var(--bdr-00);margin-top:60px}
+.page-nav-btn{display:flex;align-items:center;gap:8px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-sec);padding:10px 16px;border:1px solid var(--bdr-01);background:transparent;cursor:pointer;transition:background .15s,color .15s;text-decoration:none}
+.page-nav-btn:hover{background:var(--hover-01);color:var(--txt-pri)}
+.page-nav-btn.primary{background:var(--ac);border-color:var(--ac);color:#000;font-weight:600}
+.page-nav-btn.primary:hover{opacity:.9}
+
+@media(max-width:767px){
+  .mob-topbar{display:flex}
+  .sidenav{display:none}
+  .page-grid{display:block}
+  .main{padding:68px 16px 80px;max-width:100%}
+  .page-hdr{padding:24px 0 20px;margin-bottom:32px}
+  h1{font-size:24px}
+  .grid2,.grid3{grid-template-columns:1fr}
+}
+
+/* ── Code Protection ── */
+*{-webkit-user-select:none;user-select:none;-moz-user-select:none;-ms-user-select:none}
+input,textarea,select{-webkit-user-select:text;user-select:text}
+@media print{body{display:none!important;visibility:hidden!important}}
+img{-webkit-user-drag:none;user-drag:none;pointer-events:none}
+</style>
+</head>
+<body>
+
+<!-- Mobile topbar -->
+<div class="mob-topbar" id="mob-topbar">
+  <button class="mob-menu-btn" onclick="toggleDrawer()" aria-label="Menu">
+    <div class="mob-bar"></div><div class="mob-bar"></div><div class="mob-bar"></div>
+  </button>
+  <span class="mob-title">ML Applications</span>
+  <button class="mob-tog" onclick="toggleTheme()" id="mob-tog">☀</button>
+</div>
+<div class="nav-overlay" id="nav-overlay" onclick="closeDrawer()"></div>
+<nav class="nav-drawer" id="nav-drawer"></nav>
+
+<div class="page-grid">
+
+<!-- ══ SIDENAV ══ -->
+<nav class="sidenav" id="sidenav">
+  <div class="nav-hdr">
+    <a class="nav-back" href="index_11.html">← Module 5</a>
+    <div class="nav-mod">All Topics</div>
+    <div class="nav-title">ML Applications</div>
+  </div>
+  <div class="nav-sec">Sections</div>
+  <a class="nav-item active" href="#s1"><span class="nn">01</span>Introduction</a>
+  <a class="nav-item" href="#s2"><span class="nn">02</span>Healthcare</a>
+  <a class="nav-item" href="#s3"><span class="nn">03</span>Customer Segmentation</a>
+  <a class="nav-item" href="#s4"><span class="nn">04</span>Targeted Marketing</a>
+  <a class="nav-item" href="#s5"><span class="nn">05</span>Fraud Detection</a>
+  <a class="nav-item" href="#s6"><span class="nn">06</span>Churn Prediction</a>
+  <a class="nav-item" href="#s7"><span class="nn">07</span>Text Classification</a>
+  <a class="nav-item" href="#s8"><span class="nn">08</span>Comparison</a>
+  <a class="nav-item" href="#s9"><span class="nn">09</span>Impact on Society</a>
+  <a class="nav-item" href="#s10"><span class="nn">10</span>Quiz Yourself</a>
+  <div class="tog-area">
+    <button class="tog-btn" onclick="toggleTheme()">
+      <span style="display:flex;align-items:center;gap:6px"><span id="tog-icon">☀</span><span id="tog-txt">Light theme</span></span>
+      <span class="tog-track"><span class="tog-thumb"></span></span>
+    </button>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-ph);margin-top:10px;line-height:1.6">IBM Carbon · <span id="theme-lbl">Dark</span></div>
+  </div>
+</nav>
+
+<!-- ══ MAIN ══ -->
+<main class="main">
+<div class="page-hdr">
+  <div class="breadcrumb">
+    <a href="../index.html">Home</a><span>/</span>
+    <a href="index_11.html">Module 5</a><span>/</span>
+    <span style="color:var(--txt-sec)">Applications</span>
+  </div>
+  <h1>ML Applications<br><em>Across Industries</em></h1>
+  <p class="hdr-desc">From healthcare and finance to marketing and NLP — explore how Machine Learning transforms raw data into intelligent decisions across every major industry.</p>
+</div>
+
+<!-- ══ S1: INTRODUCTION ══ -->
+<div class="section" id="s1">
+  <div class="eyebrow">01 · Introduction</div>
+  <h2>When Machine Learning Meets the Real World 🌍</h2>
+
+  <p>Imagine waking up in the morning.</p>
+  <ul>
+    <li>Your smartphone unlocks using your <strong>face</strong>.</li>
+    <li>Spotify recommends a <strong>new song</strong>.</li>
+    <li>Google Maps suggests the <strong>fastest route</strong>.</li>
+    <li>Your bank sends a notification about an <strong>unusual transaction</strong>.</li>
+    <li>Netflix recommends a movie you actually <strong>enjoy</strong>.</li>
+  </ul>
+
+  <div class="callout">
+    Although these events seem unrelated, they are connected by a common technology: <strong>Machine Learning.</strong>
+  </div>
+
+  <p>Machine Learning has moved far beyond research laboratories and classrooms. Today it powers intelligent decision-making systems in <strong>healthcare, finance, e-commerce, education, transportation, cybersecurity, agriculture</strong> and many other domains.</p>
+
+  <p>The ability of ML systems to <strong>learn patterns from historical data</strong> and make predictions about future events has transformed how organizations operate. Instead of relying solely on human intuition, organizations now use <strong>data-driven intelligence</strong> to make faster, smarter and more accurate decisions.</p>
+
+  <h3 style="margin-top:24px">📊 The ML Application Cycle</h3>
+
+  <div class="step-flow">
+    <div class="step-item">
+      <div class="step-dot">1</div>
+      <div class="step-body">
+        <div class="step-title">Data Collection</div>
+        <div class="step-desc">Gather raw data from various sources — records, sensors, logs, images.</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-dot">2</div>
+      <div class="step-body">
+        <div class="step-title">Pattern Discovery</div>
+        <div class="step-desc">ML algorithms identify hidden relationships and trends in the data.</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-dot">3</div>
+      <div class="step-body">
+        <div class="step-title">Model Training</div>
+        <div class="step-desc">The model learns from historical examples to generalize to new cases.</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-dot">4</div>
+      <div class="step-body">
+        <div class="step-title">Prediction</div>
+        <div class="step-desc">Apply the trained model to new data to generate predictions.</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-dot">5</div>
+      <div class="step-body">
+        <div class="step-title">Better Decisions</div>
+        <div class="step-desc">Use predictions to make smarter, faster, data-driven decisions.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S2: HEALTHCARE ══ -->
+<div class="section" id="s2">
+  <div class="eyebrow">02 · Healthcare</div>
+  <h2>Machine Learning in Healthcare 🏥</h2>
+
+  <p>Healthcare is one of the most <strong>impactful</strong> application areas of Machine Learning. Hospitals generate enormous amounts of data every day:</p>
+  <ul>
+    <li>Patient records &amp; laboratory reports</li>
+    <li>Medical images (X-rays, MRI, CT scans)</li>
+    <li>Prescriptions &amp; treatment histories</li>
+    <li>Genetic information</li>
+  </ul>
+
+  <div class="callout callout-b">
+    <strong>📌 Key Insight:</strong> The goal is not to replace doctors but to provide <strong>intelligent assistance</strong> that improves diagnosis, treatment and patient care.
+  </div>
+
+  <h3 style="margin-top:24px">🔬 Understanding Disease Prediction</h3>
+  <p>Consider a doctor who has treated thousands of patients over several years. Through experience, the doctor begins noticing patterns:</p>
+  <ul>
+    <li>Patients with <strong>high blood sugar</strong> levels often develop diabetes.</li>
+    <li>Patients with <strong>high cholesterol</strong> and high blood pressure are more likely to develop heart disease.</li>
+  </ul>
+
+  <div class="callout callout-g">
+    <strong>🧠 How ML Does It Better:</strong> Instead of learning from hundreds of patients, ML can learn from <strong>millions of records</strong>, analyzing relationships between age, weight, blood pressure, cholesterol, lifestyle, and family history.
+  </div>
+
+  <h3 style="margin-top:24px">📊 Example: Diabetes Prediction</h3>
+  <table class="data-table">
+    <tr><th>Age</th><th>BMI</th><th>Glucose Level</th><th>Diabetes</th></tr>
+    <tr><td>35</td><td>22</td><td>Normal</td><td>No</td></tr>
+    <tr><td>50</td><td>31</td><td>High</td><td>Yes</td></tr>
+    <tr><td>45</td><td>29</td><td>High</td><td>Yes</td></tr>
+  </table>
+  <p>After learning these patterns, the model can evaluate a new patient's health information and <strong>estimate diabetes risk</strong>, enabling early intervention and preventive treatment.</p>
+
+  <h3 style="margin-top:24px">🩻 Medical Image Analysis</h3>
+  <div class="grid2">
+    <div class="gcell">
+      <div class="tag t-cy">🧠 MRI Scans</div>
+      <p style="margin:0;font-size:13px">Detecting tumors and brain abnormalities with high accuracy.</p>
+    </div>
+    <div class="gcell">
+      <div class="tag t-bl">🩻 X-rays</div>
+      <p style="margin:0;font-size:13px">Identifying fractures and signs of lung infections automatically.</p>
+    </div>
+  </div>
+
+  <h3 style="margin-top:24px">💊 Personalized Treatment</h3>
+  <p>Patients often respond differently to the same treatment. ML analyzes patient characteristics and treatment outcomes to recommend more <strong>personalized healthcare plans</strong>, increasing effectiveness while reducing unwanted side effects.</p>
+
+  <h3 style="margin-top:24px">✅ Benefits in Healthcare</h3>
+  <div class="tile">
+    <ul style="margin:0;font-size:14px;line-height:1.8">
+      <li>Earlier disease detection</li>
+      <li>Improved diagnosis accuracy</li>
+      <li>Faster clinical decisions</li>
+      <li>Reduced healthcare costs</li>
+      <li>Better patient outcomes</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ══ S3: CUSTOMER SEGMENTATION ══ -->
+<div class="section" id="s3">
+  <div class="eyebrow">03 · Business</div>
+  <h2>Customer Segmentation 🛒</h2>
+
+  <p>Imagine a shopping mall where every visitor receives exactly the same advertisement. A teenager interested in gaming receives ads for <strong>retirement plans</strong>. A retired person receives ads for <strong>college backpacks</strong>.</p>
+
+  <div class="callout callout-y">
+    <strong>📌 Definition:</strong> Customer segmentation refers to grouping customers based on <strong>similar characteristics, preferences or purchasing behaviors</strong>. Rather than treating all customers equally, businesses design strategies specifically for each group.
+  </div>
+
+  <h3 style="margin-top:24px">👤 Segmentation Factors</h3>
+  <div class="tile">
+    <div class="kv"><span class="kk">👤 Age</span><span class="kv-v">Demographic grouping</span></div>
+    <div class="kv"><span class="kk">💰 Income</span><span class="kv-v">Spending capacity</span></div>
+    <div class="kv"><span class="kk">📍 Location</span><span class="kv-v">Regional preferences</span></div>
+    <div class="kv"><span class="kk">🛍 Purchase History</span><span class="kv-v">Past buying patterns</span></div>
+    <div class="kv"><span class="kk">📱 Browsing Behaviour</span><span class="kv-v">Online interests</span></div>
+    <div class="kv"><span class="kk">🎯 Interests</span><span class="kv-v">Hobby &amp; lifestyle data</span></div>
+  </div>
+
+  <h3 style="margin-top:24px">🏷 Example Segments</h3>
+  <div class="grid3">
+    <div class="gcell">
+      <div class="tag t-gr">Segment A</div>
+      <p style="margin:0;font-size:13px"><strong>Students</strong><br>Budget-conscious, technology-oriented, frequent online shoppers.</p>
+    </div>
+    <div class="gcell">
+      <div class="tag t-bl">Segment B</div>
+      <p style="margin:0;font-size:13px"><strong>Working Professionals</strong><br>Higher purchasing power, preference for premium products.</p>
+    </div>
+    <div class="gcell">
+      <div class="tag t-ye">Segment C</div>
+      <p style="margin:0;font-size:13px"><strong>Families</strong><br>Household products, grocery purchases, family-oriented services.</p>
+    </div>
+  </div>
+
+  <div class="callout callout-g" style="margin-top:16px">
+    <strong>🤖 Role of ML:</strong> When a business has millions of customers, manual segmentation becomes impossible. Algorithms such as <strong>K-Means Clustering</strong> automatically discover customer groups by analyzing similarities in behavior — without requiring predefined labels.
+  </div>
+</div>
+
+<!-- ══ S4: TARGETED MARKETING ══ -->
+<div class="section" id="s4">
+  <div class="eyebrow">04 · Marketing</div>
+  <h2>Targeted Marketing 🎯</h2>
+
+  <div class="callout callout-y">
+    <strong>📌 Definition:</strong> Targeted marketing refers to delivering advertisements, recommendations and promotional offers to <strong>specific groups of customers</strong> who are most likely to be interested in them.
+  </div>
+
+  <h3 style="margin-top:24px">🔍 Everyday Example</h3>
+  <p>Suppose you search online for <strong>"Wireless Gaming Headphones"</strong>. Soon afterward:</p>
+  <ul>
+    <li>📱 <strong>Instagram</strong> shows gaming advertisements.</li>
+    <li>🛒 <strong>Amazon</strong> recommends gaming accessories.</li>
+    <li>🎥 <strong>YouTube</strong> displays gaming-related content.</li>
+  </ul>
+
+  <div class="callout callout-b">
+    <strong>🧠 This is not a coincidence.</strong> ML systems continuously analyze user behavior and identify interests. Based on these observations, <strong>personalized advertisements</strong> are generated.
+  </div>
+
+  <h3 style="margin-top:24px">❓ Questions ML Answers</h3>
+  <div class="grid2">
+    <div class="gcell">
+      <div class="tag t-cy">🎯 Targeting</div>
+      <p style="margin:0;font-size:13px">Which customer is likely to purchase a product?</p>
+    </div>
+    <div class="gcell">
+      <div class="tag t-pu">📦 Recommendation</div>
+      <p style="margin:0;font-size:13px">What product should be recommended?</p>
+    </div>
+    <div class="gcell">
+      <div class="tag t-ye">⏰ Timing</div>
+      <p style="margin:0;font-size:13px">When should an offer be sent?</p>
+    </div>
+    <div class="gcell">
+      <div class="tag t-gr">📈 Outcome</div>
+      <p style="margin:0;font-size:13px">Improved customer engagement and increased sales.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S5: FRAUD DETECTION ══ -->
+<div class="section" id="s5">
+  <div class="eyebrow">05 · Finance</div>
+  <h2>Detecting Fraudulent Transactions 💳</h2>
+
+  <p>As digital payments increase, so does financial fraud. Millions of transactions occur every day, and among these legitimate transactions, a small number may be <strong>fraudulent</strong>.</p>
+
+  <div class="callout callout-y">
+    <strong>📌 Definition:</strong> Fraud detection refers to identifying <strong>unusual or suspicious activities</strong> that may indicate criminal behavior.
+  </div>
+
+  <h3 style="margin-top:24px">🔄 Traditional vs ML Approach</h3>
+  <div class="grid2">
+    <div class="gcell">
+      <div class="tag t-re">❌ Traditional Rules</div>
+      <p style="margin:0;font-size:13px">"If a transaction exceeds ₹50,000, flag it."<br>Fixed rules that fraudsters easily bypass.</p>
+    </div>
+    <div class="gcell">
+      <div class="tag t-gr">✅ ML Systems</div>
+      <p style="margin:0;font-size:13px">Learn complex transaction patterns dynamically.<br>Adapt as fraud techniques evolve.</p>
+    </div>
+  </div>
+
+  <h3 style="margin-top:24px">📊 Transaction Features Analyzed</h3>
+  <div class="tile">
+    <div class="kv"><span class="kk">💵 Amount spent</span><span class="kv-v">Spend size relative to history</span></div>
+    <div class="kv"><span class="kk">📍 Location</span><span class="kv-v">Geographic anomalies</span></div>
+    <div class="kv"><span class="kk">🕐 Time</span><span class="kv-v">Unusual hours of activity</span></div>
+    <div class="kv"><span class="kk">📱 Device used</span><span class="kv-v">New or unrecognized device</span></div>
+    <div class="kv"><span class="kk">🏪 Merchant category</span><span class="kv-v">Unusual purchase types</span></div>
+  </div>
+
+  <h3 style="margin-top:24px">🚨 Example Anomaly</h3>
+  <div class="callout callout-r">
+    A customer usually spends <strong>₹500–₹3000</strong> per transaction. Suddenly, a transaction worth <strong>₹1,20,000</strong> occurs at <strong>2:30 AM</strong> in another country. The system immediately recognizes the anomaly and <strong>generates an alert</strong>.
+  </div>
+
+  <h3 style="margin-top:24px">⚠ Challenges in Fraud Detection</h3>
+  <ul>
+    <li>Fraud cases are <strong>extremely rare</strong> compared to legitimate transactions.</li>
+    <li>Fraudsters <strong>continuously adapt</strong> their techniques.</li>
+    <li>Genuine transactions can sometimes <strong>appear suspicious</strong>.</li>
+    <li>Detection must happen <strong>within seconds</strong>.</li>
+  </ul>
+</div>
+
+<!-- ══ S6: CHURN PREDICTION ══ -->
+<div class="section" id="s6">
+  <div class="eyebrow">06 · Retention</div>
+  <h2>Customer Churn Prediction 📉</h2>
+
+  <p>Businesses spend significant resources acquiring new customers. Losing customers directly impacts <strong>revenue and growth</strong>.</p>
+
+  <div class="callout callout-y">
+    <strong>📌 Definition:</strong> A customer is considered <strong>churned</strong> when they discontinue a product or service. Predicting churn before it occurs enables organizations to take <strong>corrective actions</strong>.
+  </div>
+
+  <h3 style="margin-top:24px">📋 Examples of Churn</h3>
+  <div class="grid2">
+    <div class="gcell">
+      <div class="tag t-re">🎬 Netflix</div>
+      <p style="margin:0;font-size:13px">Cancelling a Netflix subscription.</p>
+    </div>
+    <div class="gcell">
+      <div class="tag t-bl">📱 Telecom</div>
+      <p style="margin:0;font-size:13px">Switching to another telecom provider.</p>
+    </div>
+    <div class="gcell">
+      <div class="tag t-ye">🏦 Banking</div>
+      <p style="margin:0;font-size:13px">Closing a bank account.</p>
+    </div>
+    <div class="gcell">
+      <div class="tag t-pu">📲 Apps</div>
+      <p style="margin:0;font-size:13px">Uninstalling a paid application.</p>
+    </div>
+  </div>
+
+  <h3 style="margin-top:24px">🤖 How ML Predicts Churn</h3>
+  <p>Machine Learning models analyze customer behavior using factors such as:</p>
+  <div class="tile">
+    <div class="kv"><span class="kk">📊 Usage frequency</span><span class="kv-v">How often the customer uses the service</span></div>
+    <div class="kv"><span class="kk">😤 Complaint history</span><span class="kv-v">Number and severity of complaints</span></div>
+    <div class="kv"><span class="kk">💳 Payment records</span><span class="kv-v">Missed or late payments</span></div>
+    <div class="kv"><span class="kk">📞 Support interactions</span><span class="kv-v">Frequency and nature of support contacts</span></div>
+  </div>
+
+  <h3 style="margin-top:24px">📱 Practical Example</h3>
+  <div class="callout callout-p">
+    A telecom company identifies a customer with: <strong>reduced call activity</strong>, <strong>multiple complaints</strong>, and <strong>missed payments</strong>. The churn prediction model estimates a <strong>92% probability</strong> of customer departure. The company responds by offering <strong>discounts or special benefits</strong>. As a result, the customer may remain loyal.
+  </div>
+</div>
+
+<!-- ══ S7: TEXT CLASSIFICATION ══ -->
+<div class="section" id="s7">
+  <div class="eyebrow">07 · NLP</div>
+  <h2>Text Classification 📄</h2>
+
+  <p>Every day, organizations process enormous amounts of textual information — emails, messages, reviews, news articles, social media posts. Manually organizing this is impractical.</p>
+
+  <div class="callout callout-y">
+    <strong>📌 Definition:</strong> Text classification is the process of assigning <strong>predefined categories</strong> to textual data, enabling computers to understand the general meaning or purpose of text.
+  </div>
+
+  <h3 style="margin-top:24px">📧 Example 1: Email Spam Detection</h3>
+  <div class="callout callout-r">
+    <strong>Message:</strong> "Congratulations! You have won a free smartphone."<br>
+    <strong>Classification:</strong> 🚫 <strong>Spam</strong>
+  </div>
+
+  <h3 style="margin-top:12px">💬 Example 2: Sentiment Analysis</h3>
+  <div class="callout callout-g">
+    <strong>Review:</strong> "The food was amazing and the service was excellent."<br>
+    <strong>Classification:</strong> 😊 <strong>Positive</strong>
+  </div>
+
+  <h3 style="margin-top:12px">📰 Example 3: News Categorization</h3>
+  <div class="callout callout-b">
+    <strong>Article:</strong> "India wins the cricket world championship."<br>
+    <strong>Classification:</strong> 🏏 <strong>Sports</strong>
+  </div>
+
+  <h3 style="margin-top:24px">⚙ How Text Classification Works</h3>
+  <div class="step-flow">
+    <div class="step-item">
+      <div class="step-dot">1</div>
+      <div class="step-body">
+        <div class="step-title">Collecting text data</div>
+        <div class="step-desc">Gather emails, reviews, articles, or social media posts as training data.</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-dot">2</div>
+      <div class="step-body">
+        <div class="step-title">Cleaning and preprocessing</div>
+        <div class="step-desc">Remove noise, stop words, and normalize the text for consistency.</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-dot">3</div>
+      <div class="step-body">
+        <div class="step-title">Converting to numerical features</div>
+        <div class="step-desc">Transform text into vectors using techniques like TF-IDF or word embeddings.</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-dot">4</div>
+      <div class="step-body">
+        <div class="step-title">Training the ML model</div>
+        <div class="step-desc">Train a classifier (Naive Bayes, SVM, etc.) on labeled text data.</div>
+      </div>
+    </div>
+    <div class="step-item">
+      <div class="step-dot">5</div>
+      <div class="step-body">
+        <div class="step-title">Predicting categories</div>
+        <div class="step-desc">Classify new, unseen text into predefined categories automatically.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S8: COMPARISON ══ -->
+<div class="section" id="s8">
+  <div class="eyebrow">08 · Overview</div>
+  <h2>Comparing ML Applications</h2>
+
+  <div class="callout">
+    Although healthcare, marketing, finance and text analytics appear different, they share a common objective: <strong>Learning patterns from historical data to make better decisions.</strong>
+  </div>
+
+  <table class="data-table">
+    <tr><th>Application</th><th>Goal</th></tr>
+    <tr><td>Disease Prediction</td><td>Predict future health risks</td></tr>
+    <tr><td>Customer Segmentation</td><td>Group similar customers</td></tr>
+    <tr><td>Targeted Marketing</td><td>Recommend relevant products</td></tr>
+    <tr><td>Fraud Detection</td><td>Identify suspicious transactions</td></tr>
+    <tr><td>Customer Churn Prediction</td><td>Predict customer departure</td></tr>
+    <tr><td>Text Classification</td><td>Categorize textual information</td></tr>
+  </table>
+</div>
+
+<!-- ══ S9: IMPACT ══ -->
+<div class="section" id="s9">
+  <div class="eyebrow">09 · Impact</div>
+  <h2>Impact on Society 🚀</h2>
+
+  <p>Machine Learning has transformed how decisions are made across industries.</p>
+
+  <div class="grid2">
+    <div class="gcell">
+      <div class="tag t-cy">🏥 Healthcare</div>
+      <p style="margin:0;font-size:13px">Assists doctors in diagnosing diseases earlier and with greater accuracy.</p>
+    </div>
+    <div class="gcell">
+      <div class="tag t-gr">💳 Finance</div>
+      <p style="margin:0;font-size:13px">Protects users from fraud and ensures secure digital transactions.</p>
+    </div>
+    <div class="gcell">
+      <div class="tag t-ye">🛒 Business</div>
+      <p style="margin:0;font-size:13px">Helps understand customer needs through segmentation and prediction.</p>
+    </div>
+    <div class="gcell">
+      <div class="tag t-bl">📄 Communication</div>
+      <p style="margin:0;font-size:13px">Organizes and interprets vast amounts of textual information.</p>
+    </div>
+  </div>
+
+  <div class="callout callout-g" style="margin-top:16px">
+    <strong>🌟 The Big Picture:</strong> The ability to convert <strong>raw data into actionable insights</strong> has made Machine Learning one of the most influential technologies of the modern era. As data continues to grow, ML applications will only increase — creating smarter systems capable of solving increasingly complex real-world problems.
+  </div>
+</div>
+
+<!-- ══ S10: QUIZ ══ -->
+<div class="section" id="s10">
+  <div class="eyebrow">10 · Practice</div>
+  <h2>Quiz Yourself</h2>
+  <p style="font-size:13px;color:var(--txt-ph)">Score: <span id="quiz-total">0</span> / 10 correct</p>
+
+  <!-- Q1 -->
+  <div class="quiz-card">
+    <div class="quiz-q">Q1. What is the primary goal of disease prediction models in healthcare?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="checkQuiz(this,false,1,'q1fb')">A. To replace doctors entirely</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,true,1,'q1fb')">B. To estimate the probability of a disease occurring using patient data</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,1,'q1fb')">C. To prescribe medicines automatically</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,1,'q1fb')">D. To perform surgery using robots</button>
+    </div>
+    <div class="quiz-feedback" id="q1fb">Correct! Disease prediction models analyze patient information like age, BMI, blood pressure, and lifestyle to <strong>estimate the probability of a disease occurring</strong>, enabling early intervention.</div>
+  </div>
+
+  <!-- Q2 -->
+  <div class="quiz-card">
+    <div class="quiz-q">Q2. What is customer segmentation?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="checkQuiz(this,false,2,'q2fb')">A. Sending the same advertisement to all customers</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,2,'q2fb')">B. Removing inactive customers from databases</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,true,2,'q2fb')">C. Grouping customers based on similar characteristics and behaviors</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,2,'q2fb')">D. Ranking customers by their age</button>
+    </div>
+    <div class="quiz-feedback" id="q2fb">Correct! Customer segmentation divides customers into <strong>meaningful groups based on similar characteristics, preferences, or purchasing behaviors</strong>.</div>
+  </div>
+
+  <!-- Q3 -->
+  <div class="quiz-card">
+    <div class="quiz-q">Q3. Which ML algorithm is commonly used for automatic customer segmentation?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="checkQuiz(this,false,3,'q3fb')">A. Linear Regression</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,3,'q3fb')">B. Decision Trees</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,true,3,'q3fb')">C. K-Means Clustering</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,3,'q3fb')">D. Logistic Regression</button>
+    </div>
+    <div class="quiz-feedback" id="q3fb">Correct! <strong>K-Means Clustering</strong> is an unsupervised algorithm that automatically discovers customer groups by analyzing similarities in behavior — without predefined labels.</div>
+  </div>
+
+  <!-- Q4 -->
+  <div class="quiz-card">
+    <div class="quiz-q">Q4. What is the main objective of targeted marketing?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="checkQuiz(this,false,4,'q4fb')">A. Marketing everything to everyone</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,true,4,'q4fb')">B. Delivering the right product to the right person</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,4,'q4fb')">C. Reducing the number of products offered</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,4,'q4fb')">D. Increasing the price of all products</button>
+    </div>
+    <div class="quiz-feedback" id="q4fb">Correct! Targeted marketing aims to <strong>deliver the right product to the right person</strong> at the right time, improving engagement and sales.</div>
+  </div>
+
+  <!-- Q5 -->
+  <div class="quiz-card">
+    <div class="quiz-q">Q5. How does ML-based fraud detection differ from traditional rule-based systems?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="checkQuiz(this,false,5,'q5fb')">A. It uses fixed rules like "flag transactions over ₹50,000"</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,5,'q5fb')">B. It only works with credit card transactions</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,true,5,'q5fb')">C. It learns complex transaction patterns and adapts as fraud techniques evolve</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,5,'q5fb')">D. It requires manual review of every transaction</button>
+    </div>
+    <div class="quiz-feedback" id="q5fb">Correct! ML systems <strong>learn complex patterns dynamically</strong> and adapt as fraud techniques evolve, unlike fixed rule-based systems.</div>
+  </div>
+
+  <!-- Q6 -->
+  <div class="quiz-card">
+    <div class="quiz-q">Q6. Which of the following is a challenge in fraud detection?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="checkQuiz(this,false,6,'q6fb')">A. Too many fraud cases to analyze</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,true,6,'q6fb')">B. Fraud cases are extremely rare compared to legitimate transactions</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,6,'q6fb')">C. Transactions contain no useful information</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,6,'q6fb')">D. Banks don't have access to transaction data</button>
+    </div>
+    <div class="quiz-feedback" id="q6fb">Correct! <strong>Class imbalance</strong> — fraud cases being extremely rare — is a major challenge that makes detection difficult.</div>
+  </div>
+
+  <!-- Q7 -->
+  <div class="quiz-card">
+    <div class="quiz-q">Q7. What does customer churn refer to?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="checkQuiz(this,false,7,'q7fb')">A. A customer purchasing more products</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,true,7,'q7fb')">B. A customer discontinuing a product or service</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,7,'q7fb')">C. A customer upgrading their subscription</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,7,'q7fb')">D. A customer referring friends to the service</button>
+    </div>
+    <div class="quiz-feedback" id="q7fb">Correct! Churn occurs when a customer <strong>discontinues a product or service</strong>, such as cancelling a subscription or switching providers.</div>
+  </div>
+
+  <!-- Q8 -->
+  <div class="quiz-card">
+    <div class="quiz-q">Q8. What is text classification?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="checkQuiz(this,false,8,'q8fb')">A. Converting images into text</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,8,'q8fb')">B. Translating text from one language to another</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,true,8,'q8fb')">C. Assigning predefined categories to textual data</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,8,'q8fb')">D. Generating new text from images</button>
+    </div>
+    <div class="quiz-feedback" id="q8fb">Correct! Text classification assigns <strong>predefined categories</strong> to text data, enabling automated organization of emails, reviews, news articles, etc.</div>
+  </div>
+
+  <!-- Q9 -->
+  <div class="quiz-card">
+    <div class="quiz-q">Q9. Which of the following is an example of sentiment analysis?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="checkQuiz(this,false,9,'q9fb')">A. Detecting spam emails</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,9,'q9fb')">B. Categorizing news articles by topic</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,true,9,'q9fb')">C. Classifying a review as Positive or Negative</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,9,'q9fb')">D. Counting the number of words in a document</button>
+    </div>
+    <div class="quiz-feedback" id="q9fb">Correct! Sentiment analysis classifies text (like reviews) as <strong>Positive, Negative, or Neutral</strong> based on the expressed opinion.</div>
+  </div>
+
+  <!-- Q10 -->
+  <div class="quiz-card">
+    <div class="quiz-q">Q10. What is the common cycle followed by all ML applications?</div>
+    <div class="quiz-options">
+      <button class="quiz-opt" onclick="checkQuiz(this,false,10,'q10fb')">A. Code → Test → Deploy → Monitor</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,true,10,'q10fb')">B. Data Collection → Pattern Discovery → Model Training → Prediction → Better Decisions</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,10,'q10fb')">C. Design → Develop → Debug → Ship</button>
+      <button class="quiz-opt" onclick="checkQuiz(this,false,10,'q10fb')">D. Input → Process → Output → Feedback</button>
+    </div>
+    <div class="quiz-feedback" id="q10fb">Correct! Every ML application follows the cycle: <strong>Data Collection → Pattern Discovery → Model Training → Prediction → Better Decisions</strong>.</div>
+  </div>
+</div>
+
+<!-- Bottom nav -->
+<div class="page-nav">
+  <a class="page-nav-btn" href="index_11.html">← Back to Module 5</a>
+  <a class="page-nav-btn primary" href="../index.html">Home →</a>
+</div>
+
+</main>
+</div><!-- /page-grid -->
+
+<script>
+/* ── Theme ── */
+let isLight = localStorage.getItem('theme') === 'light';
+function applyTheme() {
+  document.documentElement.classList.toggle('light', isLight);
+  const i = isLight ? '◑' : '☀', l = isLight ? 'Light' : 'Dark';
+  if(document.getElementById('tog-icon')) document.getElementById('tog-icon').textContent = i;
+  if(document.getElementById('tog-txt')) document.getElementById('tog-txt').textContent = l + ' theme';
+  if(document.getElementById('theme-lbl')) document.getElementById('theme-lbl').textContent = l;
+  const m = document.getElementById('mob-tog'); if(m) m.textContent = i;
+}
+applyTheme();
+function toggleTheme(){
+  isLight = !isLight;
+  localStorage.setItem('theme', isLight?'light':'dark');
+  applyTheme();
+}
+
+/* ── Scroll active nav ── */
+const secs = Array.from(document.querySelectorAll('.section[id]'));
+let lastId = '', rafP = false;
+window.addEventListener('scroll', () => {
+  if(rafP) return; rafP = true;
+  requestAnimationFrame(() => {
+    rafP = false;
+    const trigger = window.scrollY + window.innerHeight * .28;
+    let active = secs[0];
+    for(const s of secs){ if(s.offsetTop <= trigger) active = s; else break; }
+    if(active && active.id !== lastId){
+      lastId = active.id;
+      document.querySelectorAll('.nav-item, .drawer-nav-item').forEach(n => {
+        n.classList.toggle('active', n.getAttribute('href') === '#' + active.id);
+      });
+    }
+  });
+}, { passive: true });
+
+/* ── Drawer ── */
+function buildDrawer(){
+  const dr = document.getElementById('nav-drawer');
+  const sn = document.getElementById('sidenav');
+  if(!sn || !dr) return;
+  const cl = sn.cloneNode(true);
+  cl.removeAttribute('id'); cl.removeAttribute('class');
+  cl.querySelectorAll('.nav-item').forEach(el => { el.classList.add('drawer-nav-item'); el.addEventListener('click', closeDrawer); });
+  const tog = cl.querySelector('.tog-area'); if(tog) tog.remove();
+  const cb = document.createElement('button');
+  cb.textContent = '✕ Close';
+  cb.style.cssText = 'font-family:"IBM Plex Mono",monospace;font-size:11px;background:transparent;border:none;border-bottom:1px solid var(--bdr-00);color:var(--txt-ph);padding:12px 16px;width:100%;text-align:left;cursor:pointer';
+  cb.onclick = closeDrawer;
+  dr.insertBefore(cb, dr.firstChild);
+  dr.appendChild(cl);
+}
+function toggleDrawer(){
+  const ov = document.getElementById('nav-overlay'), dr = document.getElementById('nav-drawer');
+  if(dr.classList.contains('open')){ closeDrawer(); }
+  else { ov.style.display = 'block'; setTimeout(() => ov.classList.add('open'), 10); dr.classList.add('open'); document.body.style.overflow = 'hidden'; }
+}
+function closeDrawer(){
+  const ov = document.getElementById('nav-overlay'), dr = document.getElementById('nav-drawer');
+  ov.classList.remove('open'); dr.classList.remove('open'); document.body.style.overflow = '';
+  setTimeout(() => { ov.style.display = 'none'; }, 270);
+}
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeDrawer(); });
+document.fonts.ready.then(() => buildDrawer());
+
+/* ── Quiz ── */
+let quizScore = 0;
+const answered = new Set();
+function checkQuiz(el, isCorrect, qNum, fbId){
+  if(answered.has(qNum)) return;
+  answered.add(qNum);
+  
+  el.classList.add(isCorrect ? 'correct' : 'wrong');
+  if(isCorrect){
+    quizScore++;
+    document.getElementById('quiz-total').textContent = quizScore;
+  } else {
+    el.parentElement.querySelectorAll('.quiz-opt').forEach(b=>{
+      if(b.getAttribute('onclick').includes('true')) b.classList.add('correct');
+    });
+  }
+  
+  const fb = document.getElementById(fbId);
+  fb.style.display = 'block';
+  el.parentElement.querySelectorAll('.quiz-opt').forEach(b=>{
+    b.disabled = true;
+    b.style.cursor = 'default';
+  });
+}
+
+/* ── Code Protection ── */
+(function(){
+  var _p=function(e){e.preventDefault();return false;};
+  document.addEventListener('contextmenu',_p);
+  document.addEventListener('keydown',function(e){
+    var k=(e.key||'').toUpperCase(),c=e.ctrlKey||e.metaKey,s=e.shiftKey;
+    if(e.key==='F12'||(c&&s&&['I','J','C','K'].includes(k))||(c&&['U','S','P'].includes(k))){
+      e.preventDefault();return false;
+    }
+  },true);
+  document.addEventListener('dragstart',_p);
+})();
+</script>
+<script src="../tony_keys.js"></script>
+<script src="../tony.js"></script>
+</body>
+</html>

@@ -674,7 +674,7 @@ h1 em{font-style:italic;color:var(--link)}
   </a>
 
   <!-- Module 5 -->
-  <a class="module-card m5 bottom-card" href="#">
+  <a class="module-card m5 bottom-card" href="module5/index_11.html">
     <div class="module-num">
       <div class="module-num-badge">5</div>
       Module 05
@@ -733,8 +733,8 @@ h1 em{font-style:italic;color:var(--link)}
       </div>
       <div class="pb-row">
         <span class="pb-lbl">Module 05</span>
-        <div class="pb-track"><div class="pb-fill" style="width:0%;background:var(--m5)"></div></div>
-        <span class="pb-pct">—</span>
+        <div class="pb-track"><div class="pb-fill" style="width:100%;background:var(--m5)"></div></div>
+        <span class="pb-pct" style="color:var(--m5)">Live</span>
       </div>
     </div>
   </div>
@@ -779,7 +779,7 @@ h1 em{font-style:italic;color:var(--link)}
     <div class="qb-open" style="color:var(--m2)">Access bank →</div>
   </div>
 
-  <div class="qb-card locked" data-mod="3">
+  <div class="qb-card" data-mod="3" onclick="openQB(3)">
     <div class="qb-top">
       <span class="qb-badge" style="background:var(--m3);color:var(--bg)">3</span>
       <span class="qb-lock">🔒</span>
@@ -787,9 +787,10 @@ h1 em{font-style:italic;color:var(--link)}
     <div class="qb-title">Module 03 Questions</div>
     <div class="qb-sub">Ensemble Learning</div>
     <div class="qb-meta">
-      <span class="qb-chip qb-chip-dim">Coming soon</span>
+      <span class="qb-chip" style="background:var(--tag-pur-bg);color:var(--tag-pur-tx)">Short answer</span>
+      <span class="qb-chip" style="background:var(--tag-pur-bg);color:var(--tag-pur-tx)">Long answer</span>
     </div>
-    <div class="qb-open" style="color:var(--txt-ph)">Not available yet</div>
+    <div class="qb-open" style="color:var(--m3)">Access bank →</div>
   </div>
 
   <div class="qb-card" data-mod="4" onclick="openQB(4)" style="grid-column:span 1">
@@ -807,22 +808,23 @@ h1 em{font-style:italic;color:var(--link)}
     <div class="qb-open" style="color:var(--m4)">Access bank →</div>
   </div>
 
-  <div class="qb-card locked" data-mod="5">
+  <div class="qb-card" data-mod="5" onclick="openQB(5)">
     <div class="qb-top">
       <span class="qb-badge" style="background:var(--m5);color:var(--bg)">5</span>
       <span class="qb-lock">🔒</span>
     </div>
     <div class="qb-title">Module 05 Questions</div>
-    <div class="qb-sub">ML Applications</div>
+    <div class="qb-sub">ML Applications Across Industries</div>
     <div class="qb-meta">
-      <span class="qb-chip qb-chip-dim">Coming soon</span>
+      <span class="qb-chip" style="background:var(--tag-tel-bg);color:var(--tag-tel-tx)">Short answer</span>
+      <span class="qb-chip" style="background:var(--tag-tel-bg);color:var(--tag-tel-tx)">Long answer</span>
     </div>
-    <div class="qb-open" style="color:var(--txt-ph)">Not available yet</div>
+    <div class="qb-open" style="color:var(--m5)">Access bank →</div>
   </div>
 
   <div style="background:var(--layer-01);padding:28px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:8px">
     <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-ph);letter-spacing:.08em;text-transform:uppercase;text-align:center">Total questions</div>
-    <div style="font-family:'IBM Plex Mono',monospace;font-size:40px;font-weight:600;color:var(--txt-pri)" id="total-q-count">70+</div>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:40px;font-weight:600;color:var(--txt-pri)" id="total-q-count">150+</div>
     <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-ph)">across all modules</div>
   </div>
 
@@ -935,7 +937,7 @@ async function _sha(s){
 
 let _mod=0;
 const _modTitles=['','Module 01 — Introduction to ML','Module 02 — Classification','Module 03 — Ensemble Learning','Module 04 — Clustering','Module 05 — Applications'];
-const _modFiles=['','ml_module1_questions.html','ml_module2_questions.html','','',''];
+const _modFiles=['','ml_module1_questions.html','ml_module2_questions.html','ml_module3_questions.html','ml_module4_questions.html','ml_module5_questions.html'];
 
 function togglePWVisibility(){
   const i=document.getElementById('pw-input');
@@ -1090,13 +1092,13 @@ const US_INDEX = [
     desc:'Anomaly detection · Z-Score · IQR · DBSCAN Noise · Global & Contextual outliers',
     tags:['outlier','anomaly detection','z-score','iqr','dbscan','noise','global','contextual','collective'],
     url:'module4/outlier_detection.html', live:true },
-  // ── Module 5 (Coming soon) ──
+  // ── Module 5 ──
   { module:5, accentVar:'--m5', title:'ML in Healthcare',
     desc:'Disease prediction · Medical imaging · Diagnosis models',
-    tags:['healthcare','disease prediction','medical','diagnosis'], url:null, live:false },
+    tags:['healthcare','disease prediction','medical','diagnosis'], url:'module5/applications.html#s2', live:true },
   { module:5, accentVar:'--m5', title:'ML in Business',
     desc:'Customer segmentation · Fraud detection · Churn prediction · NLP',
-    tags:['business','customer segmentation','fraud detection','churn','nlp','text classification'], url:null, live:false },
+    tags:['business','customer segmentation','fraud detection','churn','nlp','text classification'], url:'module5/applications.html#s3', live:true },
 ];
 
 const M_NAMES = {1:'Intro to ML',2:'Classification',3:'Ensemble',4:'Clustering',5:'Applications'};

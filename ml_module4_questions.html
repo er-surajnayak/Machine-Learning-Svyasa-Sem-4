@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/svg+xml" href="machine-learning-model.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Module 04 Question Bank | Clustering &amp; Outlier Detection</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;1,300&family=IBM+Plex+Serif:ital,wght@0,300;1,300&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#161616;--layer-01:#262626;--layer-02:#393939;--layer-03:#525252;
+  --hover-01:#333333;--bdr-00:#393939;--bdr-01:#474747;--bdr-str:#6f6f6f;
+  --txt-pri:#f4f4f4;--txt-sec:#c6c6c6;--txt-ph:#6f6f6f;
+  --blue:#4589ff;--link:#78a9ff;--success:#42be65;--warn:#f1c21b;--error:#ff8389;--teal:#3ddbd9;--purple:#d4bbff;
+  --m4:#f1c21b;
+  --ac:var(--m4);
+}
+html.light{
+  --bg:#fff;--layer-01:#f4f4f4;--layer-02:#e0e0e0;--layer-03:#c6c6c6;
+  --hover-01:#e8e8e8;--bdr-00:#e0e0e0;--bdr-01:#c6c6c6;--bdr-str:#8d8d8d;
+  --txt-pri:#161616;--txt-sec:#525252;--txt-ph:#8d8d8d;
+  --blue:#0f62fe;--link:#0043ce;--success:#198038;--warn:#b28600;--error:#da1e28;--teal:#007d79;--purple:#6929c4;
+  --ac:#b28600;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'IBM Plex Sans',sans-serif;font-size:15px;line-height:1.5;background:var(--bg);color:var(--txt-pri);-webkit-font-smoothing:antialiased;transition:background .25s,color .2s}
+
+/* Topbar */
+.topbar{position:sticky;top:0;z-index:100;background:var(--layer-01);border-bottom:1px solid var(--bdr-00);height:60px;display:flex;align-items:center;padding:0 40px;gap:16px;transition:background .25s}
+.topbar-logo{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;letter-spacing:.1em;color:var(--txt-pri);text-transform:uppercase;display:flex;align-items:center;gap:10px}
+.logo-mark{width:28px;height:28px;background:transparent;display:flex;align-items:center;justify-content:center}
+.logo-mark img{width:100%;height:100%;object-fit:contain}
+.topbar-divider{width:1px;height:20px;background:var(--bdr-00)}
+.topbar-title{font-size:14px;color:var(--txt-sec);font-weight:300}
+
+.tog-btn{margin-left:auto;display:flex;align-items:center;gap:8px;padding:6px 12px;background:transparent;border:1px solid var(--bdr-01);cursor:pointer;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--txt-sec);letter-spacing:.05em;transition:background .15s}
+.tog-btn:hover{background:var(--hover-01);color:var(--txt-pri)}
+.tog-track{width:28px;height:14px;background:var(--bdr-str);border-radius:7px;position:relative;flex-shrink:0;transition:background .25s}
+.tog-thumb{position:absolute;top:2px;left:2px;width:10px;height:10px;border-radius:50%;background:#fff;transition:transform .25s}
+html.light .tog-track{background:var(--ac)}
+html.light .tog-thumb{transform:translateX(14px)}
+
+/* Layout */
+.main-wrap{max-width:1000px;margin:0 auto;padding:64px 40px 120px}
+
+/* Header */
+.page-header{margin-bottom:64px}
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;letter-spacing:.12em;color:var(--ac);text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:10px}
+.eyebrow::before{content:'';display:inline-block;width:20px;height:1px;background:var(--ac)}
+h1{font-family:'IBM Plex Serif',serif;font-size:clamp(34px,5vw,52px);font-weight:300;line-height:1.1;color:var(--txt-pri);margin-bottom:16px}
+.header-desc{font-size:17px;font-weight:300;color:var(--txt-sec);max-width:700px;line-height:1.6}
+
+/* Sections */
+.section{margin-bottom:100px}
+.section-hdr{margin-bottom:36px;border-bottom:1px solid var(--bdr-00);padding-bottom:12px;display:flex;align-items:baseline;gap:12px}
+.section-idx{font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;color:var(--ac)}
+.section-lbl{font-family:'IBM Plex Serif',serif;font-size:24px;font-weight:300;color:var(--txt-pri);letter-spacing:-.2px}
+.section-sub{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-ph);text-transform:uppercase;letter-spacing:.1em;margin-left:auto}
+
+/* Question Card */
+.q-card{background:var(--layer-01);border:1px solid var(--bdr-00);margin-bottom:1px;transition:background .15s}
+.q-card:hover{background:var(--hover-01)}
+.q-hdr{padding:20px 24px;display:flex;gap:16px;cursor:pointer;align-items:flex-start}
+.q-num{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ac);font-weight:600;min-width:24px;margin-top:2px}
+.q-text{font-size:15px;font-weight:400;color:var(--txt-pri);line-height:1.4;flex:1}
+.q-badge{font-family:'IBM Plex Mono',monospace;font-size:9px;padding:2px 8px;background:var(--layer-02);color:var(--txt-ph);border:1px solid var(--bdr-01);text-transform:uppercase;letter-spacing:.05em}
+
+/* Sticky Nav for Sections */
+.nav-dots{position:fixed;right:40px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:16px;z-index:90}
+.nav-dot{width:8px;height:8px;border:1px solid var(--bdr-str);border-radius:50%;transition:background .2s,border-color .2s}
+.nav-dot.active{background:var(--ac);border-color:var(--ac)}
+
+/* Footer */
+.footer{border-top:1px solid var(--bdr-00);padding:40px 0;display:flex;justify-content:space-between;align-items:center;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--txt-ph)}
+.back-home{color:var(--link);text-decoration:none;display:flex;align-items:center;gap:6px;transition:opacity .15s}
+.back-home:hover{opacity:.7}
+
+@media(max-width:640px){
+  .topbar{padding:0 20px}
+  .main-wrap{padding:40px 20px 80px}
+  .nav-dots{display:none}
+  .q-hdr{padding:16px}
+  .footer{flex-direction:column;gap:20px;text-align:center}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-logo">
+    <div class="logo-mark">
+      <img src="machine-learning-model.svg" alt="ML Icon">
+    </div>
+    Machine Learning
+  </div>
+  <div class="topbar-divider"></div>
+  <span class="topbar-title">Module 04 Question Bank</span>
+  <button class="tog-btn" onclick="toggleTheme()">
+    <span id="tog-icon">☀</span>
+    <span id="tog-txt">Light</span>
+    <span class="tog-track"><span class="tog-thumb"></span></span>
+  </button>
+</header>
+
+<div class="nav-dots">
+  <a href="#part-a" class="nav-dot active" title="Part A"></a>
+  <a href="#part-b" class="nav-dot" title="Part B"></a>
+</div>
+
+<div class="main-wrap">
+  
+  <header class="page-header">
+    <div class="eyebrow">Module 04: Question Bank</div>
+    <h1>Question Bank:<br><em>Clustering &amp; Outlier Detection</em></h1>
+    <p class="header-desc">Part A covers short-answer questions on K-Means, hierarchical clustering, cluster validity measures, and outlier detection. Part B covers detailed long-answer and numerical questions on algorithms, comparisons, and problem solving.</p>
+  </header>
+
+  <!-- Section 1: Part A -->
+  <section class="section" id="part-a">
+    <div class="section-hdr">
+      <span class="section-idx">01</span>
+      <h2 class="section-lbl">Part A: Short Answer Questions</h2>
+      <span class="section-sub">15 questions</span>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">01</span>
+        <span class="q-text">What is clustering in Machine Learning? Explain its purpose.</span>
+        <span class="q-badge">Core</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">02</span>
+        <span class="q-text">Explain the different types of clustering techniques.</span>
+        <span class="q-badge">Core</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">03</span>
+        <span class="q-text">What is Partitional Clustering? Give an example.</span>
+        <span class="q-badge">Partitional</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">04</span>
+        <span class="q-text">What is K-Means clustering? State its objective.</span>
+        <span class="q-badge">K-Means</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">05</span>
+        <span class="q-text">Explain the steps involved in the K-Means clustering algorithm.</span>
+        <span class="q-badge">K-Means</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">06</span>
+        <span class="q-text">What is the Elbow Method? Why is it used in K-Means clustering?</span>
+        <span class="q-badge">Elbow</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">07</span>
+        <span class="q-text">What is Hierarchical Clustering?</span>
+        <span class="q-badge">Hierarchical</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">08</span>
+        <span class="q-text">Differentiate between Agglomerative and Divisive Clustering.</span>
+        <span class="q-badge">Diff</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">09</span>
+        <span class="q-text">What are Linkage Methods in Hierarchical Clustering?</span>
+        <span class="q-badge">Linkage</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">10</span>
+        <span class="q-text">Explain Single Linkage, Complete Linkage, and Average Linkage methods.</span>
+        <span class="q-badge">Linkage</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">11</span>
+        <span class="q-text">What are Intra-Cluster Similarity Measures?</span>
+        <span class="q-badge">Validity</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">12</span>
+        <span class="q-text">Differentiate between Cohesion and Separation.</span>
+        <span class="q-badge">Diff</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">13</span>
+        <span class="q-text">What are Cluster Validity Measures?</span>
+        <span class="q-badge">Validity</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">14</span>
+        <span class="q-text">What is a Silhouette Score? How is it interpreted?</span>
+        <span class="q-badge">Silhouette</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">15</span>
+        <span class="q-text">What is an Outlier? Explain the different types of outliers.</span>
+        <span class="q-badge">Outlier</span>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- Section 2: Part B + Numericals -->
+  <section class="section" id="part-b">
+    <div class="section-hdr">
+      <span class="section-idx">02</span>
+      <h2 class="section-lbl">Part B: Long Answer &amp; Numericals</h2>
+      <span class="section-sub">17 questions</span>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">01</span>
+        <span class="q-text">Explain clustering in Machine Learning and discuss its various types with suitable examples.</span>
+        <span class="q-badge">Core</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">02</span>
+        <span class="q-text">Explain the K-Means clustering algorithm with its working steps and objective function.</span>
+        <span class="q-badge">K-Means</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">03</span>
+        <span class="q-text">Explain the Elbow Method and how it is used to determine the optimal value of K.</span>
+        <span class="q-badge">Elbow</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">04</span>
+        <span class="q-text">Explain Hierarchical Clustering and discuss its types.</span>
+        <span class="q-badge">Hierarchical</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">05</span>
+        <span class="q-text">Explain Agglomerative Clustering and Divisive Clustering with suitable examples.</span>
+        <span class="q-badge">Hierarchical</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">06</span>
+        <span class="q-text">Explain Linkage Methods in Hierarchical Clustering. Compare Single, Complete, and Average Linkage methods.</span>
+        <span class="q-badge">Linkage</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">07</span>
+        <span class="q-text">Explain Intra-Cluster Similarity Measures and their role in clustering.</span>
+        <span class="q-badge">Validity</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">08</span>
+        <span class="q-text">Differentiate between Cohesion and Separation with examples.</span>
+        <span class="q-badge">Diff</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">09</span>
+        <span class="q-text">Explain Cluster Validity Measures and discuss the Silhouette Score in detail.</span>
+        <span class="q-badge">Silhouette</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">10</span>
+        <span class="q-text">What is an Outlier? Explain different types of outliers with examples.</span>
+        <span class="q-badge">Outlier</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">11</span>
+        <span class="q-text">Explain methods used for Outlier Detection. Discuss the Z-Score method in detail.</span>
+        <span class="q-badge">Z-Score</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">12</span>
+        <span class="q-text">Explain the DBSCAN clustering algorithm with its working steps.</span>
+        <span class="q-badge">DBSCAN</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">13</span>
+        <span class="q-text">Discuss the advantages of DBSCAN as both a clustering and outlier detection technique.</span>
+        <span class="q-badge">DBSCAN</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">14</span>
+        <span class="q-text">Compare K-Means, Hierarchical Clustering, and DBSCAN.</span>
+        <span class="q-badge">Comparison</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">15</span>
+        <span class="q-text">Apply K-Means clustering (K = 2) for the following 2D points: A (1,1), B (2,1), C (4,3), D (5,4). Show all iterations and final clusters.</span>
+        <span class="q-badge">Numerical</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">16</span>
+        <span class="q-text">Perform K-Means clustering for the dataset A = {1, 2, 3, 10, 11, 12} using (a) K = 2 and (b) K = 3. Show all iterations and final clusters.</span>
+        <span class="q-badge">Numerical</span>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-hdr">
+        <span class="q-num">17</span>
+        <span class="q-text">Perform K-Means clustering for the dataset B = {1, 3, 5, 11, 13, 15} using (a) K = 2 and (b) K = 3. Show all iterations and final clusters.</span>
+        <span class="q-badge">Numerical</span>
+      </div>
+    </div>
+
+  </section>
+
+  <footer class="footer">
+    <a href="index.html" class="back-home">← Back to Course Home</a>
+    <div>© 2024 · B.Tech CSE Semester 4 · Machine Learning</div>
+  </footer>
+
+</div>
+
+<script>
+// Theme toggle
+let isLight = localStorage.getItem('theme') === 'light';
+function applyTheme(){
+  document.documentElement.classList.toggle('light',isLight);
+  const i=isLight?'◑':'☀',t=isLight?'Dark':'Light';
+  if(document.getElementById('tog-icon')) document.getElementById('tog-icon').textContent=i;
+  if(document.getElementById('tog-txt')) document.getElementById('tog-txt').textContent=t;
+}
+applyTheme();
+
+function toggleTheme(){
+  isLight=!isLight;
+  localStorage.setItem('theme', isLight?'light':'dark');
+  applyTheme();
+}
+
+// ── Code Protection ──
+(function(){
+  var _p=function(e){e.preventDefault();return false;};
+  document.addEventListener('contextmenu',_p);
+  document.addEventListener('keydown',function(e){
+    var k=(e.key||'').toUpperCase(),c=e.ctrlKey||e.metaKey,s=e.shiftKey;
+    if(e.key==='F12'||(c&&s&&['I','J','C','K'].includes(k))||
+       (c&&['U','S','P'].includes(k))){
+      e.preventDefault();return false;
+    }
+  },true);
+})();
+
+// Scroll active dots
+const secs = Array.from(document.querySelectorAll('section[id]'));
+function syncDots(id){
+  document.querySelectorAll('.nav-dot').forEach(d=>{
+    d.classList.toggle('active', d.getAttribute('href')==='#'+id);
+  });
+}
+let lastId='', rafP=false;
+window.addEventListener('scroll',()=>{
+  if(rafP)return; rafP=true;
+  requestAnimationFrame(()=>{
+    rafP=false;
+    const trigger=window.scrollY+window.innerHeight*.3;
+    let active=secs[0];
+    for(const s of secs){if(s.offsetTop<=trigger)active=s;else break;}
+    if(active&&active.id!==lastId){lastId=active.id;syncDots(active.id);}
+  });
+},{passive:true});
+</script>
+<script src="./tony_keys.js"></script>
+<script src="./tony.js"></script>
+</body>
+</html>
